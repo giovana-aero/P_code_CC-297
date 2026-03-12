@@ -1,0 +1,23 @@
+[variáveis]
+<<física>>
+alpha - coeficiente de condução térmica
+lx - comprimento em x
+ly - comprimento em y
+
+<<condições de contorno (dirichlet)>>
+Tu - temperatura, topo
+Td - temperatura, baixo
+Tl - temperatura, esquerda
+Tr - temperatura, direita
+
+<<malha>>
+nx - número de pontos, direção x
+ny - número de pontos, direção y
+
+
+
+[funções]
+<<main>>
+todas as variáveis
+
+<<  >>
