@@ -1,5 +1,6 @@
 #include<stdio.h>
-#include"../../../include/gigi_lib.h"
+#include"../../include/gigi_lib.h"
+
 
 int main(){
 
