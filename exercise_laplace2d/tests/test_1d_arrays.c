@@ -1,5 +1,5 @@
 #include<stdio.h>
-#include"../../include/gigi_lib.h"
+#include"../../include/1d_arrays.h"
 
 int main(){
 
@@ -7,17 +7,17 @@ int main(){
 
   double v[n];
 
-  // ones_1d(n,v);
+  ones_1d(n,v);
   print_1d_array(n,v);
   putchar('\n');
   
-  // zeros_1d(n,v);
+  zeros_1d(n,v);
   print_1d_array(n,v);
   putchar('\n');
 
-  // fill_2d_array(m,n,A);
-  // print_2d_array(m,n,A);
-  // putchar('\n');
+  fill_1d_array(n,v);
+  print_1d_array(n,v);
+  putchar('\n');
 
   return 0;
   

@@ -1,6 +1,6 @@
 #include<stdio.h>
-#include"../../include/gigi_lib.h"
-
+// #include"../../include/gigi_lib.so"
+#include"../../include/2d_arrays.h"
 
 int main(){
 
