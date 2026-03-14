@@ -7,9 +7,9 @@ Fills a 2d array with increasing values
 */
 void fill_2d_array(int m,int n,double A[m][n]){
   int k = 0;
-  for(int i=0;i<m;i++){
-    for(int j=0;j<n;j++){
-      A[i][j] = (double) k;
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++){
+      A[j][i] = (double) k;
       k++;
     }
   }
@@ -19,9 +19,9 @@ void fill_2d_array(int m,int n,double A[m][n]){
 - gigiaero, 10/03/2026, 1345 hours
 */
 void ones_2d(int m,int n,double A[m][n]){
-  for(int i=0;i<m;i++){
-    for(int j=0;j<n;j++)
-      A[i][j] = 1.;
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++)
+      A[j][i] = 1.;
   }
 }
 
@@ -29,9 +29,9 @@ void ones_2d(int m,int n,double A[m][n]){
 - gigiaero, 10/03/2026, 1346 hours
 */
 void print_2d_array(int m,int n,double A[m][n]){
-  for(int i=0;i<m;i++){
-    for(int j=0;j<n;j++)
-      printf("%f ",A[i][j]);
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++)
+      printf("%f ",A[j][i]);
     putchar('\n');
   }
 }
@@ -40,8 +40,8 @@ void print_2d_array(int m,int n,double A[m][n]){
 - gigiaero, 10/03/2026, 1346 hours
 */
 void zeros_2d(int m,int n,double A[m][n]){
-  for(int i=0;i<m;i++){
-    for(int j=0;j<n;j++)
-      A[i][j] = 0.;
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++)
+      A[j][i] = 0.;
   }
 }

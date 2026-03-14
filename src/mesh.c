@@ -1,7 +1,7 @@
 #include"../include/mesh.h"
 
-void uniform_rectangular_mesh(int m,int n,double *x,double *y,double delta_x,
-  double delta_y){
+void uniform_rectangular_mesh(int m,int n,double delta_x,double delta_y,
+  double *x,double *y){
 
 x[0] = 0.;
 y[0] = 0.;
