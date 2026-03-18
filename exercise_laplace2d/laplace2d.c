@@ -1,10 +1,50 @@
 #include<stdio.h>
+#include<stdlib.h>
 #include"../include/1d_arrays.h"
 #include"../include/2d_arrays.h"
 #include"../include/b_conditions.h"
 #include"../include/mesh.h"
 
+void evaluate_delta_form(int m,int n,double phi[m][n],int Ntype){
+
+  switch(Ntype){
+    case 1:
+      puts("Point Jacobi");
+
+      break;
+
+    case 2:
+      puts("Gauss-Seidel");
+
+      break;
+
+    case 3:
+      puts("SOR");
+
+      break;
+
+    case 4:
+      puts("Line-Gauss-Seidel");
+
+      break;
+
+    case 5:
+      puts("SLOR");
+
+      break;
+
+    default:
+      puts("evaluate_delta_form: Invalid Ntype");
+      exit(32);
+
+  }
+
+}
+
 int main(){
+
+  // Solution configurations
+  int Ntype = 1;
 
   // Mesh
   int m = 5;
@@ -37,6 +77,7 @@ int main(){
   dirichlet_rectangular_constant(m,n,T,Tr,range_v,n-1,1);
 
   // Solve
+  evaluate_delta_form(m,n,T,Ntype);
   
 
   // Print results to file
