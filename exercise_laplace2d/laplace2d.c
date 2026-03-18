@@ -37,10 +37,10 @@ int main(){
   dirichlet_rectangular_constant(m,n,T,Tr,range_v,n-1,1);
 
   // Solve
-
+  
 
   // Print results to file
-  
+
 
   // print_2d_array(m,n,T);
 
