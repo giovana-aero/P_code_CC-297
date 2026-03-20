@@ -1,4 +1,5 @@
 #include<stdio.h>
+#include<stdlib.h>
 #include"../../include/1d_arrays.h"
 
 void operator1(double *x){
@@ -38,6 +39,10 @@ void execute(int op,int n,double *v){
     case 3:
       f = operator3;
       break;
+    
+    default:
+      puts("Invalid op");
+      exit(32);
   }
 
   for(int i=0;i<n;i++)
@@ -60,6 +65,10 @@ void execute2(int op,int n,double *v){
     case 3:
       f = operator3;
       break;
+    
+    default:
+      puts("Invalid op");
+      exit(32);
   }
 
   loop(f,n,v);
@@ -68,7 +77,7 @@ void execute2(int op,int n,double *v){
 int main(){
 
   int n = 5;
-  int op = 1;
+  int op = 2;
   double v[n];
   
   fill_1d_array(n,v);
@@ -81,13 +90,11 @@ int main(){
   execute2(op,n,v);
   print_1d_array(n,v);
   
-
   // double (*f)(double);
   // double x = 3.;
   // f = operator0;
   // x = f(3);
   // printf("%f\n",x);
-
 
   return 0;
 }

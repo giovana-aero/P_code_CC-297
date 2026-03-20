@@ -1,6 +1,17 @@
 #include<stdio.h>
 #include"../include/2d_arrays.h"
 
+/*
+- gigiaero, 19/03/2026, 2200 hours
+*/
+void copy_2d_array(int m,int n,double A[m][n],double B[m][n]){
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++)
+      B[j][i] = A[j][i];
+    
+  }
+}
+
 /* 
 Fills a 2d array with increasing values
 - gigiaero, 10/03/2026, 1344 hours

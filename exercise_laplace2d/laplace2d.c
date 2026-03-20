@@ -1,16 +1,28 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<math.h>
 #include"../include/1d_arrays.h"
 #include"../include/2d_arrays.h"
 #include"../include/b_conditions.h"
 #include"../include/mesh.h"
 
+double delta_xy(double *xy,int i){
+  return (xy[i+1] - xy[i-1])/2.;
+}
+
+void N_p_jacobi(double *N,double *x,double *y,int i,int j){
+  *N = -(2./(delta_xy(x,i)*delta_xy(x,i)) - 
+         2./(delta_xy(y,j),2)*delta_xy(y,j),2);
+}
+
 void evaluate_delta_form(int m,int n,double phi[m][n],int Ntype){
+  double phi_old[m][n];
+  void (*N_op)(double*,double*,double*,int,int);
 
   switch(Ntype){
     case 1:
       puts("Point Jacobi");
-
+      N_op = N_p_jacobi;
       break;
 
     case 2:
@@ -45,6 +57,8 @@ int main(){
 
   // Solution configurations
   int Ntype = 1;
+  int max_iter = 100;
+  double eps = 1.e-5; // Convergence criterion
 
   // Mesh
   int m = 5;
@@ -52,7 +66,7 @@ int main(){
 
   // Physical properties
   double alpha = 1.; // CONFIRMAR ISTO
-  double lx = 2.;
+  double lx = 4.;
   double ly = 2.;
 
   // Boundary conditions
@@ -70,7 +84,7 @@ int main(){
   zeros_2d(m,n,T);
   uniform_rectangular_mesh(m,n,delta_x,delta_y,x,y);
 
-  // Initialize boundary conditions
+  // // Initialize boundary conditions
   dirichlet_rectangular_constant(m,n,T,Tu,range_h,m-1,0);
   dirichlet_rectangular_constant(m,n,T,Td,range_h,0,0);
   dirichlet_rectangular_constant(m,n,T,Tl,range_v,0,1);
