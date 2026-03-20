@@ -1,10 +1,31 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
 #include"../include/1d_arrays.h"
 #include"../include/2d_arrays.h"
 #include"../include/b_conditions.h"
 #include"../include/mesh.h"
 #include"../include/num_methods.h"
+#include"../include/strings.h"
+
+/*
+- gigiaero, 20/03/2026, 0058 hours
+*/
+void print_2d_array_to_file(int m,int n,double A[m][n],char *filename){
+
+  FILE *output;
+
+  output = fopen(filename,"w");
+  
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++)
+      fprintf(output,"%.6f ",A[j][i]);
+    
+    fprintf(output,"\n");
+  }
+
+  fclose(output);
+}
 
 /*
 - gigiaero, 19/03/2026, 2333 hours
@@ -43,6 +64,13 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
 
   double phi_old[m][n];
   double N;
+  char filename[200], buffer[100];
+  int q_counter = 0, str_end_idx;
+
+  strcat(filename,config->casename);
+  strcat(filename,"_iter");
+
+  find_str_end(filename,&str_end_idx);
 
   for(int iter=1;iter<=config->max_iter;iter++){
     copy_2d_array(m,n,phi,phi_old);
@@ -57,6 +85,14 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
     }
 
     printf("Iteration %d\n",iter);
+
+    if(iter%config->qtimes == 0){
+      itoa(iter,buffer,10);
+      strcat(filename,buffer);
+      strcat(filename,".dat");
+      print_2d_array_to_file(m,n,phi,filename);
+      filename[str_end_idx] = '\0'; // reset string to replace iter
+    }
   }
 }
 
@@ -104,7 +140,9 @@ int main(){
   sim_parameters config;
   config.Ntype = 1;
   config.max_iter = 100;
+  config.qtimes = 10;
   config.eps = 1.e-5; // Convergence criterion
+  char output_file[] = "results/laplace2d";
 
   // Mesh
   int m = 5;
@@ -140,15 +178,15 @@ int main(){
   dirichlet_rectangular_constant(m,n,T,Tr,range_v,n-1,1);
 
   // Solve
-  print_2d_array(m,n,T);
+  strcat(config.casename,output_file);
+  // print_2d_array(m,n,T);
   evaluate_delta_form(m,n,T,x,y,&config);
-  putchar('\n');
-  print_2d_array(m,n,T);
+  // putchar('\n');
+  // print_2d_array(m,n,T);
 
   // Print results to file
-
-
-  // print_2d_array(m,n,T);
+  // strcat(config.casename,"_test.txt");
+  // print_2d_array_to_file(m,n,T,config.casename);
 
   return 0;
 }
