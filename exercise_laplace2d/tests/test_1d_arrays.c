@@ -7,11 +7,11 @@ int main(){
 
   double v[n];
 
-  ones_1d(n,v);
+  ones_1d_array(n,v);
   print_1d_array(n,v);
   putchar('\n');
   
-  zeros_1d(n,v);
+  zeros_1d_array(n,v);
   print_1d_array(n,v);
   putchar('\n');
 

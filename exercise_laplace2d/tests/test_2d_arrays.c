@@ -9,11 +9,11 @@ int main(){
 
   double A[m][n];
 
-  ones_2d(m,n,A);
+  ones_2d_array(m,n,A);
   print_2d_array(m,n,A);
   putchar('\n');
   
-  zeros_2d(m,n,A);
+  zeros_2d_array(m,n,A);
   print_2d_array(m,n,A);
   putchar('\n');
 

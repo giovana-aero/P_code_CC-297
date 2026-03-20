@@ -15,7 +15,7 @@ void fill_1d_array(int n,double *v){
 /*
 - gigiaero, 12/03/2026, 1704 hours
 */
-void ones_1d(int n,double *v){
+void ones_1d_array(int n,double *v){
   for(int i=0;i<n;i++)
     v[i] = 1.;
 }
@@ -33,7 +33,7 @@ void print_1d_array(int n,double *v){
 /*
 - gigiaero, 12/03/2026, 1704 hours
 */
-void zeros_1d(int n,double *v){
+void zeros_1d_array(int n,double *v){
   for(int i=0;i<n;i++)
     v[i] = 0.;
 }

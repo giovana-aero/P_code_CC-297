@@ -2,6 +2,7 @@
 #include"../include/2d_arrays.h"
 
 /*
+Copy array A to B
 - gigiaero, 19/03/2026, 2200 hours
 */
 void copy_2d_array(int m,int n,double A[m][n],double B[m][n]){
@@ -29,7 +30,7 @@ void fill_2d_array(int m,int n,double A[m][n]){
 /*
 - gigiaero, 10/03/2026, 1345 hours
 */
-void ones_2d(int m,int n,double A[m][n]){
+void ones_2d_array(int m,int n,double A[m][n]){
   for(int j=0;j<m;j++){
     for(int i=0;i<n;i++)
       A[j][i] = 1.;
@@ -50,7 +51,7 @@ void print_2d_array(int m,int n,double A[m][n]){
 /*
 - gigiaero, 10/03/2026, 1346 hours
 */
-void zeros_2d(int m,int n,double A[m][n]){
+void zeros_2d_array(int m,int n,double A[m][n]){
   for(int j=0;j<m;j++){
     for(int i=0;i<n;i++)
       A[j][i] = 0.;
