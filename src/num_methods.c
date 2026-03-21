@@ -3,6 +3,13 @@
 #include"../include/num_methods.h"
 
 /*
+- gigiaero, 19/03/2026, 2318 hours
+*/
+double delta_xy(double *xy,int i){
+  return (xy[i+1] - xy[i-1])/2.;
+}
+
+/*
 This was based on series 02's question 5. Also works if some of the diagonals 
 are zero (except the main one)
 - gigiaero, 18/03/2026, 1620 hours

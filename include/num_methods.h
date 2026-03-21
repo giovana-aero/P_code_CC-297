@@ -13,6 +13,7 @@ typedef struct s_parameters{
   char casename[200];
 }sim_parameters;
 
+double delta_xy(double *xy,int i);
 void diagonal_matrix_solver(int n,double A[n][n],double *f,double *u);
 double scheme_der2_o2_central(double phi_ip1,double phi_i,double phi_im1,
                               double x_ip1,double x_i,double x_im1);

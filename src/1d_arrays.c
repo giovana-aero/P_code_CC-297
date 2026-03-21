@@ -30,6 +30,17 @@ void print_1d_array(int n,double *v){
   putchar('\n');
 }
 
+void print_1d_array_to_file(int n,double *v,char *filename){
+  FILE *output;
+
+  output = fopen(filename,"w");
+
+  for(int i=0;i<n;i++)
+    fprintf(output,"%f ",v[i]);
+
+  fclose(output);
+}
+
 /*
 - gigiaero, 12/03/2026, 1704 hours
 */

@@ -9,25 +9,6 @@
 #include"../include/strings.h"
 
 /*
-- gigiaero, 20/03/2026, 0058 hours
-*/
-void print_2d_array_to_file(int m,int n,double A[m][n],char *filename){
-
-  FILE *output;
-
-  output = fopen(filename,"w");
-  
-  for(int j=0;j<m;j++){
-    for(int i=0;i<n;i++)
-      fprintf(output,"%.6f ",A[j][i]);
-    
-    fprintf(output,"\n");
-  }
-
-  fclose(output);
-}
-
-/*
 - gigiaero, 19/03/2026, 2333 hours
 */
 void scheme_der2_o2_central_var_deltas_xy(double *f,int m,int n,
@@ -39,13 +20,6 @@ void scheme_der2_o2_central_var_deltas_xy(double *f,int m,int n,
        2./(y[j+1] - y[j-1])*
        ((phi[j+1][i] - phi[j][i])/(y[j+1] - y[j]) - 
        (phi[j][i] - phi[j-1][i])/(y[j] - y[j-1]));
-}
-
-/*
-- gigiaero, 19/03/2026, 2318 hours
-*/
-double delta_xy(double *xy,int i){
-  return (xy[i+1] - xy[i-1])/2.;
 }
 
 /*
@@ -63,14 +37,27 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
                                    double *y,sim_parameters *config){
 
   double phi_old[m][n];
+  int res[config->max_iter];
   double N;
-  char filename[200], buffer[100];
+  char filename_save[200], filename_log[200], buffer[100];
   int q_counter = 0, str_end_idx;
 
-  strcat(filename,config->casename);
-  strcat(filename,"_iter");
+  // Configure log file
+  strcat(filename_log,"_log.log");
 
-  find_str_end(filename,&str_end_idx);
+  // Save mesh
+  strcat(filename_save,config->casename);
+  find_str_end(filename_save,&str_end_idx);
+  strcat(filename_save,"_mesh_x.msh");
+  print_1d_array_to_file(n,x,filename_save);
+  filename_save[str_end_idx] = '\0';
+  strcat(filename_save,"_mesh_y.msh");
+  print_1d_array_to_file(m,y,filename_save);
+
+  // Prepare string to save simulation data  
+  filename_save[str_end_idx] = '\0';
+  strcat(filename_save,"_iter");
+  find_str_end(filename_save,&str_end_idx);
 
   for(int iter=1;iter<=config->max_iter;iter++){
     copy_2d_array(m,n,phi,phi_old);
@@ -88,10 +75,10 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
 
     if(iter%config->qtimes == 0){
       itoa(iter,buffer,10);
-      strcat(filename,buffer);
-      strcat(filename,".dat");
-      print_2d_array_to_file(m,n,phi,filename);
-      filename[str_end_idx] = '\0'; // reset string to replace iter
+      strcat(filename_save,buffer);
+      strcat(filename_save,".dat");
+      print_2d_array_to_file(m,n,phi,filename_save,1);
+      filename_save[str_end_idx] = '\0'; // reset string to replace iter
     }
   }
 }
@@ -154,12 +141,32 @@ int main(){
   double ly = 2.;
 
   // Boundary conditions
-  double Tu = 1.;
-  double Td = 2.;
-  double Tl = 3.;
-  double Tr = 4.;
-  int range_h[] = {1,n-1};
-  int range_v[] = {1,m-1};
+  int num_b_cs = 4;
+  b_conditions_2d b_c[num_b_cs];
+  b_c[0].type = 'D';
+  b_c[0].val = 1.;
+  b_c[0].axis = 1;
+  b_c[0].position = 0;
+  b_c[0].range[0] = 1;
+  b_c[0].range[1] = n-1;
+  b_c[1].type = 'D';
+  b_c[1].val = 2.;
+  b_c[1].axis = 2;
+  b_c[1].position = n-1;
+  b_c[1].range[0] = 1;
+  b_c[1].range[1] = m-1;
+  b_c[2].type = 'D';
+  b_c[2].val = 3.;
+  b_c[2].axis = 1;
+  b_c[2].position = m-1;
+  b_c[2].range[0] = 1;
+  b_c[2].range[1] = n-1;
+  b_c[3].type = 'D';
+  b_c[3].val = 4.;
+  b_c[3].axis = 2;
+  b_c[3].position = 0;
+  b_c[3].range[0] = 1;
+  b_c[3].range[1] = m-1;
 
   // Initialize mesh and temperature array
   double x[n], y[m]; 
@@ -171,18 +178,19 @@ int main(){
   // print_1d_array(n,x);
   // print_1d_array(m,y);
 
-  // // Initialize boundary conditions
-  dirichlet_rectangular_constant(m,n,T,Tu,range_h,m-1,0);
-  dirichlet_rectangular_constant(m,n,T,Td,range_h,0,0);
-  dirichlet_rectangular_constant(m,n,T,Tl,range_v,0,1);
-  dirichlet_rectangular_constant(m,n,T,Tr,range_v,n-1,1);
+  // Initialize boundary conditions
+  apply_b_cs(m,n,T,num_b_cs,b_c);
+  // dirichlet_rectangular_constant(m,n,T,Tu,range_h,m-1,0);
+  // dirichlet_rectangular_constant(m,n,T,Td,range_h,0,0);
+  // dirichlet_rectangular_constant(m,n,T,Tl,range_v,0,1);
+  // dirichlet_rectangular_constant(m,n,T,Tr,range_v,n-1,1);
 
   // Solve
   strcat(config.casename,output_file);
   // print_2d_array(m,n,T);
-  evaluate_delta_form(m,n,T,x,y,&config);
+  // evaluate_delta_form(m,n,T,x,y,&config);
   // putchar('\n');
-  // print_2d_array(m,n,T);
+  print_2d_array(m,n,T);
 
   // Print results to file
   // strcat(config.casename,"_test.txt");
