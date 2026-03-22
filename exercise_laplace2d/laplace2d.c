@@ -1,3 +1,4 @@
+#include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -30,15 +31,16 @@ void N_p_jacobi(double *N,double *x,double *y,int i,int j){
          2./(delta_xy(y,j)*delta_xy(y,j)));
 }
 
-double calc_residual(int m,int n,double A[m][n]){
+/*
+- gigiaero, 22/03/2026, 0958 hours
+*/
+void calc_residual(double *phi_elem,double *phi_old_elem,double *N_elem,
+                   double *res_elem,double *val){
 
-  double res = 0.;
+  *val = fabs((*N_elem)*((*phi_elem) - (*phi_old_elem)));
 
-  for(int j=0;j<m;j++){
-    for(int i=0;i<n;i++)
-      printf("%f ",A[j][i]);
-  }
-
+  if(*val > *res_elem)
+    *res_elem = *val;
 }
 
 /*
@@ -46,20 +48,28 @@ double calc_residual(int m,int n,double A[m][n]){
 */
 void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
                                    double *y,sim_parameters *config){
-
-  // double phi_old[m][n];
-  // double N[m][n];
+  // Solver variables
   double (*phi_old)[n] = calloc(m,sizeof *phi_old);
   double (*N)[n] = calloc(m,sizeof *N);
   double L_phi;
-  int res[config->max_iter];
+  // Save files
   char *filename_save = malloc(sizeof(char)*200);
-  char *filename_log = malloc(sizeof(char)*200);
   char *buffer = malloc(sizeof(char)*200);
   int q_counter = 0, str_end_idx;
+  // Residuals
+  char *filename_log = malloc(sizeof(char)*200);
+  double *res = calloc(config->max_iter,sizeof(double));
+  double val;
+  FILE *file_log;
 
   // Configure log file
-  strcat(filename_log,"_log.log");
+  strcat(filename_log,config->casename);
+  strcat(filename_log,".log");
+  // Reset it, if exists, then reopen
+  puts(filename_log);
+  file_log = fopen(filename_log,"w");
+  fclose(file_log);
+  file_log = fopen(filename_log,"a");
 
   // Save mesh
   strcat(filename_save,config->casename);
@@ -87,10 +97,12 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
       for(int i=1;i<n-1;i++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi,x,y,i,j);
         phi[j][i] = -L_phi/N[j][i] + phi_old[j][i];
+
+        calc_residual(&phi[j][i],&phi_old[j][i],&N[j][i],&res[iter],&val);
       }
     }
 
-    printf("Iteration %d\n",iter);
+    printf("Iteration %d | Res %.6e\n",iter,res[iter]);
 
     if(iter%config->qtimes == 0){
       itoa(iter,buffer,10);
@@ -100,9 +112,12 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
       filename_save[str_end_idx] = '\0'; // reset string to replace iter
     }
 
-    // avaliação de resíduos fica aqui
+    fprintf(file_log,"%.6e\n",res[iter]);
 
-    
+    if(res[iter] <= config->eps){
+      puts("<< Convergence! >>");
+      break;
+    }
   }
 
   free(phi_old);
@@ -110,6 +125,8 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
   free(filename_save);
   free(filename_log);
   free(buffer);
+  free(res);
+  fclose(file_log);
 }
 
 /*
@@ -155,14 +172,14 @@ int main(){
   // Solution configurations
   sim_parameters config;
   config.Ntype = 1;
-  config.max_iter = 100;
+  config.max_iter = 5000;
   config.qtimes = 10;
   config.eps = 1.e-5; // Convergence criterion
   char output_file[] = "results/laplace2d";
 
   // Mesh
-  int m = 30;
-  int n = 30;
+  int m = 50;
+  int n = 50;
 
   // Physical properties
   // double alpha = 1.; // CONFIRMAR ISTO

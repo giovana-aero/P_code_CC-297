@@ -30,13 +30,26 @@ void print_1d_array(int n,double *v){
   putchar('\n');
 }
 
+/*
+- gigiaero, 22/03/2026, 0950 hours
+*/
+void print_1d_array_int(int n,int *v){
+  for(int i=0;i<n;i++)
+    printf("%d ",v[i]);
+
+  putchar('\n');
+}
+
+/*
+- gigiaero, 20/03/2026, 2300 hours
+*/
 void print_1d_array_to_file(int n,double *v,char *filename){
   FILE *output;
 
   output = fopen(filename,"w");
 
   for(int i=0;i<n;i++)
-    fprintf(output,"%.6f ",v[i]);
+    fprintf(output,"%.6f\n",v[i]);
 
   fclose(output);
 }
