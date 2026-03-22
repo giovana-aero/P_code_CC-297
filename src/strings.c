@@ -2,7 +2,7 @@
 // #include<stdio.h>
 
 /*
-Marks where the '\0' character is located
+Marks where the last character is located
 - gigiaero, 20/03/2026, 0041 hours
 */
 void find_str_end(char *string,int *idx){

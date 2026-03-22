@@ -3,7 +3,7 @@
 
 /*
 Defined in the context of laplace2d
--gigiaero, 20/03/2026, 1436 hours
+- gigiaero, 20/03/2026, 1436 hours
 */
 typedef struct B_conditions_2d{
   char type;

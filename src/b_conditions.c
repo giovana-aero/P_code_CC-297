@@ -3,7 +3,7 @@
 #include"../include/b_conditions.h"
 
 /*
--gigiaero, 20/03/2026, 2300 hours
+- gigiaero, 20/03/2026, 2300 hours
 */
 void apply_b_cs(int m, int n,double A[m][n],int num_b_cs,b_conditions_2d *b_c){
   for(int i=0;i<num_b_cs;i++){

@@ -1,6 +1,38 @@
+#include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
+#include"../include/2d_arrays.h"
 #include"../include/num_methods.h"
+
+/*
+- gigiaero, 22/03/2026, 0958 hours
+*/
+void calc_residual(double *phi_elem,double *phi_old_elem,double *N_elem,
+                   double *res_elem){
+
+double val;
+val = fabs((*N_elem)*((*phi_elem) - (*phi_old_elem)));
+
+if(val > *res_elem)
+*res_elem = val;
+}
+
+/*
+- gigiaero, 22/03/2026, 1063 hours
+*/
+int check_num_digits_int(int *num){
+  int i = 1;
+  double div = 10.;
+  double d_num = (double) *num;
+
+  while(d_num/div >= 1){
+    div *= 10.;
+    i++;
+  }
+
+  return i;
+}
 
 /*
 - gigiaero, 19/03/2026, 2318 hours
@@ -122,6 +154,32 @@ void diagonal_matrix_solver(int n,double A[n][n],double *f,double *u){
 }
 
 /*
+- gigiaero, 19/03/2026, 2318 hours
+*/
+void N_p_jacobi(double *N,double *x,double *y,int i,int j){
+  *N = -(2./(delta_xy(x,i)*delta_xy(x,i)) + 
+         2./(delta_xy(y,j)*delta_xy(y,j)));
+}
+
+/*
+- gigiaero, 22/03/2026, 1121 hours
+*/
+void save_results_qtimes(int m,int n,double phi[m][n],int *iter,int *qtimes,
+                         char *buffer,char *filename_save,int *str_end_idx){
+  if(*iter%(*qtimes) == 0 || *iter == 0){
+    sprintf(buffer,"%010d",*iter);
+    strcat(filename_save,buffer);
+    strcat(filename_save,".dat");
+    print_2d_array_to_file(m,n,phi,filename_save,1);
+    filename_save[*str_end_idx] = '\0'; // reset string to replace iter number
+
+    if(*iter == 0)
+      *iter++;
+  }
+}
+
+
+/*
 Scheme: second derivative, second order, central
 - gigiaero, 13/03/2026, 2315 hours
 */
@@ -131,4 +189,18 @@ double scheme_der2_o2_central(double phi_ip1,double phi_i,double phi_im1,
   return 2./(x_ip1 - x_im1)*((phi_ip1 - phi_i)/(x_ip1 - x_i) - 
          (phi_i - phi_im1)/(x_i - x_im1));
 
+}
+
+/*
+- gigiaero, 19/03/2026, 2333 hours
+*/
+void scheme_der2_o2_central_var_deltas_xy(double *f,int m,int n,
+                                          double phi[m][n],double *x,double *y,
+                                          int i,int j){
+*f = 2./(x[i+1] - x[i-1])*
+((phi[j][i+1] - phi[j][i])/(x[i+1] - x[i]) - 
+(phi[j][i] - phi[j][i-1])/(x[i] - x[i-1])) + 
+2./(y[j+1] - y[j-1])*
+((phi[j+1][i] - phi[j][i])/(y[j+1] - y[j]) - 
+(phi[j][i] - phi[j-1][i])/(y[j] - y[j-1]));
 }
