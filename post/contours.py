@@ -29,9 +29,10 @@ def execute(address,casename):
   file_list = str(check_output(['ls',address]))
   all_results = re.findall(r'(' + casename + r'\d{10}.dat)',file_list)
 
-  qtimes = int(all_results[1][len(casename):-4])
-  last_save = int(all_results[-1][len(casename):-4])
-  numfiles = len(all_results)
+
+  # qtimes = int(all_results[1][len(casename):-4])
+  # last_save = int(all_results[-1][len(casename):-4])
+  # numfiles = len(all_results)
 
   results = []
   for save_file in all_results:

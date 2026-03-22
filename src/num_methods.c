@@ -3,19 +3,21 @@
 #include<stdlib.h>
 #include<string.h>
 #include"../include/2d_arrays.h"
+#include"../include/mesh.h"
 #include"../include/num_methods.h"
+#include"../include/strings.h"
+
 
 /*
 - gigiaero, 22/03/2026, 0958 hours
 */
 void calc_residual(double *phi_elem,double *phi_old_elem,double *N_elem,
                    double *res_elem){
+  double val;
+  val = fabs((*N_elem)*((*phi_elem) - (*phi_old_elem)));
 
-double val;
-val = fabs((*N_elem)*((*phi_elem) - (*phi_old_elem)));
-
-if(val > *res_elem)
-*res_elem = val;
+  if(val > *res_elem)
+    *res_elem = val;
 }
 
 /*
@@ -156,6 +158,43 @@ void diagonal_matrix_solver(int n,double A[n][n],double *f,double *u){
 /*
 - gigiaero, 19/03/2026, 2318 hours
 */
+void evaluate_delta_form(int m,int n,double phi[m][n],double *x,double *y,
+                        sim_parameters *config){
+  switch(config->Ntype){
+    case 1:
+      puts("Point Jacobi");
+      solve_p_jacobi_2d_rectangular(m,n,phi,x,y,config);
+      break;
+
+    case 2:
+      puts("Gauss-Seidel");
+
+      break;
+
+    case 3:
+      puts("SOR");
+
+      break;
+
+    case 4:
+      puts("Line-Gauss-Seidel");
+
+      break;
+
+    case 5:
+      puts("SLOR");
+
+      break;
+
+    default:
+      puts("evaluate_delta_form: Invalid Ntype");
+      exit(32);
+  }
+}
+
+/*
+- gigiaero, 19/03/2026, 2318 hours
+*/
 void N_p_jacobi(double *N,double *x,double *y,int i,int j){
   *N = -(2./(delta_xy(x,i)*delta_xy(x,i)) + 
          2./(delta_xy(y,j)*delta_xy(y,j)));
@@ -163,18 +202,24 @@ void N_p_jacobi(double *N,double *x,double *y,int i,int j){
 
 /*
 - gigiaero, 22/03/2026, 1121 hours
-*/
-void save_results_qtimes(int m,int n,double phi[m][n],int *iter,int *qtimes,
-                         char *buffer,char *filename_save,int *str_end_idx){
-  if(*iter%(*qtimes) == 0 || *iter == 0){
-    sprintf(buffer,"%010d",*iter);
-    strcat(filename_save,buffer);
-    strcat(filename_save,".dat");
-    print_2d_array_to_file(m,n,phi,filename_save,1);
-    filename_save[*str_end_idx] = '\0'; // reset string to replace iter number
 
-    if(*iter == 0)
-      *iter++;
+in this order, the conditions on the internal "if" represent the normal 
+operation of the function, the first iteration, and the last iteration
+- gigiaero, 22/03/2026 hours
+*/
+void save_results_qtimes(int m,int n,double phi[m][n],int *iter,sim_parameters *s_p,
+                         char *buffer,char *filename_save,int *str_end_idx){
+  if(!s_p->save_last_only){
+    if(*iter%(s_p->qtimes) == 0 || *iter == 0 || buffer[0] == 'L'){
+      sprintf(buffer,"%010d",*iter);
+      strcat(filename_save,buffer);
+      strcat(filename_save,".dat");
+      print_2d_array_to_file(m,n,phi,filename_save,0);
+      filename_save[*str_end_idx] = '\0'; // reset string to replace iter number
+
+      if(*iter == 0)
+        (*iter)++;
+    }
   }
 }
 
@@ -185,10 +230,8 @@ Scheme: second derivative, second order, central
 */
 double scheme_der2_o2_central(double phi_ip1,double phi_i,double phi_im1,
                               double x_ip1,double x_i,double x_im1){
-
   return 2./(x_ip1 - x_im1)*((phi_ip1 - phi_i)/(x_ip1 - x_i) - 
          (phi_i - phi_im1)/(x_i - x_im1));
-
 }
 
 /*
@@ -197,10 +240,92 @@ double scheme_der2_o2_central(double phi_ip1,double phi_i,double phi_im1,
 void scheme_der2_o2_central_var_deltas_xy(double *f,int m,int n,
                                           double phi[m][n],double *x,double *y,
                                           int i,int j){
-*f = 2./(x[i+1] - x[i-1])*
-((phi[j][i+1] - phi[j][i])/(x[i+1] - x[i]) - 
-(phi[j][i] - phi[j][i-1])/(x[i] - x[i-1])) + 
-2./(y[j+1] - y[j-1])*
-((phi[j+1][i] - phi[j][i])/(y[j+1] - y[j]) - 
-(phi[j][i] - phi[j-1][i])/(y[j] - y[j-1]));
+  *f = 2./(x[i+1] - x[i-1])*
+       ((phi[j][i+1] - phi[j][i])/(x[i+1] - x[i]) - 
+       (phi[j][i] - phi[j][i-1])/(x[i] - x[i-1])) + 
+       2./(y[j+1] - y[j-1])*
+       ((phi[j+1][i] - phi[j][i])/(y[j+1] - y[j]) - 
+       (phi[j][i] - phi[j-1][i])/(y[j] - y[j-1]));
+}
+
+/*
+- gigiaero, 19/03/2026, 2338 hours
+*/
+void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
+                                   double *y,sim_parameters *config){
+  // Solver variables
+  double (*phi_old)[n] = calloc(m,sizeof *phi_old);
+  double (*N)[n-2] = calloc(m-2,sizeof *N);
+  double L_phi;
+  int iter = 0;
+  // Save files
+  char *filename_save = malloc(sizeof(char)*200);
+  char *buffer = malloc(sizeof(char)*200);
+  int str_end_idx;
+  // Residuals
+  char *filename_log = malloc(sizeof(char)*200);
+  double *res = calloc(config->max_iter,sizeof(double));
+  FILE *file_log;
+
+  // Configure log file
+  strcat(filename_log,config->casename);
+  strcat(filename_log,".log");
+  // Reset it, if exists, then reopen
+  file_log = fopen(filename_log,"w");
+  fclose(file_log);
+  file_log = fopen(filename_log,"a");
+
+  // Save mesh
+  save_mesh(m,n,x,y,config->casename);
+
+  // Prepare string to save simulation data  
+  strcat(filename_save,config->casename);
+  strcat(filename_save,"_iter_");
+  find_str_end(filename_save,&str_end_idx);
+
+  for(int j=1;j<m-1;j++){
+    for(int i=1;i<n-1;i++)
+      N_p_jacobi(&N[j-1][i-1],x,y,i,j);
+  }
+
+  // Save initial condition
+  save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+
+  for(iter;iter<=config->max_iter;iter++){
+    copy_2d_array(m,n,phi,phi_old);
+
+    for(int j=1;j<m-1;j++){
+      for(int i=1;i<n-1;i++){
+        scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi,x,y,i,j);
+        phi[j][i] = -L_phi/N[j-1][i-1] + phi_old[j][i];
+        calc_residual(&phi[j][i],&phi_old[j][i],&N[j-1][i-1],&res[iter]);
+      }
+    } 
+
+    printf("Iteration %010d | Res %.6e\n",iter,res[iter]);
+
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+
+    fprintf(file_log,"%.6e\n",res[iter]);
+
+    if(res[iter] <= config->eps){
+        puts("<< Convergence! >>");
+        // Save last iteration if it wasn't saved
+        if(iter%config->qtimes != 0){
+          sprintf(buffer,"L");
+          config->save_last_only = 0;
+          save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                              &str_end_idx);
+        }
+        break;
+      }
+    }
+
+  free(phi_old);
+  free(N);
+  free(filename_save);
+  free(filename_log);
+  free(buffer);
+  free(res);
+  fclose(file_log);
 }
