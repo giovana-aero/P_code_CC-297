@@ -10,7 +10,7 @@ typedef struct s_parameters{
   int max_iter;
   int qtimes;
   double eps;
-  char casename[200];
+  char *casename;
 }sim_parameters;
 
 double delta_xy(double *xy,int i);

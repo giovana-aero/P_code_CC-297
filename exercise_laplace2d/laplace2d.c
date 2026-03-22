@@ -30,16 +30,32 @@ void N_p_jacobi(double *N,double *x,double *y,int i,int j){
          2./(delta_xy(y,j)*delta_xy(y,j)));
 }
 
+double calc_residual(int m,int n,double A[m][n]){
+
+  double res = 0.;
+
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++)
+      printf("%f ",A[j][i]);
+  }
+
+}
+
 /*
 - gigiaero, 19/03/2026, 2338 hours
 */
 void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
                                    double *y,sim_parameters *config){
 
-  double phi_old[m][n];
+  // double phi_old[m][n];
+  // double N[m][n];
+  double (*phi_old)[n] = calloc(m,sizeof *phi_old);
+  double (*N)[n] = calloc(m,sizeof *N);
+  double L_phi;
   int res[config->max_iter];
-  double N;
-  char filename_save[200], filename_log[200], buffer[100];
+  char *filename_save = malloc(sizeof(char)*200);
+  char *filename_log = malloc(sizeof(char)*200);
+  char *buffer = malloc(sizeof(char)*200);
   int q_counter = 0, str_end_idx;
 
   // Configure log file
@@ -59,15 +75,18 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
   strcat(filename_save,"_iter");
   find_str_end(filename_save,&str_end_idx);
 
+  for(int j=1;j<m-1;j++){
+    for(int i=1;i<n-1;i++)
+      N_p_jacobi(&N[j][i],x,y,i,j);
+  }
+
   for(int iter=1;iter<=config->max_iter;iter++){
     copy_2d_array(m,n,phi,phi_old);
-    double L_phi, N;
 
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi,x,y,i,j);
-        N_p_jacobi(&N,x,y,i,j);
-        phi[j][i] = -L_phi/N + phi_old[j][i];
+        phi[j][i] = -L_phi/N[j][i] + phi_old[j][i];
       }
     }
 
@@ -80,7 +99,17 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
       print_2d_array_to_file(m,n,phi,filename_save,1);
       filename_save[str_end_idx] = '\0'; // reset string to replace iter
     }
+
+    // avaliação de resíduos fica aqui
+
+    
   }
+
+  free(phi_old);
+  free(N);
+  free(filename_save);
+  free(filename_log);
+  free(buffer);
 }
 
 /*
@@ -132,11 +161,11 @@ int main(){
   char output_file[] = "results/laplace2d";
 
   // Mesh
-  int m = 5;
-  int n = 9;
+  int m = 30;
+  int n = 30;
 
   // Physical properties
-  double alpha = 1.; // CONFIRMAR ISTO
+  // double alpha = 1.; // CONFIRMAR ISTO
   double lx = 4.;
   double ly = 2.;
 
@@ -175,26 +204,16 @@ int main(){
   double delta_y = ly/(m - 1.);
   zeros_2d_array(m,n,T);
   uniform_rectangular_mesh(m,n,delta_x,delta_y,x,y);
-  // print_1d_array(n,x);
-  // print_1d_array(m,y);
 
   // Initialize boundary conditions
   apply_b_cs(m,n,T,num_b_cs,b_c);
-  // dirichlet_rectangular_constant(m,n,T,Tu,range_h,m-1,0);
-  // dirichlet_rectangular_constant(m,n,T,Td,range_h,0,0);
-  // dirichlet_rectangular_constant(m,n,T,Tl,range_v,0,1);
-  // dirichlet_rectangular_constant(m,n,T,Tr,range_v,n-1,1);
 
   // Solve
+  config.casename = malloc(sizeof(char)*200);
   strcat(config.casename,output_file);
-  // print_2d_array(m,n,T);
-  // evaluate_delta_form(m,n,T,x,y,&config);
-  // putchar('\n');
-  print_2d_array(m,n,T);
+  evaluate_delta_form(m,n,T,x,y,&config);
 
-  // Print results to file
-  // strcat(config.casename,"_test.txt");
-  // print_2d_array_to_file(m,n,T,config.casename);
+  free(config.casename);
 
   return 0;
 }

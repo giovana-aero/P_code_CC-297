@@ -36,7 +36,7 @@ void print_1d_array_to_file(int n,double *v,char *filename){
   output = fopen(filename,"w");
 
   for(int i=0;i<n;i++)
-    fprintf(output,"%f ",v[i]);
+    fprintf(output,"%.6f ",v[i]);
 
   fclose(output);
 }
