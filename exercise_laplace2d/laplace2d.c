@@ -20,8 +20,8 @@ int main(){
   char output_file[] = "results/laplace2d";
 
   // Mesh
-  int m = 100;
-  int n = 100;
+  int m = 10;
+  int n = 10;
 
   // Physical properties
   // double alpha = 1.; // CONFIRMAR ISTO
@@ -31,34 +31,36 @@ int main(){
   // Boundary conditions
   int num_b_cs = 4;
   b_conditions_2d b_c[num_b_cs];
+  for(int i=0;i<num_b_cs;i++)
+    b_c[i].val = malloc(sizeof(double));
   // Down
   b_c[0].type = 'D'; 
-  b_c[0].val = 0.;
+  b_c[0].val[0] = 2.;
   b_c[0].axis = 1;
   b_c[0].position = 0;
   b_c[0].range[0] = 1;
-  b_c[0].range[1] = n-1;
+  b_c[0].range[1] = n-2;
   // Right
   b_c[1].type = 'D'; 
-  b_c[1].val = -10.;
+  b_c[1].val[0] = -10.;
   b_c[1].axis = 2;
   b_c[1].position = n-1;
   b_c[1].range[0] = 1;
-  b_c[1].range[1] = m-1;
+  b_c[1].range[1] = m-2;
   // Up
   b_c[2].type = 'D'; 
-  b_c[2].val = 50.;
+  b_c[2].val[0] = 50.;
   b_c[2].axis = 1;
   b_c[2].position = m-1;
   b_c[2].range[0] = 1;
-  b_c[2].range[1] = n-1;
+  b_c[2].range[1] = n-2;
   // Left
   b_c[3].type = 'D'; 
-  b_c[3].val = 10.;
+  b_c[3].val[0] = 10.;
   b_c[3].axis = 2;
   b_c[3].position = 0;
   b_c[3].range[0] = 1;
-  b_c[3].range[1] = m-1;
+  b_c[3].range[1] = m-2;
 
   // Initialize mesh and temperature array
   double *x = malloc(sizeof(double)*n);
@@ -71,12 +73,15 @@ int main(){
 
   // Initialize boundary conditions
   apply_b_cs(m,n,T,num_b_cs,b_c);
+  print_2d_array(m,n,T);
 
   // Solve
   config.casename = malloc(sizeof(char)*200);
-  strcat(config.casename,output_file);
+  strcpy(config.casename,output_file);
   evaluate_delta_form(m,n,T,x,y,&config);
 
+  for(int i=0;i<num_b_cs;i++)
+    free(b_c[i].val);
   free(x);
   free(y);
   free(T);
