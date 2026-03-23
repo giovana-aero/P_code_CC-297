@@ -13,15 +13,15 @@ int main(){
   // Solution configurations
   sim_parameters config;
   config.Ntype = 1;
-  config.max_iter = 100000;
-  config.qtimes = 10;
+  config.max_iter = 50000;
+  config.qtimes = 5;
   config.save_last_only = 1;
   config.eps = 1.e-5; // Convergence criterion
   char output_file[] = "results/laplace2d";
 
   // Mesh
-  int m = 100;
-  int n = 100;
+  int m = 50;
+  int n = 50;
 
   // Physical properties
   // double alpha = 1.;
@@ -29,40 +29,80 @@ int main(){
   double ly = 1.;
 
   // Boundary conditions
-  int num_b_c = 4;
+  int num_b_c = 3;
   b_conditions_2d b_c[num_b_c];
   for(int i=0;i<num_b_c;i++)
     b_c[i].val = malloc(sizeof(double));
+  int counter = 0;
   // Down
-  b_c[0].type = 'D'; 
-  b_c[0].val[0] = 0.;
-  b_c[0].axis = 1;
-  b_c[0].position = 0;
-  b_c[0].range[0] = 1;
-  b_c[0].range[1] = n-2;
+  b_c[counter].type = 'D'; 
+  b_c[counter].val[0] = 0.;
+  b_c[counter].axis = 1;
+  b_c[counter].position = 0;
+  b_c[counter].range[0] = 1;
+  b_c[counter].range[1] = n-2;
+  counter++;
   // Right
-  b_c[1].type = 'D'; 
-  b_c[1].val[0] = 1.;
-  b_c[1].axis = 2;
-  b_c[1].position = n-1;
-  b_c[1].range[0] = 1;
-  b_c[1].range[1] = m-2;
-  // Up
-  b_c[2].type = 'D'; 
-  b_c[2].val[0] = 0.;
-  b_c[2].axis = 1;
-  b_c[2].position = m-1;
-  b_c[2].range[0] = 1;
-  b_c[2].range[1] = n-2;
+  b_c[counter].type = 'D'; 
+  b_c[counter].val[0] = 10.;
+  b_c[counter].axis = 2;
+  b_c[counter].position = n-1;
+  b_c[counter].range[0] = 1;
+  b_c[counter].range[1] = m-2;
+  counter++;
+  // // Up
+  // b_c[counter].type = 'D'; 
+  // b_c[counter].val[0] = 0.;
+  // b_c[counter].axis = 1;
+  // b_c[counter].position = m-1;
+  // b_c[counter].range[0] = 1;
+  // b_c[counter].range[1] = n-2;
+  // counter++;
   // Left
-  b_c[3].type = 'D'; 
-  b_c[3].val[0] = 0.;
-  b_c[3].axis = 2;
-  b_c[3].position = 0;
-  b_c[3].range[0] = 1;
-  b_c[3].range[1] = m-2;
-  // Reapplied boundary conditions (none in this problem)
-  int num_b_c_re = 0;
+  b_c[counter].type = 'D'; 
+  b_c[counter].val[0] = 0.;
+  b_c[counter].axis = 2;
+  b_c[counter].position = 0;
+  b_c[counter].range[0] = 1;
+  b_c[counter].range[1] = m-2;
+
+  // Reapplied boundary conditions
+  int num_b_c_re = 1;
+  b_conditions_2d b_c_re[num_b_c_re];
+  for(int i=0;i<num_b_c_re;i++)
+    b_c_re[i].val = malloc(sizeof(double));
+  counter = 0;
+  // // Down
+  // b_c_re[counter].type = 'N'; 
+  // b_c_re[counter].val[0] = -10.;
+  // b_c_re[counter].axis = 1;
+  // b_c_re[counter].position = 0;
+  // b_c_re[counter].range[0] = 1;
+  // b_c_re[counter].range[1] = n-2;
+  // counter++;
+  // // Right
+  // b_c_re[counter].type = 
+  // b_c_re[counter].val[0] = 0.;
+  // b_c_re[counter].axis = 2;
+  // b_c_re[counter].position = n-1;
+  // b_c_re[counter].range[0] = 1;
+  // b_c_re[counter].range[1] = m-2;
+  // counter++;
+  // Up
+  b_c_re[counter].type = 'N';
+  b_c_re[counter].val[0] = -10.;
+  b_c_re[counter].axis = 1;
+  b_c_re[counter].position = m-1;
+  b_c_re[counter].range[0] = 1;
+  b_c_re[counter].range[1] = n-2;
+  counter++;
+  // // Left
+  // b_c_re[counter].type = 
+  // b_c_re[counter].val[0] = 0.;
+  // b_c_re[counter].axis = 2;
+  // b_c_re[counter].position = 0;
+  // b_c_re[counter].range[0] = 1;
+  // b_c_re[counter].range[1] = m-2;
 
   // Initialize mesh and temperature array
   double *x = malloc(sizeof(double)*n);
@@ -74,15 +114,17 @@ int main(){
   uniform_rectangular_mesh(m,n,delta_x,delta_y,x,y);
 
   // Initialize boundary conditions
-  apply_b_c(m,n,T,num_b_c,b_c);
+  apply_b_c(m,n,T,num_b_c,b_c,x,y);
 
   // Solve
   config.casename = malloc(sizeof(char)*200);
   strcpy(config.casename,output_file);
-  evaluate_delta_form(m,n,T,x,y,&config,num_b_c_re,NULL);
+  evaluate_delta_form(m,n,T,x,y,&config,num_b_c_re,b_c_re);
 
   for(int i=0;i<num_b_c;i++)
     free(b_c[i].val);
+  for(int i=0;i<num_b_c_re;i++)
+    free(b_c_re[i].val);
   free(x);
   free(y);
   free(T);

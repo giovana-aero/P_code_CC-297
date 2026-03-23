@@ -296,6 +296,9 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
   for(iter;iter<=config->max_iter;iter++){
     copy_2d_array(m,n,phi,phi_old);
 
+    // Recalculate boundary conditions (repeated b_cs)
+    apply_b_c(m,n,phi,num_b_c_r,b_c_r,x,y); 
+
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi,x,y,i,j);
@@ -322,8 +325,6 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
         }
         break;
       }
-      // Recalculate boundary conditions (repeated b_cs)
-      apply_b_c(m,n,phi,num_b_c_r,b_c_r); 
     }
 
   free(phi_old);

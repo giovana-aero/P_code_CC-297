@@ -98,8 +98,8 @@ int main(){
 
 
   // Boundary conditions
-  int num_b_cs = 6;
-  b_conditions_2d b_c[num_b_cs];
+  int num_b_c = 6;
+  b_conditions_2d b_c[num_b_c];
   // Down, airfoil
   b_c[0].type = 'd'; 
   b_c[0].axis = 1;
@@ -148,9 +148,39 @@ int main(){
   b_c[5].range[1] = b_a_mesh.IMAX - 2;
   b_c[5].val = malloc(sizeof(double)*(b_c[5].range[1] - b_c[5].range[0] + 1));
   bi_air_dirichlet_vals_free(x,&b_c[5],uinf);
+  
+  // Reapplied boundary conditions
+  int num_b_c_r = 3;
+  b_conditions_2d b_c_r[num_b_c_r];
+  // Down, airfoil
+  b_c[0].type = 'd'; 
+  b_c[0].axis = 1;
+  b_c[0].position = 0;
+  b_c[0].range[0] = b_a_mesh.ILE - 1;
+  b_c[0].range[1] = b_a_mesh.ITE - 1;
+  b_c[0].val = malloc(sizeof(double)*(b_c[0].range[1] - b_c[0].range[0] + 1));
+  bi_air_dirichlet_vals_wall(x,&b_c[0],uinf,t);
+  // Down, upstream of the leading edge
+  b_c[1].type = 'd'; 
+  b_c[1].axis = 1;
+  b_c[1].position = 0;
+  b_c[1].range[0] = 0;
+  b_c[1].range[1] = b_a_mesh.ILE - 2;
+  b_c[1].val = malloc(sizeof(double)*(b_c[1].range[1] - b_c[1].range[0] + 1));
+  bi_air_dirichlet_vals_free(x,&b_c[1],uinf);
+  // Down, downstream of the leading edge
+  b_c[2].type = 'd'; 
+  b_c[2].axis = 1;
+  b_c[2].position = 0;
+  b_c[2].range[0] = b_a_mesh.ITE;
+  b_c[2].range[1] = b_a_mesh.IMAX - 1;
+  b_c[2].val = malloc(sizeof(double)*(b_c[2].range[1] - b_c[2].range[0] + 1));
+  bi_air_dirichlet_vals_free(x,&b_c[2],uinf);
+
+
 
   // Initialize boundary conditions
-  apply_b_cs(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,num_b_cs,b_c);
+  apply_b_c(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,num_b_c,b_c);
 
   // Initialize initial conditions
   for(int j=1;j<b_a_mesh.JMAX-1;j++)
@@ -169,7 +199,7 @@ int main(){
 
 
 
-  for(int i=0;i<num_b_cs;i++)
+  for(int i=0;i<num_b_c;i++)
     free(b_c[i].val);
   free(x);
   free(y);
