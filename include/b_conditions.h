@@ -13,7 +13,7 @@ typedef struct B_conditions_2d{
   int range[2];
 }b_conditions_2d;
 
-void apply_b_cs(int m, int n,double A[m][n],int num_b_cs,b_conditions_2d *b_c);
+void apply_b_c(int m, int n,double A[m][n],int num_b_cs,b_conditions_2d *b_c);
 void dirichlet_rectangular_constant(int m,int n,double A[m][n],
                                     b_conditions_2d *b_c);
 void dirichlet_rectangular_variable(int m,int n,double A[m][n],

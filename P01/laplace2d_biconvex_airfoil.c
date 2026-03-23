@@ -56,6 +56,9 @@
 //     b_c->val[idx] = uinf*bi_air_shape(t,x[i]);
 // }
 
+
+
+
 int main(){
 
   // Solution configurations
@@ -146,22 +149,25 @@ int main(){
   b_c[5].val = malloc(sizeof(double)*(b_c[5].range[1] - b_c[5].range[0] + 1));
   bi_air_dirichlet_vals_free(x,&b_c[5],uinf);
 
-  // printf("%d\n",b_c[5].range[1] - b_c[5].range[0] + 1);
-  // print_1d_array(b_c[5].range[1] - b_c[5].range[0] + 1,b_c[5].val);
-
   // Initialize boundary conditions
   apply_b_cs(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,num_b_cs,b_c);
 
   // Initialize initial conditions
-  
+  for(int j=1;j<b_a_mesh.JMAX-1;j++)
+    copy_1d_array_range(1,b_a_mesh.IMAX-1,phi[b_a_mesh.JMAX-1],phi[j]);
+
+  // Solve
+  config.casename = malloc(sizeof(char)*200);
+  strcpy(config.casename,output_file);
+  // evaluate_delta_form(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,x,y,&config);
+
+  save_mesh(b_a_mesh.JMAX,b_a_mesh.IMAX,x,y,config.casename);
 
   char filename[] = "test.txt";
   print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,filename,1);
 
-  // Solve
-  config.casename = malloc(sizeof(char)*200);
-  // strcpy(config.casename,output_file);
-  // evaluate_delta_form(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,x,y,&config);
+
+
 
   for(int i=0;i<num_b_cs;i++)
     free(b_c[i].val);

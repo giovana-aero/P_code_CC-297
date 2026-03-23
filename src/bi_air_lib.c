@@ -8,12 +8,15 @@ void biconvex_airfoil_mesh(bi_air_mesh *b_a_m,double *x, double*y){
 
   double delta_x = 1./(b_a_m->ITE -b_a_m->ILE);
 
+  // Airfoil
   for(int i=b_a_m->ILE-1;i<b_a_m->ITE;i++)
-    x[i] = (i - b_a_m->ILE)*delta_x;
+    x[i] = ((i + 1.) - b_a_m->ILE)*delta_x;
 
+  // Downstream
   for(int i=b_a_m->ITE;i<b_a_m->IMAX;i++)
     x[i] = x[i-1] + (x[i-1] - x[i-2])*b_a_m->XSF;
 
+  // Upstream
   for(int i=b_a_m->ILE-2;i>=0;i--)
     x[i] = x[i+1] + (x[i+1] - x[i+2])*b_a_m->XSF;
 

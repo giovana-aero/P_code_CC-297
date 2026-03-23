@@ -3,6 +3,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include"../include/2d_arrays.h"
+#include"../include/b_conditions.h"
 #include"../include/mesh.h"
 #include"../include/num_methods.h"
 #include"../include/strings.h"
@@ -159,13 +160,14 @@ void diagonal_matrix_solver(int n,double A[n][n],double *f,double *u){
 - gigiaero, 19/03/2026, 2318 hours
 */
 void evaluate_delta_form(int m,int n,double phi[m][n],double *x,double *y,
-                        sim_parameters *config){
+                        sim_parameters *config,int num_b_c_r,
+                        b_conditions_2d *b_c_r){
   save_mesh(m,n,x,y,config->casename);
 
   switch(config->Ntype){
     case 1:
       puts("Point Jacobi");
-      solve_p_jacobi_2d_rectangular(m,n,phi,x,y,config);
+      solve_p_jacobi_2d_rectangular(m,n,phi,x,y,config,num_b_c_r,b_c_r);
       break;
 
     case 2:
@@ -254,7 +256,8 @@ void scheme_der2_o2_central_var_deltas_xy(double *f,int m,int n,
 - gigiaero, 19/03/2026, 2338 hours
 */
 void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
-                                   double *y,sim_parameters *config){
+                                   double *y,sim_parameters *config,
+                                   int num_b_c_r,b_conditions_2d *b_c_r){
   // Solver variables
   double (*phi_old)[n] = calloc(m,sizeof *phi_old);
   double (*N)[n-2] = calloc(m-2,sizeof *N);
@@ -276,9 +279,6 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
   file_log = fopen(filename_log,"w");
   fclose(file_log);
   file_log = fopen(filename_log,"a");
-
-  // Save mesh
-  // save_mesh(m,n,x,y,config->casename);
 
   // Prepare string to save simulation data  
   strcpy(filename_save,config->casename);
@@ -322,6 +322,8 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
         }
         break;
       }
+      // Recalculate boundary conditions (repeated b_cs)
+      apply_b_c(m,n,phi,num_b_c_r,b_c_r); 
     }
 
   free(phi_old);

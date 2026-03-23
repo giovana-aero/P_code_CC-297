@@ -20,18 +20,21 @@ int check_num_digits_int(int *num);
 double delta_xy(double *xy,int i);
 void diagonal_matrix_solver(int n,double A[n][n],double *f,double *u);
 void evaluate_delta_form(int m,int n,double phi[m][n],double *x,double *y,
-                         sim_parameters *config);
+                         sim_parameters *config,int num_b_c_r,
+                         b_conditions_2d *b_c_r);
 void N_p_jacobi(double *N,double *x,double *y,int i,int j);
 // void save_results_qtimes(int m,int n,double phi[m][n],int *iter,int *qtimes,
 //                          char *buffer,char *filename_save,int *str_end_idx);
-void save_results_qtimes(int m,int n,double phi[m][n],int *iter,sim_parameters *s_p,
-  char *buffer,char *filename_save,int *str_end_idx);
+void save_results_qtimes(int m,int n,double phi[m][n],int *iter,
+                         sim_parameters *s_p,char *buffer,char *filename_save,
+                         int *str_end_idx);
 double scheme_der2_o2_central(double phi_ip1,double phi_i,double phi_im1,
                               double x_ip1,double x_i,double x_im1);
 void scheme_der2_o2_central_var_deltas_xy(double *f,int m,int n,
                                           double phi[m][n],double *x,double *y,
                                           int i,int j);
 void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
-                                   double *y,sim_parameters *config);
+                                   double *y,sim_parameters *config,
+                                   int num_b_c_r,b_conditions_2d *b_c_r);
 
 #endif

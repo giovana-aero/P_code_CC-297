@@ -2,6 +2,16 @@
 #include"../include/1d_arrays.h"
 
 /*
+Copies array v1 to v2 (of same size), with ranges specified with an initial 
+index and a final index
+- gigiaero, 23/03/2026, 1218 hours
+*/
+void copy_1d_array_range(int i_1,int i_f,double *v1,double *v2){
+  for(int i=i_1;i<=i_f;i++)
+    v2[i] = v1[i];
+}
+
+/*
 - gigiaero, 12/03/2026, 2133 hours
 */
 void fill_1d_array(int n,double *v){

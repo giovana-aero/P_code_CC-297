@@ -5,7 +5,7 @@
 /*
 - gigiaero, 20/03/2026, 2300 hours
 */
-void apply_b_cs(int m, int n,double A[m][n],int num_b_cs,b_conditions_2d *b_c){
+void apply_b_c(int m, int n,double A[m][n],int num_b_cs,b_conditions_2d *b_c){
   for(int i=0;i<num_b_cs;i++){
     if(b_c[i].axis != 1 && b_c[i].axis != 2){
       printf("apply_b_cs: Invalid axis specified at b_c[%d]\n",i);
@@ -26,7 +26,7 @@ void apply_b_cs(int m, int n,double A[m][n],int num_b_cs,b_conditions_2d *b_c){
         break;
 
       default:
-        printf("apply_b_cs: invalid type at b_c[%d]\n",i);
+        printf("apply_b_c: invalid type at b_c[%d]\n",i);
         exit(28);
     }
   }

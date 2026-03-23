@@ -13,54 +13,56 @@ int main(){
   // Solution configurations
   sim_parameters config;
   config.Ntype = 1;
-  config.max_iter = 10000;
+  config.max_iter = 100000;
   config.qtimes = 10;
   config.save_last_only = 1;
   config.eps = 1.e-5; // Convergence criterion
   char output_file[] = "results/laplace2d";
 
   // Mesh
-  int m = 10;
-  int n = 10;
+  int m = 100;
+  int n = 100;
 
   // Physical properties
-  // double alpha = 1.; // CONFIRMAR ISTO
+  // double alpha = 1.;
   double lx = 4.;
-  double ly = 2.;
+  double ly = 1.;
 
   // Boundary conditions
-  int num_b_cs = 4;
-  b_conditions_2d b_c[num_b_cs];
-  for(int i=0;i<num_b_cs;i++)
+  int num_b_c = 4;
+  b_conditions_2d b_c[num_b_c];
+  for(int i=0;i<num_b_c;i++)
     b_c[i].val = malloc(sizeof(double));
   // Down
   b_c[0].type = 'D'; 
-  b_c[0].val[0] = 2.;
+  b_c[0].val[0] = 0.;
   b_c[0].axis = 1;
   b_c[0].position = 0;
   b_c[0].range[0] = 1;
   b_c[0].range[1] = n-2;
   // Right
   b_c[1].type = 'D'; 
-  b_c[1].val[0] = -10.;
+  b_c[1].val[0] = 1.;
   b_c[1].axis = 2;
   b_c[1].position = n-1;
   b_c[1].range[0] = 1;
   b_c[1].range[1] = m-2;
   // Up
   b_c[2].type = 'D'; 
-  b_c[2].val[0] = 50.;
+  b_c[2].val[0] = 0.;
   b_c[2].axis = 1;
   b_c[2].position = m-1;
   b_c[2].range[0] = 1;
   b_c[2].range[1] = n-2;
   // Left
   b_c[3].type = 'D'; 
-  b_c[3].val[0] = 10.;
+  b_c[3].val[0] = 0.;
   b_c[3].axis = 2;
   b_c[3].position = 0;
   b_c[3].range[0] = 1;
   b_c[3].range[1] = m-2;
+  // Reapplied boundary conditions (none in this problem)
+  int num_b_c_re = 0;
 
   // Initialize mesh and temperature array
   double *x = malloc(sizeof(double)*n);
@@ -72,15 +74,14 @@ int main(){
   uniform_rectangular_mesh(m,n,delta_x,delta_y,x,y);
 
   // Initialize boundary conditions
-  apply_b_cs(m,n,T,num_b_cs,b_c);
-  print_2d_array(m,n,T);
+  apply_b_c(m,n,T,num_b_c,b_c);
 
   // Solve
   config.casename = malloc(sizeof(char)*200);
   strcpy(config.casename,output_file);
-  evaluate_delta_form(m,n,T,x,y,&config);
+  evaluate_delta_form(m,n,T,x,y,&config,num_b_c_re,NULL);
 
-  for(int i=0;i<num_b_cs;i++)
+  for(int i=0;i<num_b_c;i++)
     free(b_c[i].val);
   free(x);
   free(y);
