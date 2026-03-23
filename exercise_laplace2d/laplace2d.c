@@ -13,15 +13,15 @@ int main(){
   // Solution configurations
   sim_parameters config;
   config.Ntype = 1;
-  config.max_iter = 5000;
+  config.max_iter = 10000;
   config.qtimes = 10;
   config.save_last_only = 1;
   config.eps = 1.e-5; // Convergence criterion
   char output_file[] = "results/laplace2d";
 
   // Mesh
-  int m = 50;
-  int n = 50;
+  int m = 100;
+  int n = 100;
 
   // Physical properties
   // double alpha = 1.; // CONFIRMAR ISTO

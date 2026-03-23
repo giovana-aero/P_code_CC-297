@@ -13,7 +13,7 @@ void save_mesh(int m,int n,double *x,double *y,char *casename){
 
   find_str_end(filename,&str_end_idx);
 
-  strcat(filename,casename);
+  strcpy(filename,casename);
   find_str_end(filename,&str_end_idx);
   strcat(filename,"_mesh_x.msh");
   print_1d_array_to_file(n,x,filename);

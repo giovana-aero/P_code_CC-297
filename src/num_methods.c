@@ -160,6 +160,8 @@ void diagonal_matrix_solver(int n,double A[n][n],double *f,double *u){
 */
 void evaluate_delta_form(int m,int n,double phi[m][n],double *x,double *y,
                         sim_parameters *config){
+  save_mesh(m,n,x,y,config->casename);
+
   switch(config->Ntype){
     case 1:
       puts("Point Jacobi");
@@ -210,14 +212,14 @@ operation of the function, the first iteration, and the last iteration
 void save_results_qtimes(int m,int n,double phi[m][n],int *iter,sim_parameters *s_p,
                          char *buffer,char *filename_save,int *str_end_idx){
   if(!s_p->save_last_only){
-    if(*iter%(s_p->qtimes) == 0 || *iter == 0 || buffer[0] == 'L'){
+    if((*iter)%(s_p->qtimes) == 0 || (*iter) == 0 || buffer[0] == 'L'){
       sprintf(buffer,"%010d",*iter);
       strcat(filename_save,buffer);
       strcat(filename_save,".dat");
       print_2d_array_to_file(m,n,phi,filename_save,0);
       filename_save[*str_end_idx] = '\0'; // reset string to replace iter number
 
-      if(*iter == 0)
+      if((*iter) == 0)
         (*iter)++;
     }
   }
@@ -268,7 +270,7 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
   FILE *file_log;
 
   // Configure log file
-  strcat(filename_log,config->casename);
+  strcpy(filename_log,config->casename);
   strcat(filename_log,".log");
   // Reset it, if exists, then reopen
   file_log = fopen(filename_log,"w");
@@ -276,10 +278,10 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
   file_log = fopen(filename_log,"a");
 
   // Save mesh
-  save_mesh(m,n,x,y,config->casename);
+  // save_mesh(m,n,x,y,config->casename);
 
   // Prepare string to save simulation data  
-  strcat(filename_save,config->casename);
+  strcpy(filename_save,config->casename);
   strcat(filename_save,"_iter_");
   find_str_end(filename_save,&str_end_idx);
 
@@ -312,6 +314,7 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
         puts("<< Convergence! >>");
         // Save last iteration if it wasn't saved
         if(iter%config->qtimes != 0){
+          buffer[0] = '\0';
           sprintf(buffer,"L");
           config->save_last_only = 0;
           save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
