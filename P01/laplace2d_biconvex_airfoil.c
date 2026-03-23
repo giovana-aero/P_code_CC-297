@@ -201,6 +201,8 @@ int main(){
 
   for(int i=0;i<num_b_c;i++)
     free(b_c[i].val);
+  for(int i=0;i<num_b_c_r;i++)
+    free(b_c_r[i].val);
   free(x);
   free(y);
   free(phi);

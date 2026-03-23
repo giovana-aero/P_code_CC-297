@@ -12,16 +12,16 @@ int main(){
 
   // Solution configurations
   sim_parameters config;
-  config.Ntype = 1;
+  config.Ntype = 2;
   config.max_iter = 50000;
-  config.qtimes = 5;
+  config.qtimes = 10;
   config.save_last_only = 1;
   config.eps = 1.e-5; // Convergence criterion
   char output_file[] = "results/laplace2d";
 
   // Mesh
-  int m = 50;
-  int n = 50;
+  int m = 100;
+  int n = 100;
 
   // Physical properties
   // double alpha = 1.;
@@ -29,7 +29,7 @@ int main(){
   double ly = 1.;
 
   // Boundary conditions
-  int num_b_c = 3;
+  int num_b_c = 4;
   b_conditions_2d b_c[num_b_c];
   for(int i=0;i<num_b_c;i++)
     b_c[i].val = malloc(sizeof(double));
@@ -50,14 +50,14 @@ int main(){
   b_c[counter].range[0] = 1;
   b_c[counter].range[1] = m-2;
   counter++;
-  // // Up
-  // b_c[counter].type = 'D'; 
-  // b_c[counter].val[0] = 0.;
-  // b_c[counter].axis = 1;
-  // b_c[counter].position = m-1;
-  // b_c[counter].range[0] = 1;
-  // b_c[counter].range[1] = n-2;
-  // counter++;
+  // Up
+  b_c[counter].type = 'D'; 
+  b_c[counter].val[0] = 0.;
+  b_c[counter].axis = 1;
+  b_c[counter].position = m-1;
+  b_c[counter].range[0] = 1;
+  b_c[counter].range[1] = n-2;
+  counter++;
   // Left
   b_c[counter].type = 'D'; 
   b_c[counter].val[0] = 0.;
@@ -67,7 +67,7 @@ int main(){
   b_c[counter].range[1] = m-2;
 
   // Reapplied boundary conditions
-  int num_b_c_re = 1;
+  int num_b_c_re = 0;
   b_conditions_2d b_c_re[num_b_c_re];
   for(int i=0;i<num_b_c_re;i++)
     b_c_re[i].val = malloc(sizeof(double));
@@ -89,13 +89,13 @@ int main(){
   // b_c_re[counter].range[1] = m-2;
   // counter++;
   // Up
-  b_c_re[counter].type = 'N';
-  b_c_re[counter].val[0] = -10.;
-  b_c_re[counter].axis = 1;
-  b_c_re[counter].position = m-1;
-  b_c_re[counter].range[0] = 1;
-  b_c_re[counter].range[1] = n-2;
-  counter++;
+  // b_c_re[counter].type = 'N';
+  // b_c_re[counter].val[0] = -10.;
+  // b_c_re[counter].axis = 1;
+  // b_c_re[counter].position = m-1;
+  // b_c_re[counter].range[0] = 1;
+  // b_c_re[counter].range[1] = n-2;
+  // counter++;
   // // Left
   // b_c_re[counter].type = 
   // b_c_re[counter].val[0] = 0.;

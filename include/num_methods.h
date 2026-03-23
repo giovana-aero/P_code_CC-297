@@ -33,6 +33,9 @@ double scheme_der2_o2_central(double phi_ip1,double phi_i,double phi_im1,
 void scheme_der2_o2_central_var_deltas_xy(double *f,int m,int n,
                                           double phi[m][n],double *x,double *y,
                                           int i,int j);
+void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,
+                                   double *y,sim_parameters *config,
+                                   int num_b_c_r,b_conditions_2d *b_c_r);
 void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
                                    double *y,sim_parameters *config,
                                    int num_b_c_r,b_conditions_2d *b_c_r);
