@@ -25,7 +25,7 @@ void apply_b_c(int m, int n,double A[m][n],int num_b_c,b_conditions_2d *b_c,
         dirichlet_rectangular_variable(m,n,A,&b_c[i]);
         break;
       
-      case 'N': // Neumann (implemented with central differences)
+      case 'N': // Neumann (implemented with central differences) - as of yet compatible only with p_jacobi!!
         neumann_rectangular_constant(m,n,A,&b_c[i],x,y);
         break;
 

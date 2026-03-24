@@ -7,6 +7,7 @@ Defined in the context of laplace2d
 */
 typedef struct s_parameters{
   int Ntype;
+  double r;
   int max_iter;
   int qtimes; // Set to 0 to save only the final result
   int save_last_only;
@@ -39,5 +40,8 @@ void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,
 void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
                                    double *y,sim_parameters *config,
                                    int num_b_c_r,b_conditions_2d *b_c_r);
+void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
+                              double *y,sim_parameters *config,
+                              int num_b_c_r,b_conditions_2d *b_c_r);
 
 #endif
