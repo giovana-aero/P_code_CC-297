@@ -197,7 +197,7 @@ void evaluate_delta_form(int m,int n,double phi[m][n],double *x,double *y,
 
     case 5:
       puts("SLOR");
-
+      solve_slor_2d_rectangular(m,n,phi,x,y,config,num_b_c_r,b_c_r);
       break;
 
     default:
@@ -433,22 +433,26 @@ void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
 
     for(int i=1;i<n-1;i++){
       scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,1);
-      A[0][0] = -2./dx2[i] - 2/py1[0] - 2/py2[0];
+      A[0][0] = -2./dx2[i] - 2./py1[0] - 2./py2[0];
       A[0][1] = 2./py1[0];
-      f[0] = (phi_old[1][i-1] - 2.*phi_old[1][i])/dx2[i] + d_yy(m,n,phi_old,y,i,1) - L_phi - phi[1][i-1]/dx2[i] - 2./py2[0];
+      f[0] = (phi_old[1][i-1] - 2.*phi_old[1][i])/dx2[i] + 
+             d_yy(m,n,phi_old,y,i,1) - L_phi - phi[1][i-1]/dx2[i] - 2./py2[0];
 
       for(int j=1;j<m-3;j++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,j+1);
         A[j][j-1] = 2./py2[j];
-        A[j][j] = -2./dx2[i] - 2/py1[j] - 2/py2[j];
+        A[j][j] = -2./dx2[i] - 2./py1[j] - 2./py2[j];
         A[j][j+1] = 2./py1[j];
-        f[j] = (phi_old[j+1][i-1] - 2.*phi_old[j+1][i])/dx2[i] + d_yy(m,n,phi_old,y,i,j+1) - L_phi - phi[j+1][i-1]/dx2[i];
+        f[j] = (phi_old[j+1][i-1] - 2.*phi_old[j+1][i])/dx2[i] + 
+               d_yy(m,n,phi_old,y,i,j+1) - L_phi - phi[j+1][i-1]/dx2[i];
       }
 
       scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,m-2);
       A[m-3][m-4] = 2./py2[m-3];
-      A[m-3][m-3] = -2./dx2[i] - 2/py1[m-3] - 2/py2[m-3];
-      f[m-3] = (phi_old[m-2][i-1] - 2.*phi_old[m-2][i])/dx2[i] + d_yy(m,n,phi_old,y,i,m-2) - L_phi - phi[m-2][i-1]/dx2[i] - 2./py1[m-3];
+      A[m-3][m-3] = -2./dx2[i] - 2./py1[m-3] - 2./py2[m-3];
+      f[m-3] = (phi_old[m-2][i-1] - 2.*phi_old[m-2][i])/dx2[i] + 
+               d_yy(m,n,phi_old,y,i,m-2) - L_phi - phi[m-2][i-1]/dx2[i] - 
+               2./py1[m-3];
       
       diagonal_matrix_solver(m-2,A,f,u);
 
@@ -456,7 +460,149 @@ void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
         phi[j][i] = u[j-1];
 
       for(int j=1;j<m-1;j++){
-        val = (phi[j][i-1] - 2.*phi[j][i])/dx2[i] + d_yy(m,n,phi,y,i,j) - (phi_old[j][i-1] - 2.*phi_old[j][i])/dx2[i] - d_yy(m,n,phi_old,y,i,j);
+        val = (phi[j][i-1] - 2.*phi[j][i])/dx2[i] + d_yy(m,n,phi,y,i,j) - 
+              (phi_old[j][i-1] - 2.*phi_old[j][i])/dx2[i] - 
+              d_yy(m,n,phi_old,y,i,j);
+        val = fabs(val);
+        if(val > res[iter])
+          res[iter] = val;
+      }
+    }
+
+    printf("Iteration %010d | Res %.6e\n",iter,res[iter]);
+
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+
+    fprintf(file_log,"%.6e\n",res[iter]);
+
+    if(res[iter] >= div_ref){
+      puts("- Divergence");
+      iter++;
+      break;
+    }
+
+    if(res[iter] <= config->eps){
+      puts("<< Convergence! >>");
+      iter++;
+      break;
+    }
+  }
+
+  // Save last iteration if it wasn't saved
+  if(iter%config->qtimes != 0){
+    // buffer[0] = '\0';
+    sprintf(buffer,"L");
+    config->save_last_only = 0;
+    iter--;
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+    &str_end_idx);
+  }
+
+  free(phi_old);
+  free(A);
+  free(f);
+  free(u);
+  free(dx2);
+  free(py1);
+  free(py2);
+  free(filename_save);
+  free(filename_log);
+  free(buffer);
+  free(res);
+  fclose(file_log);
+}
+
+/*
+- gigiaero, 24/03/2026, 2135 hours
+*/
+void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
+                               sim_parameters *config,
+                               int num_b_c_r,b_conditions_2d *b_c_r){
+  // Solver variables
+  double (*phi_old)[n] = calloc(m,sizeof *phi_old);
+  double (*A)[m-2] = calloc(m-2,sizeof *A);
+  double *f = malloc(sizeof(double)*(m-2));
+  double *u = malloc(sizeof(double)*(m-2));
+  double *dx2 = malloc(sizeof(double)*n);
+  double *py1 = malloc(sizeof(double)*(m-2));
+  double *py2 = malloc(sizeof(double)*(m-2));
+  double L_phi,vars_old,val;
+  double r = config->r;
+  int iter = 0;
+  // Save files
+  char *filename_save = malloc(sizeof(char)*200);
+  char *buffer = malloc(sizeof(char)*200);
+  int str_end_idx;
+  // Residuals
+  char *filename_log = malloc(sizeof(char)*200);
+  double *res = calloc(config->max_iter,sizeof(double));
+  FILE *file_log;
+
+  // Configure log file
+  strcpy(filename_log,config->casename);
+  strcat(filename_log,".log");
+  // Reset it, if exists, then reopen
+  file_log = fopen(filename_log,"w");
+  fclose(file_log);
+  file_log = fopen(filename_log,"a");
+
+  // Prepare string to save simulation data  
+  strcpy(filename_save,config->casename);
+  strcat(filename_save,"_iter_");
+  find_str_end(filename_save,&str_end_idx);
+
+  for(int i=0;i<n;i++){
+    dx2[i] = delta_xy(x,i);
+    dx2[i] *= dx2[i];
+  }
+
+  for(int j=1;j<m-1;j++){
+    py1[j-1] = (y[j+1] - y[j-1])*(y[j+1] - y[j]);
+    py2[j-1] = (y[j+1] - y[j-1])*(y[j] - y[j-1]);
+  }
+
+  // Save initial condition
+  save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+
+  for(iter;iter<=config->max_iter;iter++){
+    copy_2d_array(m,n,phi,phi_old);
+
+    // Recalculate boundary conditions (repeated b_cs)
+    apply_b_c(m,n,phi,num_b_c_r,b_c_r,x,y); 
+
+    for(int i=1;i<n-1;i++){
+      scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,1);
+      A[0][0] = (-2./dx2[i] - 2./py1[0] - 2./py2[0])/r;
+      A[0][1] = 2./py1[0]/r;
+      f[0] = (phi_old[1][i-1] - 2.*phi_old[1][i]/r)/dx2[i] + 
+             d_yy(m,n,phi_old,y,i,1)/r - L_phi - phi[1][i-1]/dx2[i] - 
+             2./py2[0]/r;
+
+      for(int j=1;j<m-3;j++){
+        scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,j+1);
+        A[j][j-1] = 2./py2[j]/r;
+        A[j][j] = (-2./dx2[i] - 2./py1[j] - 2./py2[j])/r;
+        A[j][j+1] = 2./py1[j]/r;
+        f[j] = (phi_old[j+1][i-1] - 2.*phi_old[j+1][i]/r)/dx2[i] + 
+               d_yy(m,n,phi_old,y,i,j+1)/r - L_phi - phi[j+1][i-1]/dx2[i];
+      }
+
+      scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,m-2);
+      A[m-3][m-4] = 2./py2[m-3]/r;
+      A[m-3][m-3] = (-2./dx2[i] - 2./py1[m-3] - 2./py2[m-3])/r;
+      f[m-3] = (phi_old[m-2][i-1] - 2.*phi_old[m-2][i]/r)/dx2[i] + 
+               d_yy(m,n,phi_old,y,i,m-2)/r - L_phi - phi[m-2][i-1]/dx2[i] - 
+               2./py1[m-3]/r;
+      
+      diagonal_matrix_solver(m-2,A,f,u);
+
+      for(int j=1;j<m-1;j++)
+        phi[j][i] = u[j-1];
+
+      for(int j=1;j<m-1;j++){
+        val = (phi[j][i-1] - 2.*phi[j][i]/r)/dx2[i] + d_yy(m,n,phi,y,i,j)/r - 
+              (phi_old[j][i-1] - 2.*phi_old[j][i]/r)/dx2[i] - 
+              d_yy(m,n,phi_old,y,i,j)/r;
         val = fabs(val);
         if(val > res[iter])
           res[iter] = val;

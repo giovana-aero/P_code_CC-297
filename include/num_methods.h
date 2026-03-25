@@ -42,6 +42,9 @@ void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
 void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
                                    double *y,sim_parameters *config,
                                    int num_b_c_r,b_conditions_2d *b_c_r);
+void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
+                               sim_parameters *config,
+                               int num_b_c_r,b_conditions_2d *b_c_r);
 void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
                               double *y,sim_parameters *config,
                               int num_b_c_r,b_conditions_2d *b_c_r);

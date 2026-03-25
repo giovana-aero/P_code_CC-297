@@ -13,8 +13,8 @@ int main(){
 
   // Solution configurations
   sim_parameters config;
-  config.Ntype = 4;
-  config.r = .1;
+  config.Ntype = 5;
+  config.r = 1;
   config.max_iter = 50000;
   config.qtimes = 10;
   config.save_last_only = 1;
@@ -22,8 +22,8 @@ int main(){
   char output_file[] = "results/laplace2d";
 
   // Mesh
-  int m = 100;
-  int n = 100;
+  int m = 50;
+  int n = 50;
 
   // Physical properties
   // double alpha = 1.;
