@@ -28,8 +28,14 @@ void N_p_jacobi(double *N,double *x,double *y,int i,int j);
 void save_results_qtimes(int m,int n,double phi[m][n],int *iter,
                          sim_parameters *s_p,char *buffer,char *filename_save,
                          int *str_end_idx);
-double scheme_der2_o2_central(double phi_ip1,double phi_i,double phi_im1,
-                              double x_ip1,double x_i,double x_im1);
+double scheme_der1_o2_backward(double *f,int m,int n,double phi[m][n],
+                               double *xy,int i,int j,int axis);
+double scheme_der1_o2_central(double *f,int m,int n,double phi[m][n],double *xy,
+                              int i,int j,int axis);
+double scheme_der1_o2_forward(double *f,int m,int n,double phi[m][n],double *xy,
+                              int i,int j,int axis);
+// double scheme_der2_o2_central(double phi_ip1,double phi_i,double phi_im1,
+//                               double x_ip1,double x_i,double x_im1);
 void scheme_der2_o2_central_var_deltas_xy(double *f,int m,int n,
                                           double phi[m][n],double *x,double *y,
                                           int i,int j);

@@ -240,14 +240,70 @@ void save_results_qtimes(int m,int n,double phi[m][n],int *iter,
 
 
 /*
-Scheme: second derivative, second order, central
-- gigiaero, 13/03/2026, 2315 hours
+// Scheme: second derivative, second order, central
+// - gigiaero, 13/03/2026, 2315 hours
+// */
+// double scheme_der2_o2_central(double phi_ip1,double phi_i,double phi_im1,
+//                               double x_ip1,double x_i,double x_im1){
+//   return 2./(x_ip1 - x_im1)*((phi_ip1 - phi_i)/(x_ip1 - x_i) - 
+//          (phi_i - phi_im1)/(x_i - x_im1));
+// }
+
+/*
+Scheme: first derivative, second order, forward
+- gigiaero, 25/03/2026, 1544 hours
 */
-double scheme_der2_o2_central(double phi_ip1,double phi_i,double phi_im1,
-                              double x_ip1,double x_i,double x_im1){
-  return 2./(x_ip1 - x_im1)*((phi_ip1 - phi_i)/(x_ip1 - x_i) - 
-         (phi_i - phi_im1)/(x_i - x_im1));
+double scheme_der1_o2_backward(double *f,int m,int n,double phi[m][n],double *xy,
+                              int i,int j,int axis){
+  switch(axis){
+    case 1: // Horizontal
+      *f = (3.*phi[j][i] - 4.*phi[j][i-1] + phi[j][i-2])/
+           (2.*(xy[i] - xy[i-1]));
+      break;
+
+    case 2: // Vertical
+      *f = (3.*phi[j][i] - 4.*phi[j-1][i] + phi[j-2][i])/
+           (2.*(xy[j] - xy[j-1]));
+      break;
+  }
 }
+
+/*
+Scheme: first derivative, second order, central
+- gigiaero, 25/03/2026, 1536 hours
+*/
+double scheme_der1_o2_central(double *f,int m,int n,double phi[m][n],double *xy,
+                              int i,int j,int axis){
+  switch(axis){
+    case 1: // Horizontal
+      *f = (phi[j][i+1] - phi[j][i-1])/(xy[i+1] - xy[i-1]);
+      break;
+
+    case 2: // Vertical
+      *f = (phi[j+1][i] - phi[j-1][i])/(xy[j+1] - xy[j-1]);
+      break;
+  }
+}
+
+/*
+Scheme: first derivative, second order, forward
+- gigiaero, 25/03/2026, 1536 hours
+*/
+double scheme_der1_o2_forward(double *f,int m,int n,double phi[m][n],
+                               double *xy,int i,int j,int axis){
+  switch(axis){
+    case 1: // Horizontal
+      *f = (-3.*phi[j][i] + 4.*phi[j][i+1] - phi[j][i+2])/
+           (2.*(xy[i+1] - xy[i]));
+      break;
+
+    case 2: // Vertical
+      *f = (-3.*phi[j][i] + 4.*phi[j+1][i] - phi[j+2][i])/
+           (2.*(xy[j+1] - xy[j]));
+      break;
+  }
+}
+
 
 /*
 - gigiaero, 19/03/2026, 2333 hours

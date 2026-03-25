@@ -10,7 +10,8 @@
         "${file}",
         "-o",
         "${fileDirname}/${fileBasenameNoExtension}",
-        "../src/*.c"
+        "../src/*.c",
+        "-lm"
       ],
       "options": {
         "cwd": "${fileDirname}"

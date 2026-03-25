@@ -39,6 +39,7 @@ int main(){
   double (*phi)[b_a_mesh.IMAX] = calloc(b_a_mesh.JMAX,sizeof *phi);
   double (*u)[b_a_mesh.IMAX] = calloc(b_a_mesh.JMAX,sizeof *u);
   double (*v)[b_a_mesh.IMAX] = calloc(b_a_mesh.JMAX,sizeof *v);
+  double (*Ve)[b_a_mesh.IMAX] = calloc(b_a_mesh.JMAX,sizeof *Ve);
   biconvex_airfoil_mesh(&b_a_mesh,x,y);
 
   // print_1d_array(b_a_mesh.IMAX,x);
@@ -150,14 +151,30 @@ int main(){
 
   // save_mesh(b_a_mesh.JMAX,b_a_mesh.IMAX,x,y,config.casename);
 
+  get_u_v_potential(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,u,v,Ve,x,y);
 
-
+  char *velocities_files = malloc(sizeof(char)*200);
+  int str_end_idx;
+  strcpy(velocities_files,config.casename);
+  find_str_end(velocities_files,&str_end_idx);
+  strcat(velocities_files,"_u.dat");
+  print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,u,velocities_files,0);
+  velocities_files[str_end_idx] = '\0';
+  strcat(velocities_files,"_v.dat");
+  print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,v,velocities_files,0);
+  velocities_files[str_end_idx] = '\0';
+  strcat(velocities_files,"_Ve.dat");
+  print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,Ve,velocities_files,0);
+  free(velocities_files);
 
   for(int i=0;i<num_b_c;i++)
     free(b_c[i].val);
   free(x);
   free(y);
   free(phi);
+  free(u);
+  free(v);
+  free(Ve);
   free(config.casename);
 
   return 0;

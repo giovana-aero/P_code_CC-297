@@ -1,3 +1,4 @@
+#include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -97,6 +98,46 @@ void evaluate_delta_form_bi_air(int m,int n,double phi[m][n],double *x,
     default:
       puts("evaluate_delta_form: Invalid Ntype");
       exit(32);
+  }
+}
+
+/*
+- gigiaero, 25/03/2026, 1606 hours
+*/
+void get_u_v_potential(int m,int n,double phi[m][n],double u[m][n],
+                       double v[m][n],double Ve[m][n],double *x,double *y){
+  // Domain interior
+  for(int j=1;j<m-1;j++){
+    for(int i=1;i<n-1;i++){
+      scheme_der1_o2_central(&u[j][i],m,n,phi,x,i,j,1);
+      scheme_der1_o2_central(&v[j][i],m,n,phi,y,i,j,2);
+    }
+  }
+
+  // Vertical boundaries
+  for(int j=0;j<m;j++){
+    scheme_der1_o2_forward(&u[j][0],m,n,phi,x,0,j,1);
+    scheme_der1_o2_backward(&u[j][n-1],m,n,phi,x,n-1,j,1);
+    if(j>0 && j<m-1){
+      scheme_der1_o2_central(&v[j][0],m,n,phi,y,0,j,2);
+      scheme_der1_o2_central(&v[j][n-1],m,n,phi,y,n-1,j,2);
+    }
+  }
+
+  // Horizontal boundaries
+  for(int i=0;i<n;i++){
+    scheme_der1_o2_forward(&v[0][i],m,n,phi,y,i,0,2);
+    scheme_der1_o2_backward(&v[m-1][i],m,n,phi,y,i,m-1,2);
+    if(i>0 && i<n-1){
+      scheme_der1_o2_central(&u[0][i],m,n,phi,x,i,0,1);
+      scheme_der1_o2_central(&u[m-1][i],m,n,phi,x,i,m-1,1);
+    }
+  }
+
+  // Velocity resultant
+  for(int j=m-1;j>=0;j--){
+    for(int i=0;i<n;i++)
+    Ve[j][i] = sqrt(pow(u[j][i],2) + pow(v[j][i],2));
   }
 }
 
