@@ -7,8 +7,10 @@ import re
 
 def main():
 
-  address = "../exercise_laplace2d/results/"
-  casename = "laplace2d"
+  # address = "../exercise_laplace2d/results/"
+  # casename = "laplace2d"
+  address = "../P01/results/"
+  casename = "bi_air"
 
   execute(address,casename)
 

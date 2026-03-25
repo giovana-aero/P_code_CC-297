@@ -3,13 +3,13 @@
 #include<stdlib.h>
 #include<string.h>
 #include"../include/2d_arrays.h"
+// #include"../include/bi_air_lib.h"
 #include"../include/b_conditions.h"
 #include"../include/mesh.h"
 #include"../include/num_methods.h"
 #include"../include/strings.h"
 
 #define div_ref 1e100
-
 
 /*
 - gigiaero, 22/03/2026, 0958 hours

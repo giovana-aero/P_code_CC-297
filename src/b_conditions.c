@@ -37,6 +37,18 @@ void apply_b_c(int m, int n,double A[m][n],int num_b_c,b_conditions_2d *b_c,
 }
 
 /*
+- gigiaero, 25/03/2026, 1400 hours
+*/
+void build_tmp_A_neumann_y_down(int m,int n,double A[m][n],double tmp_A[3][3],
+                                double *tmp_y,double val,int i){
+  tmp_A[1][0] = A[0][i-1];
+  tmp_A[1][1] = A[0][i];
+  tmp_A[1][2] = A[0][i+1];
+  tmp_A[2][1] = A[1][i];
+  tmp_A[0][1] = A[1][i] + 2.*delta_xy(tmp_y,1)*val;
+}
+
+/*
 - gigiaero, 13/03/2026, 2223 hours
 
 modified to use b_conditions_2d structs
