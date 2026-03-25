@@ -9,6 +9,22 @@
 #include"../include/num_methods.h"
 #include"../include/strings.h"
 
+/*
+- gigiaero, 25/03/2026, 1815 hours
+*/
+void get_cp_bi_air(int l,double *cp,int m,int n,double Ve[m][n],
+                   bi_air_phys_mesh *b_a_mesh){
+  double uinf2_m1 = 1./(b_a_mesh->uinf*b_a_mesh->uinf);
+  double Ve2;
+
+  for(int i=b_a_mesh->ILE-1,k=0;i<b_a_mesh->ITE;i++,k++){
+    // Ve2 = (Ve[i][0] + Ve[i][1])/2.;
+    Ve2 = Ve[i][1] - .5*(Ve[i][1] - Ve[i][0]);
+    Ve2 *= Ve2;
+    cp[k] = 1. - Ve2*uinf2_m1;
+  }
+}
+
 int main(){
 
   // Solution configurations
@@ -28,6 +44,7 @@ int main(){
   b_a_mesh.JMAX = 12;  // Number of points along y
   b_a_mesh.XSF = 1.25; // Stretching factor, x
   b_a_mesh.YSF = 1.25; // Stretching factor, y
+  int chord_l = b_a_mesh.ITE - b_a_mesh.ILE + 1;
 
   // Physical properties
   b_a_mesh.uinf = 1.;
@@ -40,6 +57,7 @@ int main(){
   double (*u)[b_a_mesh.IMAX] = calloc(b_a_mesh.JMAX,sizeof *u);
   double (*v)[b_a_mesh.IMAX] = calloc(b_a_mesh.JMAX,sizeof *v);
   double (*Ve)[b_a_mesh.IMAX] = calloc(b_a_mesh.JMAX,sizeof *Ve);
+  double *cp = malloc(sizeof(double)*chord_l);
   biconvex_airfoil_mesh(&b_a_mesh,x,y);
 
   // print_1d_array(b_a_mesh.IMAX,x);
@@ -51,33 +69,6 @@ int main(){
   int num_b_c = 3;
   b_conditions_2d b_c[num_b_c];
   int counter = 0;
-  // // Down, airfoil                                   [CORRECTION PENDING]
-  // b_c[counter].type = 'd'; 
-  // b_c[counter].axis = 1;
-  // b_c[counter].position = 0;
-  // b_c[counter].range[0] = b_a_mesh.ILE - 1;
-  // b_c[counter].range[1] = b_a_mesh.ITE - 1;
-  // b_c[counter].val = malloc(sizeof(double)*(b_c[counter].range[1] - b_c[counter].range[0] + 1));
-  // bi_air_dirichlet_vals_wall(x,&b_c[0],uinf,t);
-  // counter++;
-  // // Down, upstream of the leading edge                   [CORRECTION PENDING]
-  // b_c[counter].type = 'd'; 
-  // b_c[counter].axis = 1;
-  // b_c[counter].position = 0;
-  // b_c[counter].range[0] = 0;
-  // b_c[counter].range[1] = b_a_mesh.ILE - 2;
-  // b_c[counter].val = malloc(sizeof(double)*(b_c[counter].range[1] - b_c[counter].range[0] + 1));
-  // bi_air_dirichlet_vals_free(x,&b_c[1],uinf);
-  // counter++;
-  // // Down, downstream of the leading edge                  [CORRECTION PENDING]
-  // b_c[counter].type = 'd'; 
-  // b_c[counter].axis = 1;
-  // b_c[counter].position = 0;
-  // b_c[counter].range[0] = b_a_mesh.ITE;
-  // b_c[counter].range[1] = b_a_mesh.IMAX - 1;
-  // b_c[counter].val = malloc(sizeof(double)*(b_c[counter].range[1] - b_c[counter].range[0] + 1));
-  // bi_air_dirichlet_vals_free(x,&b_c[2],uinf);
-  // counter++;
   // Left (inlet)
   b_c[counter].type = 'D';
   b_c[counter].axis = 2;
@@ -107,31 +98,6 @@ int main(){
   
   // Reapplied boundary conditions
   int num_b_c_r = 0;
-  b_conditions_2d b_c_r[num_b_c_r];
-  // // Down, airfoil
-  // b_c[0].type = 'd'; 
-  // b_c[0].axis = 1;
-  // b_c[0].position = 0;
-  // b_c[0].range[0] = b_a_mesh.ILE - 1;
-  // b_c[0].range[1] = b_a_mesh.ITE - 1;
-  // b_c[0].val = malloc(sizeof(double)*(b_c[0].range[1] - b_c[0].range[0] + 1));
-  // bi_air_dirichlet_vals_wall(x,&b_c[0],uinf,t);
-  // // Down, upstream of the leading edge
-  // b_c[1].type = 'd'; 
-  // b_c[1].axis = 1;
-  // b_c[1].position = 0;
-  // b_c[1].range[0] = 0;
-  // b_c[1].range[1] = b_a_mesh.ILE - 2;
-  // b_c[1].val = malloc(sizeof(double)*(b_c[1].range[1] - b_c[1].range[0] + 1));
-  // bi_air_dirichlet_vals_free(x,&b_c[1],uinf);
-  // // Down, downstream of the leading edge
-  // b_c[2].type = 'd'; 
-  // b_c[2].axis = 1;
-  // b_c[2].position = 0;
-  // b_c[2].range[0] = b_a_mesh.ITE;
-  // b_c[2].range[1] = b_a_mesh.IMAX - 1;
-  // b_c[2].val = malloc(sizeof(double)*(b_c[2].range[1] - b_c[2].range[0] + 1));
-  // bi_air_dirichlet_vals_free(x,&b_c[2],uinf);
 
   // Initialize boundary conditions
   apply_b_c(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,num_b_c,b_c,x,y);
@@ -140,18 +106,14 @@ int main(){
   for(int j=1;j<b_a_mesh.JMAX-1;j++)
     copy_1d_array_range(1,b_a_mesh.IMAX-1,phi[b_a_mesh.JMAX-1],phi[j]);
 
-  // char filename[] = "test.txt";
-  // print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,filename,1);
-
   // Solve
   config.casename = malloc(sizeof(char)*200);
   strcpy(config.casename,output_file);
   evaluate_delta_form_bi_air(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,x,y,&config,
                              &b_a_mesh);
 
-  // save_mesh(b_a_mesh.JMAX,b_a_mesh.IMAX,x,y,config.casename);
-
   get_u_v_potential(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,u,v,Ve,x,y);
+  get_cp_bi_air(chord_l,cp,b_a_mesh.JMAX,b_a_mesh.IMAX,Ve,&b_a_mesh);
 
   char *velocities_files = malloc(sizeof(char)*200);
   int str_end_idx;
@@ -165,7 +127,10 @@ int main(){
   velocities_files[str_end_idx] = '\0';
   strcat(velocities_files,"_Ve.dat");
   print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,Ve,velocities_files,0);
-  free(velocities_files);
+  velocities_files[str_end_idx] = '\0';
+  strcat(velocities_files,"_cp.dat");
+  print_1d_array_to_file(chord_l,cp,velocities_files);
+  
 
   for(int i=0;i<num_b_c;i++)
     free(b_c[i].val);
@@ -175,7 +140,9 @@ int main(){
   free(u);
   free(v);
   free(Ve);
+  free(cp);
   free(config.casename);
+  free(velocities_files);
 
   return 0;
 }
