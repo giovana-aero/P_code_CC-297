@@ -125,11 +125,31 @@ void evaluate_delta_form_bi_air(int m,int n,double phi[m][n],double *x,
 }
 
 /*
+- gigiaero, 06/04/2026, 1634 hours
+*/
+void get_cp_bi_air(int m,int n,double cp[m][n],double u[m][n],double v[m][n],
+                   double *x,double *y,bi_air_phys_mesh *b_a_m){
+  double uinf2_m1 = 1./(b_a_m->uinf*b_a_m->uinf);
+  double u_val2,v_val2;
+
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++){
+      v_val2 = v[j][i];
+      u_val2 = u[j][i];
+      v_val2 *= v_val2;
+      u_val2 *= u_val2;
+      
+      cp[j][i] = 1. - (u_val2 + v_val2)*uinf2_m1;
+    }
+  }
+}
+
+/*
 - gigiaero, 06/04/2026, 1607 hours
 (kudos to gibson helping me find a certain dumb mistake)
 */
-void get_cp_bi_air(double *cp,int m,int n,double phi[m][n],double u[m][n],
-                   double *x,double *y,bi_air_phys_mesh *b_a_m){
+void get_cp_bi_air_chord(double *cp,int m,int n,double phi[m][n],double u[m][n],
+                         double *x,double *y,bi_air_phys_mesh *b_a_m){
   double uinf2_m1 = 1./(b_a_m->uinf*b_a_m->uinf);
   double u_val2,v_val2;
 
@@ -142,7 +162,6 @@ void get_cp_bi_air(double *cp,int m,int n,double phi[m][n],double u[m][n],
     cp[k] = 1. - (u_val2 + v_val2)*uinf2_m1;
   }
 }
-
 
 /*
 - gigiaero, 25/03/2026, 1606 hours
@@ -308,7 +327,7 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
                                           sim_parameters *config,
                                           bi_air_phys_mesh *b_a_m){
   // Solver variables
-  double (*N)[n] = calloc(m,sizeof *N);
+  double (*N)[n-2] = calloc(m,sizeof *N-2);
   double (*L_phi)[n] = calloc(m,sizeof *L_phi);
   double (*Cij)[n] = calloc(m,sizeof *Cij);
   // double res_val = 0.;
@@ -329,12 +348,12 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
 
   // Prepare string to save simulation data  
   strcpy(filename_save,config->casename);
-  strcat(filename_save,"_iter_");
-  find_str_end(filename_save,&str_end_idx);
+  // strcat(filename_save,"_iter_");
+  // find_str_end(filename_save,&str_end_idx);
 
   for(int j=1;j<m-1;j++){
     for(int i=1;i<n-1;i++)
-      N_p_jacobi(&N[j][i],x,y,i,j);
+      N_p_jacobi(&N[j-1][i-1],x,y,i,j);
   }
 
   // Apply boundary conditions (low edge)
@@ -369,14 +388,13 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
     // Solve for Cij
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++)
-        Cij[j][i] = -L_phi[j][i]/N[j][i];
+        Cij[j][i] = -L_phi[j][i]/N[j-1][i-1];
     }
     
     // Calculate phi^{n+1}
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++)
         phi[j][i] = phi[j][i] + Cij[j][i];
-        // phi[j][i] = phi_old[j][i] + Cij[j][i];
     }
     
     // Apply boundary conditions (low edge)
@@ -395,14 +413,6 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
                         &str_end_idx);
   }
-  // if(iter%config->qtimes != 0 || config->save_last_only){
-  //   // buffer[0] = '\0';
-  //   sprintf(buffer,"L");
-  //   config->save_last_only = 0;
-  //   iter--;
-  //   save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
-  //                       &str_end_idx);
-  // }
 
   free(N);
   free(L_phi);

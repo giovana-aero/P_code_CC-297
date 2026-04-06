@@ -10,32 +10,15 @@
 #include"../include/num_methods.h"
 #include"../include/strings.h"
 
-// /*
-// - gigiaero, 25/03/2026, 1815 hours
-// */
-// void get_cp_bi_air(int l,double *cp,int m,int n,double Ve[m][n],
-//                    bi_air_phys_mesh *b_a_mesh){
-//   double uinf2_m1 = 1./(b_a_mesh->uinf*b_a_mesh->uinf);
-//   double Ve2;
-
-//   for(int i=b_a_mesh->ILE-1,k=0;i<b_a_mesh->ITE;i++,k++){
-//     // Ve2 = (Ve[i][0] + Ve[i][1])/2.;
-//     // Ve2 = Ve[i][1] - .5*(Ve[i][1] - Ve[i][0]);
-//     Ve2 = (Ve[i][1] - Ve[i][0])*.5 + Ve[i][0];
-//     Ve2 *= Ve2;
-//     cp[k] = 1. - Ve2*uinf2_m1;
-//   }
-// }
-
 int main(){
 
   // Solution configurations
   sim_parameters config;
   config.Ntype = 1;
   config.r = 1.85;
-  config.max_iter = 230;
+  config.max_iter = 10000;
   config.qtimes = 50;
-  config.save_i_c = 0; // Save initial condition
+  config.save_i_c = 0;
   config.save_last_only = 1;
   config.eps = 1.e-5; // Convergence criterion
   char output_file[] = "results/bi_air";
@@ -84,7 +67,8 @@ int main(){
   double (*u)[b_a_mesh.IMAX] = calloc(b_a_mesh.JMAX,sizeof *u);
   double (*v)[b_a_mesh.IMAX] = calloc(b_a_mesh.JMAX,sizeof *v);
   double (*Ve)[b_a_mesh.IMAX] = calloc(b_a_mesh.JMAX,sizeof *Ve);
-  double *cp = malloc(sizeof(double)*chord_l);
+  double (*cp)[b_a_mesh.IMAX] = calloc(b_a_mesh.JMAX,sizeof *cp);
+  double *cp_chord = malloc(sizeof(double)*chord_l);
   biconvex_airfoil_mesh(&b_a_mesh,x,y);
   // uniform_rectangular_mesh(b_a_mesh.JMAX,b_a_mesh.IMAX,100,10,x,y);
 
@@ -100,7 +84,6 @@ int main(){
   b_c[counter].range[1] = b_a_mesh.JMAX - 1;
   b_c[counter].val = malloc(sizeof(double));
   b_c[counter].val[0] = b_a_mesh.uinf*x[0];
-  // b_c[counter].val[0] = 10.;
   counter++;
   // Right (outflow)
   b_c[counter].type = 'D'; 
@@ -110,7 +93,6 @@ int main(){
   b_c[counter].range[1] = b_a_mesh.JMAX - 1;
   b_c[counter].val = malloc(sizeof(double));
   b_c[counter].val[0] = b_a_mesh.uinf*x[b_a_mesh.IMAX-1];
-  // b_c[counter].val[0] = -10.;
   counter++;
   // Up (open boundary)
   b_c[counter].type = 'd'; 
@@ -140,12 +122,12 @@ int main(){
   // b_c[counter].val[0] = 0.;
 
   // Reapplied boundary conditions
-  int num_b_c_r = 0;
+  // int num_b_c_r = 0;
 
   // Initialize boundary conditions
   apply_b_c(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,num_b_c,b_c,x,y);
 
-  // Initialize initial conditions
+  // Initialize all initial conditions
   for(int j=1;j<b_a_mesh.JMAX-1;j++)
     copy_1d_array_range(1,b_a_mesh.IMAX-1,phi[b_a_mesh.JMAX-1],phi[j]);
 
@@ -156,25 +138,24 @@ int main(){
                              &b_a_mesh);
   // evaluate_delta_form(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,x,y,&config,num_b_c_r,NULL);
 
+  // Post-processing: get velocities and coefficients of pressure
   get_u_v_potential(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,u,v,Ve,x,y);
-  get_cp_bi_air(cp,b_a_mesh.JMAX,b_a_mesh.IMAX,phi,u,x,y,&b_a_mesh);
+  get_cp_bi_air(b_a_mesh.JMAX,b_a_mesh.IMAX,cp,u,v,x,y,&b_a_mesh);
+  get_cp_bi_air_chord(cp_chord,b_a_mesh.JMAX,b_a_mesh.IMAX,phi,u,x,y,&b_a_mesh);
 
-  char *velocities_files = malloc(sizeof(char)*200);
-  int str_end_idx;
-  strcpy(velocities_files,config.casename);
-  find_str_end(velocities_files,&str_end_idx);
-  strcat(velocities_files,"_u.dat");
-  print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,u,velocities_files,0);
-  velocities_files[str_end_idx] = '\0';
-  strcat(velocities_files,"_v.dat");
-  print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,v,velocities_files,0);
-  velocities_files[str_end_idx] = '\0';
-  strcat(velocities_files,"_Ve.dat");
-  print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,Ve,velocities_files,0);
-  velocities_files[str_end_idx] = '\0';
-  strcat(velocities_files,"_cp.dat");
-  print_1d_array_to_file(chord_l,cp,velocities_files);
-  
+  // Save everything
+  char *save_files = malloc(sizeof(char)*200);
+  sprintf(save_files,"%s_u.dat",config.casename);
+  print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,u,save_files,0);
+  sprintf(save_files,"%s_v.dat",config.casename);
+  print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,v,save_files,0);
+  sprintf(save_files,"%s_Ve.dat",config.casename);
+  print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,Ve,save_files,0);
+  sprintf(save_files,"%s_cp.dat",config.casename);
+  print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,cp,save_files,0);
+  sprintf(save_files,"%s_cp_chord.dat",config.casename);
+  print_1d_array_to_file(chord_l,cp_chord,save_files);
+
 
   for(int i=0;i<num_b_c;i++)
     free(b_c[i].val);
@@ -185,8 +166,9 @@ int main(){
   free(v);
   free(Ve);
   free(cp);
+  free(cp_chord);
   free(config.casename);
-  free(velocities_files);
+  free(save_files);
 
   return 0;
 }

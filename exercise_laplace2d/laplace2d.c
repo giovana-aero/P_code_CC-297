@@ -17,6 +17,7 @@ int main(){
   config.r = 1;
   config.max_iter = 50000;
   config.qtimes = 10;
+  config.save_i_c = 0;
   config.save_last_only = 1;
   config.eps = 1.e-5; // Convergence criterion
   char output_file[] = "results/laplace2d";

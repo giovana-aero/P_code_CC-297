@@ -235,18 +235,13 @@ function in the solvers was reorganized
 void save_results_qtimes(int m,int n,double phi[m][n],int *iter,
                         sim_parameters *s_p,char *buffer,char *filename_save,
                         int *str_end_idx){
-  // if(!s_p->save_last_only){
   if((*iter)%(s_p->qtimes) == 0 || buffer[0] == 'L'){
     sprintf(buffer,"%010d",*iter);
     strcat(filename_save,buffer);
     strcat(filename_save,".dat");
     print_2d_array_to_file(m,n,phi,filename_save,0);
     filename_save[*str_end_idx] = '\0'; // reset string to replace iter number
-
-    if((*iter) == 0)
-      (*iter)++;
   }
-  // }
 }
 
 
@@ -382,7 +377,8 @@ void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,
   }
 
   // Save initial condition
-  save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+  if(config->save_i_c)
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
 
   for(iter;iter<=config->max_iter;iter++){
     copy_2d_array(m,n,phi,phi_old);
@@ -410,7 +406,9 @@ void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,
 
     printf("Iteration %010d | Res %.6e\n",iter,res[iter]);
 
-    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+    if(!config->save_last_only)
+      save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                          &str_end_idx);
 
     fprintf(file_log,"%.6e\n",res[iter]);
 
@@ -428,11 +426,9 @@ void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0 || config->save_last_only){
-    // buffer[0] = '\0';
+  if(iter%config->qtimes != 0){
+    iter--; // To get the correct iteration number
     sprintf(buffer,"L");
-    config->save_last_only = 0;
-    iter--;
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
                         &str_end_idx);
   }
@@ -496,7 +492,8 @@ void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
   }
 
   // Save initial condition
-  save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+  if(config->save_i_c)
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
 
   for(iter;iter<=config->max_iter;iter++){
     copy_2d_array(m,n,phi,phi_old);
@@ -544,7 +541,9 @@ void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
 
     printf("Iteration %010d | Res %.6e\n",iter,res[iter]);
 
-    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+    if(!config->save_last_only)
+      save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                          &str_end_idx);
 
     fprintf(file_log,"%.6e\n",res[iter]);
 
@@ -562,13 +561,11 @@ void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0 || config->save_last_only){
-    // buffer[0] = '\0';
+  if(iter%config->qtimes != 0){
+    iter--; // To get the correct iteration number
     sprintf(buffer,"L");
-    config->save_last_only = 0;
-    iter--;
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
-    &str_end_idx);
+                        &str_end_idx);
   }
 
   free(phi_old);
@@ -635,7 +632,8 @@ void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
   }
 
   // Save initial condition
-  save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+  if(config->save_i_c)
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
 
   // print_2d_array(m,n,phi);
 
@@ -686,7 +684,9 @@ void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
 
     printf("Iteration %010d | Res %.6e\n",iter,res[iter]);
 
-    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+    if(!config->save_last_only)
+      save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                          &str_end_idx);
 
     fprintf(file_log,"%.6e\n",res[iter]);
 
@@ -704,13 +704,11 @@ void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0 || config->save_last_only){
-    // buffer[0] = '\0';
+  if(iter%config->qtimes != 0){
+    iter--; // To get the correct iteration number
     sprintf(buffer,"L");
-    config->save_last_only = 0;
-    iter--;
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
-    &str_end_idx);
+                        &str_end_idx);
   }
 
   free(phi_old);
@@ -766,7 +764,8 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
   }
 
   // Save initial condition
-  save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+  if(config->save_i_c)
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
 
   for(iter;iter<=config->max_iter;iter++){
     copy_2d_array(m,n,phi,phi_old);
@@ -784,7 +783,9 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
 
     printf("Iteration %010d | Res %.6e\n",iter,res[iter]);
 
-    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+    if(!config->save_last_only)
+      save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                          &str_end_idx);
 
     fprintf(file_log,"%.6e\n",res[iter]);
 
@@ -802,11 +803,9 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0 || config->save_last_only){
-    // buffer[0] = '\0';
+  if(iter%config->qtimes != 0){
+    iter--; // To get the correct iteration number
     sprintf(buffer,"L");
-    config->save_last_only = 0;
-    iter--;
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
                         &str_end_idx);
   }
@@ -864,7 +863,8 @@ void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
   }
 
   // Save initial condition
-  save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+  if(config->save_i_c)
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
 
   for(iter;iter<=config->max_iter;iter++){
     copy_2d_array(m,n,phi,phi_old);
@@ -892,7 +892,9 @@ void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
 
     printf("Iteration %010d | Res %.6e\n",iter,res[iter]);
 
-    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+    if(!config->save_last_only)
+      save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                          &str_end_idx);
 
     fprintf(file_log,"%.6e\n",res[iter]);
 
@@ -910,13 +912,11 @@ void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0 || config->save_last_only){
-    // buffer[0] = '\0';
+  if(iter%config->qtimes != 0){
+    iter--; // To get the correct iteration number
     sprintf(buffer,"L");
-    config->save_last_only = 0;
-    iter--;
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
-    &str_end_idx);
+                        &str_end_idx);
   }
 
   free(phi_old);
