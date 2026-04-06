@@ -406,7 +406,6 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   }
 
   // Save last iteration if it wasn't saved
-  printf("%d\n",iter%config->qtimes);
   if(iter%config->qtimes != 0){
     iter--; // To get the correct iteration number
     sprintf(buffer,"L");
