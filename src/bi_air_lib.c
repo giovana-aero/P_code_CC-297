@@ -203,16 +203,17 @@ void get_u_v_potential(int m,int n,double phi[m][n],double u[m][n],
   }
 }
 
+/*
+- gigiaero, 06/04/2026, 1720 hours
+*/
 void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
                                           double *x,double *y,
                                           sim_parameters *config,
                                           bi_air_phys_mesh *b_a_m){
   // Solver variables
   double (*phi_old)[n] = calloc(m,sizeof *phi_old);
-  // double (*N)[n-2] = calloc(m-2,sizeof *N);
   double *dx2 = malloc(sizeof(double)*(n-2));
   double *dy2 = malloc(sizeof(double)*(m-2));
-  // double L_phi,vars_old,val;
   double (*L_phi)[n-2] = calloc(m-2,sizeof *L_phi);
   double (*Cij)[n-2] = calloc(m-2,sizeof *Cij);
   int iter = 0;
@@ -226,16 +227,11 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   FILE *file_log;
 
   // Configure log file
-  strcpy(filename_log,config->casename);
-  strcat(filename_log,".log");
-  // Reset it, if exists, then reopen
+  sprintf(filename_log,"%s.log",config->casename);
   file_log = fopen(filename_log,"w");
-  fclose(file_log);
-  file_log = fopen(filename_log,"a");
 
   // Prepare string to save simulation data  
-  strcpy(filename_save,config->casename);
-  strcat(filename_save,"_iter_");
+  sprintf(filename_save,"%s_iter_",config->casename);
   find_str_end(filename_save,&str_end_idx);
 
   for(int i=1;i<n-1;i++){
@@ -247,6 +243,9 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
     dy2[j-1] = delta_xy(y,j);
     dy2[j-1] *= dy2[j-1];
   }
+
+  // Apply boundary conditions (low edge)
+  apply_down_b_c(m,n,phi,x,y,b_a_m);
 
   // Save initial condition
   save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
@@ -288,23 +287,17 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
     }
     
     // Apply boundary conditions (low edge)
-    for(int i=1;i<n-1;i++){
-      if(i >= b_a_m->ILE-1 && i < b_a_m->ITE){  // Airfoil
-        phi[0][i] = phi[1][i] - (y[1] - y[0])*b_a_m->uinf*bi_air_shape_dx(b_a_m->t,x[i]);
-      }
-      else{  // Free stream
-        phi[0][i] = phi[1][i];
-      }
-    }
-    
+    apply_down_b_c(m,n,phi,x,y,b_a_m);
+
+    if(!config->save_last_only)
+      save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                          &str_end_idx);
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0 || config->save_last_only){
-    // buffer[0] = '\0';
+  if(iter%config->qtimes != 0){
+    iter--; // To get the correct iteration number
     sprintf(buffer,"L");
-    config->save_last_only = 0;
-    iter--;
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
                         &str_end_idx);
   }
@@ -312,6 +305,8 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   free(phi_old);
   free(dx2);
   free(dy2);
+  free(L_phi);
+  free(Cij);
   free(filename_save);
   free(filename_log);
   free(buffer);
@@ -342,14 +337,12 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   FILE *file_log;
 
   // Configure log file
-  strcpy(filename_log,config->casename);
-  strcat(filename_log,".log");
+  sprintf(filename_log,"%s.log",config->casename);
   file_log = fopen(filename_log,"w");
 
   // Prepare string to save simulation data  
-  strcpy(filename_save,config->casename);
-  // strcat(filename_save,"_iter_");
-  // find_str_end(filename_save,&str_end_idx);
+  sprintf(filename_save,"%s_iter_",config->casename);
+  find_str_end(filename_save,&str_end_idx);
 
   for(int j=1;j<m-1;j++){
     for(int i=1;i<n-1;i++)
@@ -394,7 +387,7 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
     // Calculate phi^{n+1}
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++)
-        phi[j][i] = phi[j][i] + Cij[j][i];
+        phi[j][i] += Cij[j][i];
     }
     
     // Apply boundary conditions (low edge)
@@ -450,16 +443,11 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   FILE *file_log;
 
   // Configure log file
-  strcpy(filename_log,config->casename);
-  strcat(filename_log,".log");
-  // Reset it, if exists, then reopen
+  sprintf(filename_log,"%s.log",config->casename);
   file_log = fopen(filename_log,"w");
-  fclose(file_log);
-  file_log = fopen(filename_log,"a");
 
   // Prepare string to save simulation data  
-  strcpy(filename_save,config->casename);
-  strcat(filename_save,"_iter_");
+  sprintf(filename_save,"%s_iter_",config->casename);
   find_str_end(filename_save,&str_end_idx);
 
   for(int i=1;i<n-1;i++){
@@ -586,16 +574,11 @@ void solve_sor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   FILE *file_log;
 
   // Configure log file
-  strcpy(filename_log,config->casename);
-  strcat(filename_log,".log");
-  // Reset it, if exists, then reopen
+  sprintf(filename_log,"%s.log",config->casename);
   file_log = fopen(filename_log,"w");
-  fclose(file_log);
-  file_log = fopen(filename_log,"a");
 
   // Prepare string to save simulation data  
-  strcpy(filename_save,config->casename);
-  strcat(filename_save,"_iter_");
+  sprintf(filename_save,"%s_iter_",config->casename);
   find_str_end(filename_save,&str_end_idx);
 
   for(int i=1;i<n-1;i++){

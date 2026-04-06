@@ -17,7 +17,7 @@ int main(){
   config.Ntype = 1;
   config.r = 1.85;
   config.max_iter = 10000;
-  config.qtimes = 50;
+  config.qtimes = 100;
   config.save_i_c = 0;
   config.save_last_only = 1;
   config.eps = 1.e-5; // Convergence criterion
