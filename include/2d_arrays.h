@@ -2,6 +2,7 @@
 #define _lib_2d_arrays_
 
 void copy_2d_array(int m,int n,double A[m][n],double B[m][n]);
+void eye(int m,double A[m][m]);
 void fill_2d_array(int m,int n,double A[m][n]);
 void ones_2d_array(int m,int n,double A[m][n]);
 void print_2d_array(int m,int n,double A[m][n]);

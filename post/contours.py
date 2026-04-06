@@ -7,10 +7,10 @@ import re
 
 def main():
 
-  # address = "../exercise_laplace2d/results/"
-  # casename = "laplace2d"
-  address = "../P01/results/"
-  casename = "bi_air"
+  address = "../exercise_laplace2d/results/"
+  casename = "laplace2d"
+  # address = "../P01/results/"
+  # casename = "bi_air"
 
   execute(address,casename)
 
@@ -68,15 +68,6 @@ def execute(address,casename):
 
   #   if op > -1:
   #     plt.contourf()
-
-
-
-    
-  
-
-
-
-  
 
 
 if __name__ == "__main__":

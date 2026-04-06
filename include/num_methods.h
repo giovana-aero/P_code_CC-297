@@ -1,3 +1,5 @@
+#include"./b_conditions.h"
+
 #ifndef _lib_num_methods_
 #define _lib_num_methods_
 
@@ -9,12 +11,14 @@ typedef struct s_parameters{
   int Ntype;
   double r;
   int max_iter;
-  int qtimes; // Set to 0 to save only the final result
+  int qtimes;
+  int save_i_c; // Save initial condition
   int save_last_only;
   double eps;
   char *casename;
 }sim_parameters;
 
+double C_op(int m,int n,double phi[m][n],double phi_old[m][n],int i,int j);
 void calc_residual(double *phi_elem,double *phi_old_elem,double *N_elem,
                   double *res_elem);
 int check_num_digits_int(int *num);

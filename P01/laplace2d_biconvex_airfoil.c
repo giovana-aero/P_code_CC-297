@@ -1,3 +1,4 @@
+#include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -9,46 +10,72 @@
 #include"../include/num_methods.h"
 #include"../include/strings.h"
 
-/*
-- gigiaero, 25/03/2026, 1815 hours
-*/
-void get_cp_bi_air(int l,double *cp,int m,int n,double Ve[m][n],
-                   bi_air_phys_mesh *b_a_mesh){
-  double uinf2_m1 = 1./(b_a_mesh->uinf*b_a_mesh->uinf);
-  double Ve2;
+// /*
+// - gigiaero, 25/03/2026, 1815 hours
+// */
+// void get_cp_bi_air(int l,double *cp,int m,int n,double Ve[m][n],
+//                    bi_air_phys_mesh *b_a_mesh){
+//   double uinf2_m1 = 1./(b_a_mesh->uinf*b_a_mesh->uinf);
+//   double Ve2;
 
-  for(int i=b_a_mesh->ILE-1,k=0;i<b_a_mesh->ITE;i++,k++){
-    // Ve2 = (Ve[i][0] + Ve[i][1])/2.;
-    Ve2 = Ve[i][1] - .5*(Ve[i][1] - Ve[i][0]);
-    Ve2 *= Ve2;
-    cp[k] = 1. - Ve2*uinf2_m1;
-  }
-}
+//   for(int i=b_a_mesh->ILE-1,k=0;i<b_a_mesh->ITE;i++,k++){
+//     // Ve2 = (Ve[i][0] + Ve[i][1])/2.;
+//     // Ve2 = Ve[i][1] - .5*(Ve[i][1] - Ve[i][0]);
+//     Ve2 = (Ve[i][1] - Ve[i][0])*.5 + Ve[i][0];
+//     Ve2 *= Ve2;
+//     cp[k] = 1. - Ve2*uinf2_m1;
+//   }
+// }
 
 int main(){
 
   // Solution configurations
   sim_parameters config;
   config.Ntype = 1;
-  config.max_iter = 50000;
-  config.qtimes = 10;
+  config.r = 1.85;
+  config.max_iter = 230;
+  config.qtimes = 50;
+  config.save_i_c = 0; // Save initial condition
   config.save_last_only = 1;
   config.eps = 1.e-5; // Convergence criterion
   char output_file[] = "results/bi_air";
 
   // Mesh
   bi_air_phys_mesh b_a_mesh;
+  // // ----------------------------------------------- original configuration
   b_a_mesh.ILE = 11;   // Leading edge
   b_a_mesh.ITE = 31;   // Trailing edge
   b_a_mesh.IMAX = 41;  // Number of points along x
   b_a_mesh.JMAX = 12;  // Number of points along y
   b_a_mesh.XSF = 1.25; // Stretching factor, x
   b_a_mesh.YSF = 1.25; // Stretching factor, y
+  // ----------------------------------------------- 2x
+  // b_a_mesh.ILE = 21;   // Leading edge
+  // b_a_mesh.ITE = 61;   // Trailing edge
+  // b_a_mesh.IMAX = 82;  // Number of points along x
+  // b_a_mesh.JMAX = 24;  // Number of points along y
+  // b_a_mesh.XSF = 1.05; // Stretching factor, x
+  // b_a_mesh.YSF = 1.05; // Stretching factor, y
+  // ----------------------------------------------- 
+  // b_a_mesh.ILE = ;   // Leading edge
+  // b_a_mesh.ITE = ;   // Trailing edge
+  // b_a_mesh.IMAX = ;  // Number of points along x
+  // b_a_mesh.JMAX = ;  // Number of points along y
+  // b_a_mesh.XSF = 1.25; // Stretching factor, x
+  // b_a_mesh.YSF = 1.25; // Stretching factor, y
+  // ----------------------------------------------- good example for p_jacobi (?)
+  // b_a_mesh.ILE = 21;   // Leading edge
+  // b_a_mesh.ITE = 61;   // Trailing edge
+  // b_a_mesh.IMAX = 82;  // Number of points along x
+  // b_a_mesh.JMAX = 24;  // Number of points along y
+  // b_a_mesh.XSF = 1.05; // Stretching factor, x
+  // b_a_mesh.YSF = 1.05; // Stretching factor, y
+
   int chord_l = b_a_mesh.ITE - b_a_mesh.ILE + 1;
 
   // Physical properties
-  b_a_mesh.uinf = 1.;
   b_a_mesh.t = 0.05;
+  b_a_mesh.uinf = 1.;
 
   // Initialize mesh and velocity potential array
   double *x = malloc(sizeof(double)*b_a_mesh.IMAX);
@@ -59,11 +86,7 @@ int main(){
   double (*Ve)[b_a_mesh.IMAX] = calloc(b_a_mesh.JMAX,sizeof *Ve);
   double *cp = malloc(sizeof(double)*chord_l);
   biconvex_airfoil_mesh(&b_a_mesh,x,y);
-
-  // print_1d_array(b_a_mesh.IMAX,x);
-  // putchar('\n');
-  // print_1d_array(b_a_mesh.JMAX,y);
-
+  // uniform_rectangular_mesh(b_a_mesh.JMAX,b_a_mesh.IMAX,100,10,x,y);
 
   // Boundary conditions
   int num_b_c = 3;
@@ -77,6 +100,7 @@ int main(){
   b_c[counter].range[1] = b_a_mesh.JMAX - 1;
   b_c[counter].val = malloc(sizeof(double));
   b_c[counter].val[0] = b_a_mesh.uinf*x[0];
+  // b_c[counter].val[0] = 10.;
   counter++;
   // Right (outflow)
   b_c[counter].type = 'D'; 
@@ -86,6 +110,7 @@ int main(){
   b_c[counter].range[1] = b_a_mesh.JMAX - 1;
   b_c[counter].val = malloc(sizeof(double));
   b_c[counter].val[0] = b_a_mesh.uinf*x[b_a_mesh.IMAX-1];
+  // b_c[counter].val[0] = -10.;
   counter++;
   // Up (open boundary)
   b_c[counter].type = 'd'; 
@@ -95,7 +120,25 @@ int main(){
   b_c[counter].range[1] = b_a_mesh.IMAX - 2;
   b_c[counter].val = malloc(sizeof(double)*(b_c[counter].range[1] - b_c[counter].range[0] + 1));
   bi_air_dirichlet_vals_free(x,&b_c[counter],b_a_mesh.uinf);
-  
+  counter++;
+    // // Up (test)
+    // b_c[counter].type = 'D'; 
+    // b_c[counter].axis = 1;
+    // b_c[counter].position = b_a_mesh.JMAX - 1;
+    // b_c[counter].range[0] = 1;
+    // b_c[counter].range[1] = b_a_mesh.IMAX - 2;
+    // b_c[counter].val = malloc(sizeof(double));
+    // b_c[counter].val[0] = 0.;
+    // counter++;
+  // // Down (test)
+  // b_c[counter].type = 'D'; 
+  // b_c[counter].axis = 1;
+  // b_c[counter].position = b_a_mesh.JMAX - 1;
+  // b_c[counter].range[0] = 1;
+  // b_c[counter].range[1] = b_a_mesh.IMAX - 2;
+  // b_c[counter].val = malloc(sizeof(double));
+  // b_c[counter].val[0] = 0.;
+
   // Reapplied boundary conditions
   int num_b_c_r = 0;
 
@@ -111,9 +154,10 @@ int main(){
   strcpy(config.casename,output_file);
   evaluate_delta_form_bi_air(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,x,y,&config,
                              &b_a_mesh);
+  // evaluate_delta_form(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,x,y,&config,num_b_c_r,NULL);
 
   get_u_v_potential(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,u,v,Ve,x,y);
-  get_cp_bi_air(chord_l,cp,b_a_mesh.JMAX,b_a_mesh.IMAX,Ve,&b_a_mesh);
+  get_cp_bi_air(cp,b_a_mesh.JMAX,b_a_mesh.IMAX,phi,u,x,y,&b_a_mesh);
 
   char *velocities_files = malloc(sizeof(char)*200);
   int str_end_idx;

@@ -10,18 +10,32 @@ typedef struct biconvex_airfoil_physics_mesh_config{
   double uinf,t;
 }bi_air_phys_mesh;
 
+void apply_down_b_c(int m,int n,double phi[m][n],double *x,double *y,
+                    bi_air_phys_mesh *b_a_m);
 void biconvex_airfoil_mesh(bi_air_phys_mesh *b_a_m,double *x, double*y);
-double bi_air_shape(double t,double x_i);
+double bi_air_shape_dx(double t,double x_i);
 void bi_air_dirichlet_vals_free(double *x,b_conditions_2d *b_c,double uinf);
 void bi_air_dirichlet_vals_wall(double *x,b_conditions_2d *b_c,double uinf,
                                 double t);
 void evaluate_delta_form_bi_air(int m,int n,double phi[m][n],double *x,
                                 double *y,sim_parameters *config,
                                 bi_air_phys_mesh *b_a_m);
+void get_cp_bi_air(double *cp,int m,int n,double phi[m][n],double u[m][n],
+                   double *x,double *y,bi_air_phys_mesh *b_a_m);
 void get_u_v_potential(int m,int n,double phi[m][n],double u[m][n],
                        double v[m][n],double Ve[m][n],double *x,double *y);
+void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
+                                          double *x,double *y,
+                                          sim_parameters *config,
+                                          bi_air_phys_mesh *b_a_m);
 void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
                                           double *x,double *y,
                                           sim_parameters *config,
                                           bi_air_phys_mesh *b_a_m);
+void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
+                                      double *y,sim_parameters *config,
+                                      bi_air_phys_mesh *b_a_m);
+void solve_sor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
+                                     double *y,sim_parameters *config,
+                                     bi_air_phys_mesh *b_a_m);
 #endif

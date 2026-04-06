@@ -12,6 +12,13 @@
 #define div_ref 1e100
 
 /*
+- gigiaero, 01/04/2026, 1633 hours
+*/
+double C_op(int m,int n,double phi[m][n],double phi_old[m][n],int i,int j){
+  return phi[j][i] - phi_old[j][i];
+}
+
+/*
 - gigiaero, 22/03/2026, 0958 hours
 */
 void calc_residual(double *phi_elem,double *phi_old_elem,double *N_elem,
@@ -220,22 +227,26 @@ void N_p_jacobi(double *N,double *x,double *y,int i,int j){
 in this order, the conditions on the internal "if" represent the normal 
 operation of the function, the first iteration, and the last iteration
 - gigiaero, 22/03/2026 hours
+
+correction: the first iteration condition was removed, and the usage of this
+function in the solvers was reorganized
+- gigiaero, 06/04/2026, 1623 hours
 */
 void save_results_qtimes(int m,int n,double phi[m][n],int *iter,
                         sim_parameters *s_p,char *buffer,char *filename_save,
                         int *str_end_idx){
-  if(!s_p->save_last_only){
-    if((*iter)%(s_p->qtimes) == 0 || (*iter) == 0 || buffer[0] == 'L'){
-      sprintf(buffer,"%010d",*iter);
-      strcat(filename_save,buffer);
-      strcat(filename_save,".dat");
-      print_2d_array_to_file(m,n,phi,filename_save,0);
-      filename_save[*str_end_idx] = '\0'; // reset string to replace iter number
+  // if(!s_p->save_last_only){
+  if((*iter)%(s_p->qtimes) == 0 || buffer[0] == 'L'){
+    sprintf(buffer,"%010d",*iter);
+    strcat(filename_save,buffer);
+    strcat(filename_save,".dat");
+    print_2d_array_to_file(m,n,phi,filename_save,0);
+    filename_save[*str_end_idx] = '\0'; // reset string to replace iter number
 
-      if((*iter) == 0)
-        (*iter)++;
-    }
+    if((*iter) == 0)
+      (*iter)++;
   }
+  // }
 }
 
 
@@ -250,20 +261,23 @@ void save_results_qtimes(int m,int n,double phi[m][n],int *iter,
 // }
 
 /*
-Scheme: first derivative, second order, forward
+Scheme: first derivative, second order, backward
 - gigiaero, 25/03/2026, 1544 hours
+
+correction done: variable delta_x
+- gigiaero, 06/04/2026, 1355 hours
 */
 double scheme_der1_o2_backward(double *f,int m,int n,double phi[m][n],double *xy,
-                              int i,int j,int axis){
+                               int i,int j,int axis){
   switch(axis){
     case 1: // Horizontal
       *f = (3.*phi[j][i] - 4.*phi[j][i-1] + phi[j][i-2])/
-           (2.*(xy[i] - xy[i-1]));
+           (3.*xy[i] - 4.*xy[i-1] + xy[i-2]);
       break;
 
     case 2: // Vertical
       *f = (3.*phi[j][i] - 4.*phi[j-1][i] + phi[j-2][i])/
-           (2.*(xy[j] - xy[j-1]));
+      (3.*xy[j] - 4.*xy[j-1] + xy[j-2]);
       break;
   }
 }
@@ -288,18 +302,21 @@ double scheme_der1_o2_central(double *f,int m,int n,double phi[m][n],double *xy,
 /*
 Scheme: first derivative, second order, forward
 - gigiaero, 25/03/2026, 1536 hours
+
+correction done: variable delta_x
+- gigiaero, 06/04/2026, 1355 hours
 */
 double scheme_der1_o2_forward(double *f,int m,int n,double phi[m][n],
                                double *xy,int i,int j,int axis){
   switch(axis){
     case 1: // Horizontal
       *f = (-3.*phi[j][i] + 4.*phi[j][i+1] - phi[j][i+2])/
-           (2.*(xy[i+1] - xy[i]));
+           (-3.*xy[i] + 4.*xy[i+1] - xy[i+2]);
       break;
 
     case 2: // Vertical
       *f = (-3.*phi[j][i] + 4.*phi[j+1][i] - phi[j+2][i])/
-           (2.*(xy[j+1] - xy[j]));
+           (-3.*xy[j] + 4.*xy[j+1] - xy[j+2]);
       break;
   }
 }
@@ -328,8 +345,8 @@ void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,
   // Solver variables
   double (*phi_old)[n] = calloc(m,sizeof *phi_old);
   // double (*N)[n-2] = calloc(m-2,sizeof *N);
-  double *dx2 = malloc(sizeof(double)*n);
-  double *dy2 = malloc(sizeof(double)*m);
+  double *dx2 = malloc(sizeof(double)*(n-2));
+  double *dy2 = malloc(sizeof(double)*(m-2));
   double L_phi,vars_old,val;
   int iter = 0;
   // Save files
@@ -354,14 +371,14 @@ void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,
   strcat(filename_save,"_iter_");
   find_str_end(filename_save,&str_end_idx);
 
-  for(int i=0;i<n;i++){
-    dx2[i] = delta_xy(x,i);
-    dx2[i] *= dx2[i];
+  for(int i=1;i<n-1;i++){
+    dx2[i-1] = delta_xy(x,i);
+    dx2[i-1] *= dx2[i-1];
   }
 
-  for(int j=0;j<m;j++){
-    dy2[j] = delta_xy(y,j);
-    dy2[j] *= dy2[j];
+  for(int j=1;j<m-1;j++){
+    dy2[j-1] = delta_xy(y,j);
+    dy2[j-1] *= dy2[j-1];
   }
 
   // Save initial condition
@@ -376,15 +393,15 @@ void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,j);
-        vars_old = -L_phi + (phi_old[j][i-1] - 2.*phi_old[j][i])/dx2[i] + 
-                   (phi_old[j-1][i] - 2.*phi_old[j][i])/dy2[j];
-        phi[j][i] = (vars_old*dx2[i]*dy2[j] - dy2[j]*phi[j][i-1] - 
-                     dx2[i]*phi[j-1][i])/(-2.*(dx2[i] + dy2[j]));
+        vars_old = -L_phi + (phi_old[j][i-1] - 2.*phi_old[j][i])/dx2[i-1] + 
+                   (phi_old[j-1][i] - 2.*phi_old[j][i])/dy2[j-1];
+        phi[j][i] = (vars_old*dx2[i-1]*dy2[j-1] - dy2[j-1]*phi[j][i-1] - 
+                     dx2[i-1]*phi[j-1][i])/(-2.*(dx2[i-1] + dy2[j-1]));
 
-        val = (phi[j][i-1] - 2.*phi[j][i])/dx2[i] + 
-              (phi[j-1][i] - 2.*phi[j][i])/dy2[j] - 
-              (phi_old[j][i-1] - 2.*phi_old[j][i])/dx2[i] - 
-              (phi_old[j-1][i] - 2.*phi_old[j][i])/dy2[j];
+        val = (phi[j][i-1] - 2.*phi[j][i])/dx2[i-1] + 
+              (phi[j-1][i] - 2.*phi[j][i])/dy2[j-1] - 
+              (phi_old[j][i-1] - 2.*phi_old[j][i])/dx2[i-1] - 
+              (phi_old[j-1][i] - 2.*phi_old[j][i])/dy2[j-1];
         val = fabs(val);
         if(val > res[iter])
           res[iter] = val;
@@ -411,7 +428,7 @@ void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0){
+  if(iter%config->qtimes != 0 || config->save_last_only){
     // buffer[0] = '\0';
     sprintf(buffer,"L");
     config->save_last_only = 0;
@@ -441,7 +458,7 @@ void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
   double (*A)[m-2] = calloc(m-2,sizeof *A);
   double *f = malloc(sizeof(double)*(m-2));
   double *u = malloc(sizeof(double)*(m-2));
-  double *dx2 = malloc(sizeof(double)*n);
+  double *dx2 = malloc(sizeof(double)*(n-2));
   double *py1 = malloc(sizeof(double)*(m-2));
   double *py2 = malloc(sizeof(double)*(m-2));
   double L_phi,vars_old,val;
@@ -468,9 +485,9 @@ void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
   strcat(filename_save,"_iter_");
   find_str_end(filename_save,&str_end_idx);
 
-  for(int i=0;i<n;i++){
-    dx2[i] = delta_xy(x,i);
-    dx2[i] *= dx2[i];
+  for(int i=1;i<n-1;i++){
+    dx2[i-1] = delta_xy(x,i);
+    dx2[i-1] *= dx2[i-1];
   }
 
   for(int j=1;j<m-1;j++){
@@ -489,25 +506,25 @@ void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
 
     for(int i=1;i<n-1;i++){
       scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,1);
-      A[0][0] = -2./dx2[i] - 2./py1[0] - 2./py2[0];
+      A[0][0] = -2./dx2[i-1] - 2./py1[0] - 2./py2[0];
       A[0][1] = 2./py1[0];
-      f[0] = (phi_old[1][i-1] - 2.*phi_old[1][i])/dx2[i] + 
-             d_yy(m,n,phi_old,y,i,1) - L_phi - phi[1][i-1]/dx2[i] - 2./py2[0];
+      f[0] = (phi_old[1][i-1] - 2.*phi_old[1][i])/dx2[i-1] + 
+             d_yy(m,n,phi_old,y,i,1) - L_phi - phi[1][i-1]/dx2[i-1] - 2./py2[0];
 
       for(int j=1;j<m-3;j++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,j+1);
         A[j][j-1] = 2./py2[j];
-        A[j][j] = -2./dx2[i] - 2./py1[j] - 2./py2[j];
+        A[j][j] = -2./dx2[i-1] - 2./py1[j] - 2./py2[j];
         A[j][j+1] = 2./py1[j];
-        f[j] = (phi_old[j+1][i-1] - 2.*phi_old[j+1][i])/dx2[i] + 
-               d_yy(m,n,phi_old,y,i,j+1) - L_phi - phi[j+1][i-1]/dx2[i];
+        f[j] = (phi_old[j+1][i-1] - 2.*phi_old[j+1][i])/dx2[i-1] + 
+               d_yy(m,n,phi_old,y,i,j+1) - L_phi - phi[j+1][i-1]/dx2[i-1];
       }
 
       scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,m-2);
       A[m-3][m-4] = 2./py2[m-3];
-      A[m-3][m-3] = -2./dx2[i] - 2./py1[m-3] - 2./py2[m-3];
-      f[m-3] = (phi_old[m-2][i-1] - 2.*phi_old[m-2][i])/dx2[i] + 
-               d_yy(m,n,phi_old,y,i,m-2) - L_phi - phi[m-2][i-1]/dx2[i] - 
+      A[m-3][m-3] = -2./dx2[i-1] - 2./py1[m-3] - 2./py2[m-3];
+      f[m-3] = (phi_old[m-2][i-1] - 2.*phi_old[m-2][i])/dx2[i-1] + 
+               d_yy(m,n,phi_old,y,i,m-2) - L_phi - phi[m-2][i-1]/dx2[i-1] - 
                2./py1[m-3];
       
       diagonal_matrix_solver(m-2,A,f,u);
@@ -516,8 +533,8 @@ void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
         phi[j][i] = u[j-1];
 
       for(int j=1;j<m-1;j++){
-        val = (phi[j][i-1] - 2.*phi[j][i])/dx2[i] + d_yy(m,n,phi,y,i,j) - 
-              (phi_old[j][i-1] - 2.*phi_old[j][i])/dx2[i] - 
+        val = (phi[j][i-1] - 2.*phi[j][i])/dx2[i-1] + d_yy(m,n,phi,y,i,j) - 
+              (phi_old[j][i-1] - 2.*phi_old[j][i])/dx2[i-1] - 
               d_yy(m,n,phi_old,y,i,j);
         val = fabs(val);
         if(val > res[iter])
@@ -545,7 +562,7 @@ void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0){
+  if(iter%config->qtimes != 0 || config->save_last_only){
     // buffer[0] = '\0';
     sprintf(buffer,"L");
     config->save_last_only = 0;
@@ -579,7 +596,7 @@ void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
   double (*A)[m-2] = calloc(m-2,sizeof *A);
   double *f = malloc(sizeof(double)*(m-2));
   double *u = malloc(sizeof(double)*(m-2));
-  double *dx2 = malloc(sizeof(double)*n);
+  double *dx2 = malloc(sizeof(double)*(n-2));
   double *py1 = malloc(sizeof(double)*(m-2));
   double *py2 = malloc(sizeof(double)*(m-2));
   double L_phi,vars_old,val;
@@ -607,9 +624,9 @@ void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
   strcat(filename_save,"_iter_");
   find_str_end(filename_save,&str_end_idx);
 
-  for(int i=0;i<n;i++){
-    dx2[i] = delta_xy(x,i);
-    dx2[i] *= dx2[i];
+  for(int i=1;i<n-1;i++){
+    dx2[i-1] = delta_xy(x,i);
+    dx2[i-1] *= dx2[i-1];
   }
 
   for(int j=1;j<m-1;j++){
@@ -620,6 +637,8 @@ void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
   // Save initial condition
   save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
 
+  // print_2d_array(m,n,phi);
+
   for(iter;iter<=config->max_iter;iter++){
     copy_2d_array(m,n,phi,phi_old);
 
@@ -628,26 +647,26 @@ void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
 
     for(int i=1;i<n-1;i++){
       scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,1);
-      A[0][0] = (-2./dx2[i] - 2./py1[0] - 2./py2[0])/r;
+      A[0][0] = (-2./dx2[i-1] - 2./py1[0] - 2./py2[0])/r;
       A[0][1] = 2./py1[0]/r;
-      f[0] = (phi_old[1][i-1] - 2.*phi_old[1][i]/r)/dx2[i] + 
-             d_yy(m,n,phi_old,y,i,1)/r - L_phi - phi[1][i-1]/dx2[i] - 
+      f[0] = (phi_old[1][i-1] - 2.*phi_old[1][i]/r)/dx2[i-1] + 
+             d_yy(m,n,phi_old,y,i,1)/r - L_phi - phi[1][i-1]/dx2[i-1] - 
              2./py2[0]/r;
 
       for(int j=1;j<m-3;j++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,j+1);
         A[j][j-1] = 2./py2[j]/r;
-        A[j][j] = (-2./dx2[i] - 2./py1[j] - 2./py2[j])/r;
+        A[j][j] = (-2./dx2[i-1] - 2./py1[j] - 2./py2[j])/r;
         A[j][j+1] = 2./py1[j]/r;
-        f[j] = (phi_old[j+1][i-1] - 2.*phi_old[j+1][i]/r)/dx2[i] + 
-               d_yy(m,n,phi_old,y,i,j+1)/r - L_phi - phi[j+1][i-1]/dx2[i];
+        f[j] = (phi_old[j+1][i-1] - 2.*phi_old[j+1][i]/r)/dx2[i-1] + 
+               d_yy(m,n,phi_old,y,i,j+1)/r - L_phi - phi[j+1][i-1]/dx2[i-1];
       }
 
       scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,m-2);
       A[m-3][m-4] = 2./py2[m-3]/r;
-      A[m-3][m-3] = (-2./dx2[i] - 2./py1[m-3] - 2./py2[m-3])/r;
-      f[m-3] = (phi_old[m-2][i-1] - 2.*phi_old[m-2][i]/r)/dx2[i] + 
-               d_yy(m,n,phi_old,y,i,m-2)/r - L_phi - phi[m-2][i-1]/dx2[i] - 
+      A[m-3][m-3] = (-2./dx2[i-1] - 2./py1[m-3] - 2./py2[m-3])/r;
+      f[m-3] = (phi_old[m-2][i-1] - 2.*phi_old[m-2][i]/r)/dx2[i-1] + 
+               d_yy(m,n,phi_old,y,i,m-2)/r - L_phi - phi[m-2][i-1]/dx2[i-1] - 
                2./py1[m-3]/r;
       
       diagonal_matrix_solver(m-2,A,f,u);
@@ -656,8 +675,8 @@ void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
         phi[j][i] = u[j-1];
 
       for(int j=1;j<m-1;j++){
-        val = (phi[j][i-1] - 2.*phi[j][i]/r)/dx2[i] + d_yy(m,n,phi,y,i,j)/r - 
-              (phi_old[j][i-1] - 2.*phi_old[j][i]/r)/dx2[i] - 
+        val = (phi[j][i-1] - 2.*phi[j][i]/r)/dx2[i-1] + d_yy(m,n,phi,y,i,j)/r - 
+              (phi_old[j][i-1] - 2.*phi_old[j][i]/r)/dx2[i-1] - 
               d_yy(m,n,phi_old,y,i,j)/r;
         val = fabs(val);
         if(val > res[iter])
@@ -685,7 +704,7 @@ void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0){
+  if(iter%config->qtimes != 0 || config->save_last_only){
     // buffer[0] = '\0';
     sprintf(buffer,"L");
     config->save_last_only = 0;
@@ -783,7 +802,7 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0){
+  if(iter%config->qtimes != 0 || config->save_last_only){
     // buffer[0] = '\0';
     sprintf(buffer,"L");
     config->save_last_only = 0;
@@ -807,8 +826,8 @@ void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
   // Solver variables
   double (*phi_old)[n] = calloc(m,sizeof *phi_old);
   // double (*N)[n-2] = calloc(m-2,sizeof *N);
-  double *dx2 = malloc(sizeof(double)*n);
-  double *dy2 = malloc(sizeof(double)*m);
+  double *dx2 = malloc(sizeof(double)*(n-2));
+  double *dy2 = malloc(sizeof(double)*(m-2));
   double L_phi,vars_old,val;
   double r2 = 2./config->r;
   int iter = 0;
@@ -834,14 +853,14 @@ void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
   strcat(filename_save,"_iter_");
   find_str_end(filename_save,&str_end_idx);
 
-  for(int i=0;i<n;i++){
-    dx2[i] = delta_xy(x,i);
-    dx2[i] *= dx2[i];
+  for(int i=1;i<n-1;i++){
+    dx2[i-1] = delta_xy(x,i);
+    dx2[i-1] *= dx2[i-1];
   }
 
-  for(int j=0;j<m;j++){
-    dy2[j] = delta_xy(y,j);
-    dy2[j] *= dy2[j];
+  for(int j=1;j<m-1;j++){
+    dy2[j-1] = delta_xy(y,j);
+    dy2[j-1] *= dy2[j-1];
   }
 
   // Save initial condition
@@ -856,15 +875,15 @@ void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,j);
-        vars_old = -L_phi + (phi_old[j][i-1] - r2*phi_old[j][i])/dx2[i] + 
-                   (phi_old[j-1][i] - r2*phi_old[j][i])/dy2[j];
-        phi[j][i] = (vars_old*dx2[i]*dy2[j] - dy2[j]*phi[j][i-1] - 
-                     dx2[i]*phi[j-1][i])/(-r2*(dx2[i] + dy2[j]));
+        vars_old = -L_phi + (phi_old[j][i-1] - r2*phi_old[j][i])/dx2[i-1] + 
+                   (phi_old[j-1][i] - r2*phi_old[j][i])/dy2[j-1];
+        phi[j][i] = (vars_old*dx2[i-1]*dy2[j-1] - dy2[j-1]*phi[j][i-1] - 
+                     dx2[i-1]*phi[j-1][i])/(-r2*(dx2[i-1] + dy2[j-1]));
 
-        val = (phi[j][i-1] - r2*phi[j][i])/dx2[i] + 
-              (phi[j-1][i] - r2*phi[j][i])/dy2[j] - 
-              (phi_old[j][i-1] - r2*phi_old[j][i])/dx2[i] - 
-              (phi_old[j-1][i] - r2*phi_old[j][i])/dy2[j];
+        val = (phi[j][i-1] - r2*phi[j][i])/dx2[i-1] + 
+              (phi[j-1][i] - r2*phi[j][i])/dy2[j-1] - 
+              (phi_old[j][i-1] - r2*phi_old[j][i])/dx2[i-1] - 
+              (phi_old[j-1][i] - r2*phi_old[j][i])/dy2[j-1];
         val = fabs(val);
         if(val > res[iter])
           res[iter] = val;
@@ -891,7 +910,7 @@ void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0){
+  if(iter%config->qtimes != 0 || config->save_last_only){
     // buffer[0] = '\0';
     sprintf(buffer,"L");
     config->save_last_only = 0;

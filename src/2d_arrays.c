@@ -13,6 +13,14 @@ void copy_2d_array(int m,int n,double A[m][n],double B[m][n]){
   }
 }
 
+/*
+-gigiaero, 31/03/2026, 0925 hours
+*/
+void eye(int m,double A[m][m]){
+  for(int i=0;i<m;i++)
+    A[i][i] = 1.;
+}
+
 /* 
 Fills a 2d array with increasing values
 - gigiaero, 10/03/2026, 1344 hours
