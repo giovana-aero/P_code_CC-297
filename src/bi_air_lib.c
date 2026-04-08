@@ -115,7 +115,7 @@ void evaluate_delta_form_bi_air(int m,int n,double phi[m][n],double *x,
 
     case 5:
       puts("SLOR, biconvex airfoil");
-       solve_slor_2d_rectangular_bi_air(m,n,phi,x,y,config,b_a_m);
+      solve_slor_2d_rectangular_bi_air(m,n,phi,x,y,config,b_a_m);
       break;
 
     default:
@@ -211,11 +211,10 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
                                           sim_parameters *config,
                                           bi_air_phys_mesh *b_a_m){
   // Solver variables
-  double (*phi_old)[n] = calloc(m,sizeof *phi_old);
+  double (*L_phi)[n-2] = calloc(m-2,sizeof *L_phi);
+  double (*Cij)[n] = calloc(m,sizeof *Cij);
   double *dx2 = malloc(sizeof(double)*(n-2));
   double *dy2 = malloc(sizeof(double)*(m-2));
-  double (*L_phi)[n-2] = calloc(m-2,sizeof *L_phi);
-  double (*Cij)[n-2] = calloc(m-2,sizeof *Cij);
   int iter = 0;
   // Save files
   char *filename_save = malloc(sizeof(char)*200);
@@ -223,7 +222,7 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   int str_end_idx;
   // Residuals
   char *filename_log = malloc(sizeof(char)*200);
-  double *res = calloc(config->max_iter,sizeof(double));
+  double *res = calloc(config->max_iter + 1,sizeof(double));
   FILE *file_log;
 
   // Configure log file
@@ -244,22 +243,18 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
     dy2[j-1] *= dy2[j-1];
   }
 
-  // Apply boundary conditions (low edge)
-  apply_down_b_c(m,n,phi,x,y,b_a_m);
-
   // Save initial condition
-  save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+  if(config->save_i_c)
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
 
   for(iter;iter<=config->max_iter;iter++){
-    copy_2d_array(m,n,phi,phi_old);
-
     // Calculate residual operator
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi[j-1][i-1],m,n,phi,x,y,i,j);
         
         if(fabs(L_phi[j-1][i-1]) > res[iter])
-          res[iter] = L_phi[j-1][i-1];
+          res[iter] = fabs(L_phi[j-1][i-1]);
       }
     }
     
@@ -274,16 +269,24 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
       break;
     }
 
+    if(res[iter] >= div_ref){
+      puts("- Divergence");
+      iter++;
+      break;
+    }
+
     // Solve for Cij
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++)
-        Cij[j-1][i-1] = (-L_phi[j-1][i-1] - C_op(m,n,phi,phi_old,i-1,j)/dx2[i-1] - C_op(m,n,phi,phi_old,i,j-1)/dy2[j-1])/(-2./dx2[i-1] - 2./dy2[j-1]);
+        Cij[j][i] = (-L_phi[j-1][i-1] - Cij[j][i-1]/dx2[i-1]
+                     - Cij[j-1][i]/dy2[j-1])/
+                     (-2./dx2[i-1] - 2./dy2[j-1]);
     }
     
     // Calculate phi^{n+1}
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++)
-        phi[j][i] = phi_old[j][i] + Cij[j-1][i-1];
+        phi[j][i] += Cij[j][i];
     }
     
     // Apply boundary conditions (low edge)
@@ -295,18 +298,17 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0){
+  if(iter%config->qtimes != 0 || config->save_last_only){
     iter--; // To get the correct iteration number
     sprintf(buffer,"L");
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
                         &str_end_idx);
   }
 
-  free(phi_old);
-  free(dx2);
-  free(dy2);
   free(L_phi);
   free(Cij);
+  free(dx2);
+  free(dy2);
   free(filename_save);
   free(filename_log);
   free(buffer);
@@ -333,7 +335,7 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   int str_end_idx;
   // Residuals
   char *filename_log = malloc(sizeof(char)*200);
-  double *res = calloc(config->max_iter,sizeof(double));
+  double *res = calloc(config->max_iter + 1,sizeof(double));
   FILE *file_log;
 
   // Configure log file
@@ -348,9 +350,6 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
     for(int i=1;i<n-1;i++)
       N_p_jacobi(&N[j-1][i-1],x,y,i,j);
   }
-
-  // Apply boundary conditions (low edge)
-  apply_down_b_c(m,n,phi,x,y,b_a_m);
 
   // Save initial condition
   if(config->save_i_c)
@@ -378,6 +377,12 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
       break;
     }
 
+    if(res[iter] >= div_ref){
+      puts("- Divergence");
+      iter++;
+      break;
+    }
+
     // Solve for Cij
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++)
@@ -399,7 +404,7 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0){
+  if(iter%config->qtimes != 0 || config->save_last_only){
     iter--; // To get the correct iteration number
     sprintf(buffer,"L");
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
@@ -417,20 +422,21 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
 }
 
 /*
-
+- gigiaero, 07/04/2026, 2251 hours
 */
 void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
                                       double *y,sim_parameters *config,
                                       bi_air_phys_mesh *b_a_m){
   // Solver variables
-  double (*phi_old)[n] = calloc(m,sizeof *phi_old);
+  double (*L_phi)[n-2] = calloc(m-2,sizeof *L_phi);
+  double (*Cij)[n] = calloc(m,sizeof *Cij);
   double (*A)[m-2] = calloc(m-2,sizeof *A);
   double *f = malloc(sizeof(double)*(m-2));
   double *u = malloc(sizeof(double)*(m-2));
   double *dx2 = malloc(sizeof(double)*(n-2));
   double *py1 = malloc(sizeof(double)*(m-2));
   double *py2 = malloc(sizeof(double)*(m-2));
-  double L_phi,vars_old,val;
+  double vars_old,val;
   double r = config->r;
   int iter = 0;
   // Save files
@@ -439,11 +445,12 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   int str_end_idx;
   // Residuals
   char *filename_log = malloc(sizeof(char)*200);
-  double *res = calloc(config->max_iter,sizeof(double));
+  double *res = calloc(config->max_iter + 1,sizeof(double));
   FILE *file_log;
 
   // Configure log file
   sprintf(filename_log,"%s.log",config->casename);
+  puts(filename_log);
   file_log = fopen(filename_log,"w");
 
   // Prepare string to save simulation data  
@@ -461,60 +468,30 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   }
 
   // Save initial condition
-  save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
-
-  // print_2d_array(m,n,phi);
+  if(config->save_i_c)
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
 
   for(iter;iter<=config->max_iter;iter++){
-    // Apply boundary conditions on the low edge
-    apply_down_b_c(m,n,phi,x,y,b_a_m);
-
-    copy_2d_array(m,n,phi,phi_old);
-
-    for(int i=1;i<n-1;i++){
-      scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,1);
-      A[0][0] = (-2./dx2[i-1] - 2./py1[0] - 2./py2[0])/r;
-      A[0][1] = 2./py1[0]/r;
-      f[0] = (phi_old[1][i-1] - 2.*phi_old[1][i]/r)/dx2[i-1] + 
-             d_yy(m,n,phi_old,y,i,1)/r - L_phi - phi[1][i-1]/dx2[i-1] - 
-             2./py2[0]/r;
-
-      for(int j=1;j<m-3;j++){
-        scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,j+1);
-        A[j][j-1] = 2./py2[j]/r;
-        A[j][j] = (-2./dx2[i-1] - 2./py1[j] - 2./py2[j])/r;
-        A[j][j+1] = 2./py1[j]/r;
-        f[j] = (phi_old[j+1][i-1] - 2.*phi_old[j+1][i]/r)/dx2[i-1] + 
-               d_yy(m,n,phi_old,y,i,j+1)/r - L_phi - phi[j+1][i-1]/dx2[i-1];
-      }
-
-      scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,m-2);
-      A[m-3][m-4] = 2./py2[m-3]/r;
-      A[m-3][m-3] = (-2./dx2[i-1] - 2./py1[m-3] - 2./py2[m-3])/r;
-      f[m-3] = (phi_old[m-2][i-1] - 2.*phi_old[m-2][i]/r)/dx2[i-1] + 
-               d_yy(m,n,phi_old,y,i,m-2)/r - L_phi - phi[m-2][i-1]/dx2[i-1] - 
-               2./py1[m-3]/r;
-      
-      diagonal_matrix_solver(m-2,A,f,u);
-
-      for(int j=1;j<m-1;j++)
-        phi[j][i] = u[j-1];
-
-      for(int j=1;j<m-1;j++){
-        val = (phi[j][i-1] - 2.*phi[j][i]/r)/dx2[i-1] + d_yy(m,n,phi,y,i,j)/r - 
-              (phi_old[j][i-1] - 2.*phi_old[j][i]/r)/dx2[i-1] - 
-              d_yy(m,n,phi_old,y,i,j)/r;
-        val = fabs(val);
-        if(val > res[iter])
-          res[iter] = val;
+    // Calculate residual operator
+    for(int j=1;j<m-1;j++){
+      for(int i=1;i<n-1;i++){
+        scheme_der2_o2_central_var_deltas_xy(&L_phi[j-1][i-1],m,n,phi,x,y,i,j);
+        
+        if(fabs(L_phi[j-1][i-1]) > res[iter])
+          res[iter] = fabs(L_phi[j-1][i-1]);
       }
     }
 
     printf("SLOR Iteration %010d | Res %.6e\n",iter,res[iter]);
 
-    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
-
     fprintf(file_log,"%.6e\n",res[iter]);
+
+    // Test for convergence
+    if(res[iter] <= config->eps && iter != 0){
+      puts("<< Convergence! >>");
+      iter++;
+      break;
+    }
 
     if(res[iter] >= div_ref){
       puts("- Divergence");
@@ -522,24 +499,54 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
       break;
     }
 
-    if(res[iter] <= config->eps){
-      puts("<< Convergence! >>");
-      iter++;
-      break;
+    // Solve for Cij
+    for(int i=1;i<n-1;i++){
+      A[0][0] = -1./dx2[i-1] - 1./py1[0] - 1./py2[0];
+      A[0][1] = 1./py1[0];
+      f[0] = (-L_phi[0][i-1] - Cij[1][i]/dx2[i-1])*r/2. - Cij[0][i]/py2[0];
+
+      for(int j=1;j<m-3;j++){
+        A[j][j-1] = 1./py2[j];
+        A[j][j] = (-1./dx2[i-1] - 1./py1[j] - 1./py2[j]);
+        A[j][j+1] = 1./py1[j]/1;
+        f[j] = (-L_phi[j][i-1] - Cij[j+1][i]/dx2[i-1])*r/2.;
+      }
+
+      A[m-3][m-4] = 1./py2[m-3];
+      A[m-3][m-3] = -1./dx2[i-1] - 1./py1[m-3] - 1./py2[m-3];
+      f[m-3] = (-L_phi[m-3][i-1] - Cij[m-2][i]/dx2[i-1])*r/2. 
+               - Cij[m-1][i]/py1[m-3];
+      
+      diagonal_matrix_solver(m-2,A,f,u);
+
+      for(int j=1;j<m-1;j++)
+        Cij[j][i] = u[j-1];
     }
+
+    // Calculate phi^{n+1}
+    for(int j=1;j<m-1;j++){
+      for(int i=1;i<n-1;i++)
+        phi[j][i] += Cij[j][i];
+    }
+
+    // Apply boundary conditions (low edge)
+    apply_down_b_c(m,n,phi,x,y,b_a_m);
+
+    if(!config->save_last_only)
+      save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                          &str_end_idx);
   }
 
   // Save last iteration if it wasn't saved
   if(iter%config->qtimes != 0 || config->save_last_only){
-    // buffer[0] = '\0';
+    iter--; // To get the correct iteration number
     sprintf(buffer,"L");
-    config->save_last_only = 0;
-    iter--;
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
-    &str_end_idx);
+                        &str_end_idx);
   }
 
-  free(phi_old);
+  free(L_phi);
+  free(Cij);
   free(A);
   free(f);
   free(u);
@@ -553,16 +560,17 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   fclose(file_log);
 }
 
+/*
+- gigiaero, 07/04/2026, 1558 hours
+*/
 void solve_sor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
                                      double *y,sim_parameters *config,
                                      bi_air_phys_mesh *b_a_m){
   // Solver variables
-  double (*phi_old)[n] = calloc(m,sizeof *phi_old);
-  // double (*N)[n-2] = calloc(m-2,sizeof *N);
+  double (*L_phi)[n-2] = calloc(m-2,sizeof *L_phi);
+  double (*Cij)[n] = calloc(m,sizeof *Cij);
   double *dx2 = malloc(sizeof(double)*(n-2));
   double *dy2 = malloc(sizeof(double)*(m-2));
-  double L_phi,vars_old,val;
-  double r2 = 2./config->r;
   int iter = 0;
   // Save files
   char *filename_save = malloc(sizeof(char)*200);
@@ -570,7 +578,7 @@ void solve_sor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   int str_end_idx;
   // Residuals
   char *filename_log = malloc(sizeof(char)*200);
-  double *res = calloc(config->max_iter,sizeof(double));
+  double *res = calloc(config->max_iter + 1,sizeof(double));
   FILE *file_log;
 
   // Configure log file
@@ -592,46 +600,30 @@ void solve_sor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   }
 
   // Save initial condition
-  save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
-
-  for(iter;iter<=config->max_iter;iter++){
-    copy_2d_array(m,n,phi,phi_old);
-
-    // Apply boundary conditions (low edge)
-    for(int i=1;i<n-1;i++){
-      if(i >= b_a_m->ILE-1 && i < b_a_m->ITE){  // Airfoil
-        phi[0][i] = phi[1][i] - (y[1] - y[0])*b_a_m->uinf*bi_air_shape_dx(b_a_m->t,x[i]);
-      }
-      else{  // Free stream
-        phi[0][i] = phi[1][i];
-      }
-    }
-
-    // save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
-
-    for(int j=1;j<m-1;j++){
-      for(int i=1;i<n-1;i++){
-        scheme_der2_o2_central_var_deltas_xy(&L_phi,m,n,phi_old,x,y,i,j);
-        vars_old = -L_phi + (phi_old[j][i-1] - r2*phi_old[j][i])/dx2[i-1] + 
-                   (phi_old[j-1][i] - r2*phi_old[j][i])/dy2[j-1];
-        phi[j][i] = (vars_old*dx2[i-1]*dy2[j-1] - dy2[j-1]*phi[j][i-1] - 
-                     dx2[i-1]*phi[j-1][i])/(-r2*(dx2[i-1] + dy2[j-1]));
-
-        val = (phi[j][i-1] - r2*phi[j][i])/dx2[i-1] + 
-              (phi[j-1][i] - r2*phi[j][i])/dy2[j-1] - 
-              (phi_old[j][i-1] - r2*phi_old[j][i])/dx2[i-1] - 
-              (phi_old[j-1][i] - r2*phi_old[j][i])/dy2[j-1];
-        val = fabs(val);
-        if(val > res[iter])
-          res[iter] = val;
-      }
-    } 
-
-    printf("Iteration %010d | Res %.6e\n",iter,res[iter]);
-
+  if(config->save_i_c)
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
 
+  for(iter;iter<=config->max_iter;iter++){
+    // Calculate residual operator
+    for(int j=1;j<m-1;j++){
+      for(int i=1;i<n-1;i++){
+        scheme_der2_o2_central_var_deltas_xy(&L_phi[j-1][i-1],m,n,phi,x,y,i,j);
+        
+        if(fabs(L_phi[j-1][i-1]) > res[iter])
+          res[iter] = fabs(L_phi[j-1][i-1]);
+      }
+    }
+    
+    printf("SOR Iteration %010d | Res %.6e\n",iter,res[iter]);
+
     fprintf(file_log,"%.6e\n",res[iter]);
+
+    // Test for convergence
+    if(res[iter] <= config->eps && iter != 0){
+      puts("<< Convergence! >>");
+      iter++;
+      break;
+    }
 
     if(res[iter] >= div_ref){
       puts("- Divergence");
@@ -639,24 +631,38 @@ void solve_sor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
       break;
     }
 
-    if(res[iter] <= config->eps){
-      puts("<< Convergence! >>");
-      iter++;
-      break;
+    // Solve for Cij
+    for(int j=1;j<m-1;j++){
+      for(int i=1;i<n-1;i++)
+        Cij[j][i] = (-L_phi[j-1][i-1] - Cij[j][i-1]/dx2[i-1]
+                     - Cij[j-1][i]/dy2[j-1])*config->r/
+                     (-2./dx2[i-1] - 2./dy2[j-1]);
     }
+    
+    // Calculate phi^{n+1}
+    for(int j=1;j<m-1;j++){
+      for(int i=1;i<n-1;i++)
+        phi[j][i] += Cij[j][i];
+    }
+    
+    // Apply boundary conditions (low edge)
+    apply_down_b_c(m,n,phi,x,y,b_a_m);
+
+    if(!config->save_last_only)
+      save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                          &str_end_idx);
   }
 
   // Save last iteration if it wasn't saved
   if(iter%config->qtimes != 0 || config->save_last_only){
-    // buffer[0] = '\0';
+    iter--; // To get the correct iteration number
     sprintf(buffer,"L");
-    config->save_last_only = 0;
-    iter--;
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
-    &str_end_idx);
+                        &str_end_idx);
   }
 
-  free(phi_old);
+  free(L_phi);
+  free(Cij);
   free(dx2);
   free(dy2);
   free(filename_save);

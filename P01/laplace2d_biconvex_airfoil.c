@@ -15,9 +15,9 @@ int main(){
   // Solution configurations
   sim_parameters config;
   config.Ntype = 1;
-  config.r = 1.85;
+  config.r = 1.95;
   config.max_iter = 10000;
-  config.qtimes = 100;
+  config.qtimes = 1;
   config.save_i_c = 0;
   config.save_last_only = 1;
   config.eps = 1.e-5; // Convergence criterion
@@ -124,12 +124,12 @@ int main(){
   // Reapplied boundary conditions
   // int num_b_c_r = 0;
 
-  // Initialize boundary conditions
+  // Initialize boundary conditions and initial conditions
   apply_b_c(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,num_b_c,b_c,x,y);
-
-  // Initialize all initial conditions
   for(int j=1;j<b_a_mesh.JMAX-1;j++)
     copy_1d_array_range(1,b_a_mesh.IMAX-1,phi[b_a_mesh.JMAX-1],phi[j]);
+
+  apply_down_b_c(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,x,y,&b_a_mesh);
 
   // Solve
   config.casename = malloc(sizeof(char)*200);

@@ -37,7 +37,7 @@ def execute(address,casename):
   plt.colorbar()
   plt.xlabel("x")
   plt.ylabel("y")
-  plt.title("phi")
+  plt.title("cp")
 
   plt.show()
 

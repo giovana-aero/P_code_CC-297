@@ -426,7 +426,7 @@ void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0){
+  if(iter%config->qtimes != 0 || config->save_last_only){
     iter--; // To get the correct iteration number
     sprintf(buffer,"L");
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
@@ -561,7 +561,7 @@ void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0){
+  if(iter%config->qtimes != 0 || config->save_last_only){
     iter--; // To get the correct iteration number
     sprintf(buffer,"L");
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
@@ -704,7 +704,7 @@ void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0){
+  if(iter%config->qtimes != 0 || config->save_last_only){
     iter--; // To get the correct iteration number
     sprintf(buffer,"L");
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
@@ -803,7 +803,7 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0){
+  if(iter%config->qtimes != 0 || config->save_last_only){
     iter--; // To get the correct iteration number
     sprintf(buffer,"L");
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
@@ -912,7 +912,7 @@ void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
   }
 
   // Save last iteration if it wasn't saved
-  if(iter%config->qtimes != 0){
+  if(iter%config->qtimes != 0 || config->save_last_only){
     iter--; // To get the correct iteration number
     sprintf(buffer,"L");
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
