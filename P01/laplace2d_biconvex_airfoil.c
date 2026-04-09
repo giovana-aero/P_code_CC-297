@@ -25,7 +25,7 @@ int main(){
 
   // Mesh
   bi_air_phys_mesh b_a_mesh;
-  int mtype = 3;
+  int mtype = 1;
   set_mesh_prmtrs(mtype,&b_a_mesh);
   int chord_l = b_a_mesh.ITE - b_a_mesh.ILE + 1;
 

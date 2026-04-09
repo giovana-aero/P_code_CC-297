@@ -275,8 +275,17 @@ void set_mesh_prmtrs(int mtype,bi_air_phys_mesh *b_a_mesh){
       b_a_mesh->XSF = 1.0605144;
       b_a_mesh->YSF = 1.04818314;
       break;
+    // ----------------------------------------------- 1/8
+    case 4: 
+      b_a_mesh->ILE = 81;
+      b_a_mesh->ITE = 241;
+      b_a_mesh->IMAX = 321;
+      b_a_mesh->JMAX = 96;
+      b_a_mesh->XSF = 1.03008612;
+      b_a_mesh->YSF = 1.0231651;
+      break;
     // ----------------------------------------------- 1/.5
-    case 4:
+    case 5:
       b_a_mesh->ILE = 6;
       b_a_mesh->ITE = 16;
       b_a_mesh->IMAX = 21;
