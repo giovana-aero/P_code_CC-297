@@ -80,14 +80,6 @@ def execute(address,casename):
   plt.title("Ve")
 
   plt.show()
-  
-
-def load_2d_array(casename):
-
-  
-
-  return A
-
 
 if __name__ == "__main__":
   main()

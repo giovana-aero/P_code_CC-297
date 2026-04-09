@@ -43,10 +43,14 @@ def execute(t,ILE,ITE,mesh_x_file,mesh_y_file):
   plt.plot(mesh_x[ILE-1:ITE],-y_af,'m')
   plt.plot(mesh_x[ILE-1:ITE],np.zeros(len(mesh_x[ILE-1:ITE])),'--k')
 
-  plt.xlim(xlims)
-  plt.ylim(ylims)
+  # plt.xlim(xlims)
+  # plt.ylim(ylims)
   
+  plt.savefig('airfoil_geom_t' + str(t) + '.eps', format='eps')
   plt.show()
+
+  # plt.savefig('airfoil_geom_t' + str(t) + '.eps', format='eps')
+
 
 def bi_air_shape(x,t):
   return 2*t*x*(1 - x)

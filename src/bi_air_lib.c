@@ -90,7 +90,9 @@ void bi_air_dirichlet_vals_wall(double *x,b_conditions_2d *b_c,double uinf,
 void evaluate_delta_form_bi_air(int m,int n,double phi[m][n],double *x,
                                 double *y,sim_parameters *config,
                                 bi_air_phys_mesh *b_a_m){
-  save_mesh(m,n,x,y,config->casename);
+  save_mesh(m,n,x,y,config->casename); 
+
+  // puts("aahhhhhhhh"); return;
 
   switch(config->Ntype){
     case 1:

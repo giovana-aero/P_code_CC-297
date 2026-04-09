@@ -25,27 +25,49 @@ int main(){
 
   // Mesh
   bi_air_phys_mesh b_a_mesh;
-  // // ----------------------------------------------- original configuration
-  b_a_mesh.ILE = 11;   // Leading edge
-  b_a_mesh.ITE = 31;   // Trailing edge
-  b_a_mesh.IMAX = 41;  // Number of points along x
-  b_a_mesh.JMAX = 12;  // Number of points along y
-  b_a_mesh.XSF = 1.25; // Stretching factor, x
-  b_a_mesh.YSF = 1.25; // Stretching factor, y
-  // ----------------------------------------------- 2x
-  // b_a_mesh.ILE = 21;   // Leading edge
-  // b_a_mesh.ITE = 61;   // Trailing edge
-  // b_a_mesh.IMAX = 82;  // Number of points along x
-  // b_a_mesh.JMAX = 24;  // Number of points along y
-  // b_a_mesh.XSF = 1.05; // Stretching factor, x
-  // b_a_mesh.YSF = 1.05; // Stretching factor, y
-  // ----------------------------------------------- 
-  // b_a_mesh.ILE = ;   // Leading edge
-  // b_a_mesh.ITE = ;   // Trailing edge
-  // b_a_mesh.IMAX = ;  // Number of points along x
-  // b_a_mesh.JMAX = ;  // Number of points along y
-  // b_a_mesh.XSF = 1.25; // Stretching factor, x
-  // b_a_mesh.YSF = 1.25; // Stretching factor, y
+  int mtype = 4;
+  switch(mtype){
+    // ----------------------------------------------- original configuration
+    case 1:
+      b_a_mesh.ILE = 11;   // Leading edge
+      b_a_mesh.ITE = 31;   // Trailing edge
+      b_a_mesh.IMAX = 41;  // Number of points along x
+      b_a_mesh.JMAX = 12;  // Number of points along y
+      b_a_mesh.XSF = 1.25; // Stretching factor, x
+      b_a_mesh.YSF = 1.25; // Stretching factor, y
+      break;
+    // ----------------------------------------------- 1/2
+    case 2:
+      b_a_mesh.ILE = 21;   // Leading edge
+      b_a_mesh.ITE = 61;   // Trailing edge
+      b_a_mesh.IMAX = 81;  // Number of points along x
+      b_a_mesh.JMAX = 24;  // Number of points along y
+      b_a_mesh.XSF = 1.12237803; // Stretching factor, x
+      b_a_mesh.YSF =  1.10456837; // Stretching factor, y
+      break;
+    // ----------------------------------------------- 1/4
+    case 3: 
+      b_a_mesh.ILE = 41;   // Leading edge
+      b_a_mesh.ITE = 121;   // Trailing edge
+      b_a_mesh.IMAX = 161;  // Number of points along x
+      b_a_mesh.JMAX = 48;  // Number of points along y
+      b_a_mesh.XSF = 1.0605144; // Stretching factor, x
+      b_a_mesh.YSF = 1.04818314; // Stretching factor, y
+      break;
+    // ----------------------------------------------- 1/.5
+    case 4:
+      b_a_mesh.ILE = 6;   // Leading edge
+      b_a_mesh.ITE = 16;   // Trailing edge
+      b_a_mesh.IMAX = 21;  // Number of points along x
+      b_a_mesh.JMAX = 6;  // Number of points along y
+      b_a_mesh.XSF = 1.51979153; // Stretching factor, x
+      b_a_mesh.YSF = 1.77743291; // Stretching factor, y
+      break;
+
+    default:
+      puts("Invalid mtype");
+      exit(4);
+  }
 
   int chord_l = b_a_mesh.ITE - b_a_mesh.ILE + 1;
 
