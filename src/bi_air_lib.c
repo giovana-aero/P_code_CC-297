@@ -84,6 +84,44 @@ void bi_air_dirichlet_vals_wall(double *x,b_conditions_2d *b_c,double uinf,
     b_c->val[idx] = uinf*bi_air_shape_dx(t,x[i]);
 }
 
+// /*
+// - gigiaero, 09/04/2026, 1034 hours
+// */
+// void build_linear_sys_matrix_cols(int m,int n,double A[m-2][m-2],double *py1,
+//                                   double *py2,double *dx2){
+//   for(int i=1;i<n-1;i++){
+//     A[0][0] = -1./dx2[i-1] - 1./py1[0] - 1./py2[0];
+//     A[0][1] = 1./py1[0];
+
+//     for(int j=1;j<m-3;j++){
+//       A[j][j-1] = 1./py2[j];
+//       A[j][j] = (-1./dx2[i-1] - 1./py1[j] - 1./py2[j]);
+//       A[j][j+1] = 1./py1[j];
+//     }
+
+//     A[m-3][m-4] = 1./py2[m-3];
+//     A[m-3][m-3] = -1./dx2[i-1] - 1./py1[m-3] - 1./py2[m-3];
+//   }
+// }
+
+/*
+this version calculates everything but the main diagonal
+- gigiaero, 09/04/2026, 1318 hours
+*/
+void build_linear_sys_matrix_cols2(int m,int n,double A[m-2][m-2],double *py1,
+                                  double *py2){
+  for(int i=1;i<n-1;i++){
+    A[0][1] = 1./py1[0];
+
+    for(int j=1;j<m-3;j++){
+      A[j][j-1] = 1./py2[j];
+      A[j][j+1] = 1./py1[j];
+    }
+
+    A[m-3][m-4] = 1./py2[m-3];
+  }
+}
+
 /*
 - gigiaero, 25/03/2026, 1521 hours
 */
@@ -202,6 +240,54 @@ void get_u_v_potential(int m,int n,double phi[m][n],double u[m][n],
   for(int j=m-1;j>=0;j--){
     for(int i=0;i<n;i++)
     Ve[j][i] = sqrt(pow(u[j][i],2) + pow(v[j][i],2));
+  }
+}
+
+/*
+- gigiaero, 09/04/2026, 0857 hours
+*/
+void set_mesh_prmtrs(int mtype,bi_air_phys_mesh *b_a_mesh){
+  switch(mtype){
+    // ----------------------------------------------- original configuration
+    case 1:
+      b_a_mesh->ILE = 11;   // Leading edge
+      b_a_mesh->ITE = 31;   // Trailing edge
+      b_a_mesh->IMAX = 41;  // Number of points along x
+      b_a_mesh->JMAX = 12;  // Number of points along y
+      b_a_mesh->XSF = 1.25; // Stretching factor, x
+      b_a_mesh->YSF = 1.25; // Stretching factor, y
+      break;
+    // ----------------------------------------------- 1/2
+    case 2:
+      b_a_mesh->ILE = 21;
+      b_a_mesh->ITE = 61;
+      b_a_mesh->IMAX = 81;
+      b_a_mesh->JMAX = 24;
+      b_a_mesh->XSF = 1.12237803;
+      b_a_mesh->YSF =  1.10456837;
+      break;
+    // ----------------------------------------------- 1/4
+    case 3: 
+      b_a_mesh->ILE = 41;
+      b_a_mesh->ITE = 121;
+      b_a_mesh->IMAX = 161;
+      b_a_mesh->JMAX = 48;
+      b_a_mesh->XSF = 1.0605144;
+      b_a_mesh->YSF = 1.04818314;
+      break;
+    // ----------------------------------------------- 1/.5
+    case 4:
+      b_a_mesh->ILE = 6;
+      b_a_mesh->ITE = 16;
+      b_a_mesh->IMAX = 21;
+      b_a_mesh->JMAX = 6;
+      b_a_mesh->XSF = 1.51979153;
+      b_a_mesh->YSF = 1.77743291;
+      break;
+
+    default:
+      puts("Invalid mtype");
+      exit(4);
   }
 }
 
@@ -395,20 +481,19 @@ void solve_lgs_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
       break;
     }
 
+    // Build the matrix of the linear system
+    build_linear_sys_matrix_cols2(m,n,A,py1,py2);
+
     // Solve for Cij
     for(int i=1;i<n-1;i++){
-      A[0][0] = -1./dx2[i-1] - 1./py1[0] - 1./py2[0];
-      A[0][1] = 1./py1[0];
+      A[0][0] = -1./dx2[i-1] - 1./py1[0] - 1./py2[0];               
       f[0] = (-L_phi[0][i-1] - Cij[1][i]/dx2[i-1])/2. - Cij[0][i]/py2[0];
 
       for(int j=1;j<m-3;j++){
-        A[j][j-1] = 1./py2[j];
         A[j][j] = (-1./dx2[i-1] - 1./py1[j] - 1./py2[j]);
-        A[j][j+1] = 1./py1[j]/1;
         f[j] = (-L_phi[j][i-1] - Cij[j+1][i]/dx2[i-1])/2.;
       }
 
-      A[m-3][m-4] = 1./py2[m-3];
       A[m-3][m-3] = -1./dx2[i-1] - 1./py1[m-3] - 1./py2[m-3];
       f[m-3] = (-L_phi[m-3][i-1] - Cij[m-2][i]/dx2[i-1])/2. 
                - Cij[m-1][i]/py1[m-3];
@@ -611,6 +696,8 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   if(config->save_i_c)
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
 
+  build_linear_sys_matrix_cols2(m,n,A,py1,py2);
+
   for(iter;iter<=config->max_iter;iter++){
     // Calculate residual operator
     for(int j=1;j<m-1;j++){
@@ -642,17 +729,13 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
     // Solve for Cij
     for(int i=1;i<n-1;i++){
       A[0][0] = -1./dx2[i-1] - 1./py1[0] - 1./py2[0];
-      A[0][1] = 1./py1[0];
       f[0] = (-L_phi[0][i-1] - Cij[1][i]/dx2[i-1])*r/2. - Cij[0][i]/py2[0];
 
       for(int j=1;j<m-3;j++){
-        A[j][j-1] = 1./py2[j];
         A[j][j] = (-1./dx2[i-1] - 1./py1[j] - 1./py2[j]);
-        A[j][j+1] = 1./py1[j]/1;
         f[j] = (-L_phi[j][i-1] - Cij[j+1][i]/dx2[i-1])*r/2.;
       }
 
-      A[m-3][m-4] = 1./py2[m-3];
       A[m-3][m-3] = -1./dx2[i-1] - 1./py1[m-3] - 1./py2[m-3];
       f[m-3] = (-L_phi[m-3][i-1] - Cij[m-2][i]/dx2[i-1])*r/2. 
                - Cij[m-1][i]/py1[m-3];

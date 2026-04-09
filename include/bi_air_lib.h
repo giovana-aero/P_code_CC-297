@@ -17,6 +17,8 @@ double bi_air_shape_dx(double t,double x_i);
 void bi_air_dirichlet_vals_free(double *x,b_conditions_2d *b_c,double uinf);
 void bi_air_dirichlet_vals_wall(double *x,b_conditions_2d *b_c,double uinf,
                                 double t);
+void build_linear_sys_matrix_cols2(int m,int n,double A[m-2][m-2],double *py1,
+                                   double *py2);
 void evaluate_delta_form_bi_air(int m,int n,double phi[m][n],double *x,
                                 double *y,sim_parameters *config,
                                 bi_air_phys_mesh *b_a_m);
@@ -26,6 +28,7 @@ void get_cp_bi_air_chord(double *cp,int m,int n,double phi[m][n],double u[m][n],
                          double *x,double *y,bi_air_phys_mesh *b_a_m);
 void get_u_v_potential(int m,int n,double phi[m][n],double u[m][n],
                        double v[m][n],double Ve[m][n],double *x,double *y);
+void set_mesh_prmtrs(int mtype,bi_air_phys_mesh *b_a_mesh);
 void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
                                           double *x,double *y,
                                           sim_parameters *config,
