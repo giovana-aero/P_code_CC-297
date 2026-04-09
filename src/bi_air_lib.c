@@ -373,8 +373,10 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
     }
 
     // Solve for Cij
-    for(int j=1;j<m-1;j++){
-      for(int i=1;i<n-1;i++)
+    for(int i=1;i<n-1;i++){
+      Cij[1][i] = (-L_phi[0][i-1] - Cij[1][i-1]/dx2[i-1] - Cij[1][i]/dy2[0])/
+                  (-2./dx2[i-1] - 2./dy2[0]);
+      for(int j=2;j<m-1;j++)
         Cij[j][i] = (-L_phi[j-1][i-1] - Cij[j][i-1]/dx2[i-1]
                      - Cij[j-1][i]/dy2[j-1])/
                      (-2./dx2[i-1] - 2./dy2[j-1]);
@@ -496,7 +498,7 @@ void solve_lgs_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
     // Solve for Cij
     for(int i=1;i<n-1;i++){
       A[0][0] = -1./dx2[i-1] - 1./py1[0] - 1./py2[0];               
-      f[0] = (-L_phi[0][i-1] - Cij[1][i]/dx2[i-1])/2. - Cij[0][i]/py2[0];
+      f[0] = (-L_phi[0][i-1] - Cij[1][i]/dx2[i-1])/2. - Cij[1][i]/py2[0];
 
       for(int j=1;j<m-3;j++){
         A[j][j] = (-1./dx2[i-1] - 1./py1[j] - 1./py2[j]);
@@ -737,8 +739,8 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
 
     // Solve for Cij
     for(int i=1;i<n-1;i++){
-      A[0][0] = -1./dx2[i-1] - 1./py1[0] - 1./py2[0];
-      f[0] = (-L_phi[0][i-1] - Cij[1][i]/dx2[i-1])*r/2. - Cij[0][i]/py2[0];
+      A[0][0] = -1./dx2[i-1] - 1./py1[0] - 1./py2[0];               
+      f[0] = (-L_phi[0][i-1] - Cij[1][i]/dx2[i-1])*r/2. - Cij[1][i]/py2[0];
 
       for(int j=1;j<m-3;j++){
         A[j][j] = (-1./dx2[i-1] - 1./py1[j] - 1./py2[j]);
@@ -864,8 +866,10 @@ void solve_sor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
     }
 
     // Solve for Cij
-    for(int j=1;j<m-1;j++){
-      for(int i=1;i<n-1;i++)
+    for(int i=1;i<n-1;i++){
+      Cij[1][i] = (-L_phi[0][i-1] - Cij[1][i-1]/dx2[i-1] - Cij[1][i]/dy2[0])*
+                   config->r/(-2./dx2[i-1] - 2./dy2[0]);
+      for(int j=2;j<m-1;j++)
         Cij[j][i] = (-L_phi[j-1][i-1] - Cij[j][i-1]/dx2[i-1]
                      - Cij[j-1][i]/dy2[j-1])*config->r/
                      (-2./dx2[i-1] - 2./dy2[j-1]);
