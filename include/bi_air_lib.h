@@ -30,6 +30,9 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
                                           double *x,double *y,
                                           sim_parameters *config,
                                           bi_air_phys_mesh *b_a_m);
+void solve_lgs_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
+                                     double *y,sim_parameters *config,
+                                     bi_air_phys_mesh *b_a_m);
 void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
                                           double *x,double *y,
                                           sim_parameters *config,

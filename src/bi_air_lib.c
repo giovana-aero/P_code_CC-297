@@ -110,7 +110,7 @@ void evaluate_delta_form_bi_air(int m,int n,double phi[m][n],double *x,
 
     case 4:
       puts("Line-Gauss-Seidel, biconvex airfoil");
-      
+      solve_lgs_2d_rectangular_bi_air(m,n,phi,x,y,config,b_a_m);
       break;
 
     case 5:
@@ -309,6 +309,144 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   free(Cij);
   free(dx2);
   free(dy2);
+  free(filename_save);
+  free(filename_log);
+  free(buffer);
+  free(res);
+  fclose(file_log);
+}
+
+/*
+- gigiaero , 08/04/2026, 2137 hours
+*/
+void solve_lgs_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
+                                     double *y,sim_parameters *config,
+                                     bi_air_phys_mesh *b_a_m){
+  // Solver variables
+  double (*L_phi)[n-2] = calloc(m-2,sizeof *L_phi);
+  double (*Cij)[n] = calloc(m,sizeof *Cij);
+  double (*A)[m-2] = calloc(m-2,sizeof *A);
+  double *f = malloc(sizeof(double)*(m-2));
+  double *u = malloc(sizeof(double)*(m-2));
+  double *dx2 = malloc(sizeof(double)*(n-2));
+  double *py1 = malloc(sizeof(double)*(m-2));
+  double *py2 = malloc(sizeof(double)*(m-2));
+  double vars_old,val;
+  int iter = 0;
+  // Save files
+  char *filename_save = malloc(sizeof(char)*200);
+  char *buffer = malloc(sizeof(char)*200);
+  int str_end_idx;
+  // Residuals
+  char *filename_log = malloc(sizeof(char)*200);
+  double *res = calloc(config->max_iter + 1,sizeof(double));
+  FILE *file_log;
+
+  // Configure log file
+  sprintf(filename_log,"%s.log",config->casename);
+  puts(filename_log);
+  file_log = fopen(filename_log,"w");
+
+  // Prepare string to save simulation data  
+  sprintf(filename_save,"%s_iter_",config->casename);
+  find_str_end(filename_save,&str_end_idx);
+
+  for(int i=1;i<n-1;i++){
+    dx2[i-1] = delta_xy(x,i);
+    dx2[i-1] *= dx2[i-1];
+  }
+
+  for(int j=1;j<m-1;j++){
+    py1[j-1] = (y[j+1] - y[j-1])*(y[j+1] - y[j]);
+    py2[j-1] = (y[j+1] - y[j-1])*(y[j] - y[j-1]);
+  }
+
+  // Save initial condition
+  if(config->save_i_c)
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+
+  for(iter;iter<=config->max_iter;iter++){
+    // Calculate residual operator
+    for(int j=1;j<m-1;j++){
+      for(int i=1;i<n-1;i++){
+        scheme_der2_o2_central_var_deltas_xy(&L_phi[j-1][i-1],m,n,phi,x,y,i,j);
+        
+        if(fabs(L_phi[j-1][i-1]) > res[iter])
+          res[iter] = fabs(L_phi[j-1][i-1]);
+      }
+    }
+
+    printf("LGS Iteration %010d | Res %.6e\n",iter,res[iter]);
+
+    fprintf(file_log,"%.6e\n",res[iter]);
+
+    // Test for convergence
+    if(res[iter] <= config->eps && iter != 0){
+      puts("<< Convergence! >>");
+      iter++;
+      break;
+    }
+
+    if(res[iter] >= div_ref){
+      puts("- Divergence");
+      iter++;
+      break;
+    }
+
+    // Solve for Cij
+    for(int i=1;i<n-1;i++){
+      A[0][0] = -1./dx2[i-1] - 1./py1[0] - 1./py2[0];
+      A[0][1] = 1./py1[0];
+      f[0] = (-L_phi[0][i-1] - Cij[1][i]/dx2[i-1])/2. - Cij[0][i]/py2[0];
+
+      for(int j=1;j<m-3;j++){
+        A[j][j-1] = 1./py2[j];
+        A[j][j] = (-1./dx2[i-1] - 1./py1[j] - 1./py2[j]);
+        A[j][j+1] = 1./py1[j]/1;
+        f[j] = (-L_phi[j][i-1] - Cij[j+1][i]/dx2[i-1])/2.;
+      }
+
+      A[m-3][m-4] = 1./py2[m-3];
+      A[m-3][m-3] = -1./dx2[i-1] - 1./py1[m-3] - 1./py2[m-3];
+      f[m-3] = (-L_phi[m-3][i-1] - Cij[m-2][i]/dx2[i-1])/2. 
+               - Cij[m-1][i]/py1[m-3];
+      
+      diagonal_matrix_solver(m-2,A,f,u);
+
+      for(int j=1;j<m-1;j++)
+        Cij[j][i] = u[j-1];
+    }
+
+    // Calculate phi^{n+1}
+    for(int j=1;j<m-1;j++){
+      for(int i=1;i<n-1;i++)
+        phi[j][i] += Cij[j][i];
+    }
+
+    // Apply boundary conditions (low edge)
+    apply_down_b_c(m,n,phi,x,y,b_a_m);
+
+    if(!config->save_last_only)
+      save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                          &str_end_idx);
+  }
+
+  // Save last iteration if it wasn't saved
+  if(iter%config->qtimes != 0 || config->save_last_only){
+    iter--; // To get the correct iteration number
+    sprintf(buffer,"L");
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                        &str_end_idx);
+  }
+
+  free(L_phi);
+  free(Cij);
+  free(A);
+  free(f);
+  free(u);
+  free(dx2);
+  free(py1);
+  free(py2);
   free(filename_save);
   free(filename_log);
   free(buffer);

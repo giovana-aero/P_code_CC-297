@@ -14,8 +14,8 @@ int main(){
 
   // Solution configurations
   sim_parameters config;
-  config.Ntype = 1;
-  config.r = 1.95;
+  config.Ntype = 5;
+  config.r = 1.8;
   config.max_iter = 10000;
   config.qtimes = 1;
   config.save_i_c = 0;
@@ -46,13 +46,6 @@ int main(){
   // b_a_mesh.JMAX = ;  // Number of points along y
   // b_a_mesh.XSF = 1.25; // Stretching factor, x
   // b_a_mesh.YSF = 1.25; // Stretching factor, y
-  // ----------------------------------------------- good example for p_jacobi (?)
-  // b_a_mesh.ILE = 21;   // Leading edge
-  // b_a_mesh.ITE = 61;   // Trailing edge
-  // b_a_mesh.IMAX = 82;  // Number of points along x
-  // b_a_mesh.JMAX = 24;  // Number of points along y
-  // b_a_mesh.XSF = 1.05; // Stretching factor, x
-  // b_a_mesh.YSF = 1.05; // Stretching factor, y
 
   int chord_l = b_a_mesh.ITE - b_a_mesh.ILE + 1;
 
