@@ -130,8 +130,6 @@ void evaluate_delta_form_bi_air(int m,int n,double phi[m][n],double *x,
                                 bi_air_phys_mesh *b_a_m){
   save_mesh(m,n,x,y,config->casename); 
 
-  // puts("aahhhhhhhh"); return;
-
   switch(config->Ntype){
     case 1:
       puts("Point Jacobi, biconvex airfoil");
@@ -319,7 +317,7 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   int str_end_idx;
   // Residuals
   char *filename_log = malloc(sizeof(char)*200);
-  double *res = calloc(config->max_iter + 1,sizeof(double));
+  double res;
   FILE *file_log;
 
   // Configure log file
@@ -346,27 +344,28 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
 
   for(iter;iter<=config->max_iter;iter++){
     // Calculate residual operator
+    res = 0.;
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi[j-1][i-1],m,n,phi,x,y,i,j);
         
-        if(fabs(L_phi[j-1][i-1]) > res[iter])
-          res[iter] = fabs(L_phi[j-1][i-1]);
+        if(fabs(L_phi[j-1][i-1]) > res)
+          res = fabs(L_phi[j-1][i-1]);
       }
     }
     
-    printf("GS Iteration %010d | Res %.6e\n",iter,res[iter]);
+    printf("GS Iteration %010d | Res %.6e\n",iter,res);
 
-    fprintf(file_log,"%.6e\n",res[iter]);
+    fprintf(file_log,"%.6e\n",res);
 
     // Test for convergence
-    if(res[iter] <= config->eps && iter != 0){
+    if(res <= config->eps && iter != 0){
       puts("<< Convergence! >>");
       iter++;
       break;
     }
 
-    if(res[iter] >= div_ref){
+    if(res >= div_ref){
       puts("- Divergence");
       iter++;
       break;
@@ -411,7 +410,6 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   free(filename_save);
   free(filename_log);
   free(buffer);
-  free(res);
   fclose(file_log);
 }
 
@@ -438,7 +436,7 @@ void solve_lgs_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   int str_end_idx;
   // Residuals
   char *filename_log = malloc(sizeof(char)*200);
-  double *res = calloc(config->max_iter + 1,sizeof(double));
+  double res;
   FILE *file_log;
 
   // Configure log file
@@ -466,27 +464,28 @@ void solve_lgs_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
 
   for(iter;iter<=config->max_iter;iter++){
     // Calculate residual operator
+    res = 0.;
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi[j-1][i-1],m,n,phi,x,y,i,j);
         
-        if(fabs(L_phi[j-1][i-1]) > res[iter])
-          res[iter] = fabs(L_phi[j-1][i-1]);
+        if(fabs(L_phi[j-1][i-1]) > res)
+          res = fabs(L_phi[j-1][i-1]);
       }
     }
 
-    printf("LGS Iteration %010d | Res %.6e\n",iter,res[iter]);
+    printf("LGS Iteration %010d | Res %.6e\n",iter,res);
 
-    fprintf(file_log,"%.6e\n",res[iter]);
+    fprintf(file_log,"%.6e\n",res);
 
     // Test for convergence
-    if(res[iter] <= config->eps && iter != 0){
+    if(res <= config->eps && iter != 0){
       puts("<< Convergence! >>");
       iter++;
       break;
     }
 
-    if(res[iter] >= div_ref){
+    if(res >= div_ref){
       puts("- Divergence");
       iter++;
       break;
@@ -548,7 +547,6 @@ void solve_lgs_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   free(filename_save);
   free(filename_log);
   free(buffer);
-  free(res);
   fclose(file_log);
 }
 
@@ -563,7 +561,6 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   double (*N)[n-2] = calloc(m,sizeof *N-2);
   double (*L_phi)[n] = calloc(m,sizeof *L_phi);
   double (*Cij)[n] = calloc(m,sizeof *Cij);
-  // double res_val = 0.;
   int iter = 0;
   // Save files
   char *filename_save = malloc(sizeof(char)*200);
@@ -571,7 +568,7 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   int str_end_idx;
   // Residuals
   char *filename_log = malloc(sizeof(char)*200);
-  double *res = calloc(config->max_iter + 1,sizeof(double));
+  double res;
   FILE *file_log;
 
   // Configure log file
@@ -593,27 +590,28 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
 
   for(iter;iter<=config->max_iter;iter++){
     // Calculate residual operator
+    res = 0.;
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi[j][i],m,n,phi,x,y,i,j);
         
-        if(fabs(L_phi[j][i]) > res[iter])
-          res[iter] = L_phi[j][i];
+        if(fabs(L_phi[j][i]) > res)
+          res = L_phi[j][i];
       }
     }
     
-    printf("PJ Iteration %010d | Res %.6e\n",iter,res[iter]);
+    printf("PJ Iteration %010d | Res %.6e\n",iter,res);
 
-    fprintf(file_log,"%.6e\n",res[iter]);
+    fprintf(file_log,"%.6e\n",res);
 
     // Test for convergence
-    if(res[iter] <= config->eps & iter != 0){
+    if(res <= config->eps & iter != 0){
       puts("<< Convergence! >>");
       iter++;
       break;
     }
 
-    if(res[iter] >= div_ref){
+    if(res >= div_ref){
       puts("- Divergence");
       iter++;
       break;
@@ -653,7 +651,6 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
   free(filename_save);
   free(filename_log);
   free(buffer);
-  free(res);
   fclose(file_log);
 }
 
@@ -681,7 +678,7 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   int str_end_idx;
   // Residuals
   char *filename_log = malloc(sizeof(char)*200);
-  double *res = calloc(config->max_iter + 1,sizeof(double));
+  double res;
   FILE *file_log;
 
   // Configure log file
@@ -711,27 +708,28 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
 
   for(iter;iter<=config->max_iter;iter++){
     // Calculate residual operator
+    res = 0.;
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi[j-1][i-1],m,n,phi,x,y,i,j);
         
-        if(fabs(L_phi[j-1][i-1]) > res[iter])
-          res[iter] = fabs(L_phi[j-1][i-1]);
+        if(fabs(L_phi[j-1][i-1]) > res)
+          res = fabs(L_phi[j-1][i-1]);
       }
     }
 
-    printf("SLOR Iteration %010d | Res %.6e\n",iter,res[iter]);
+    printf("SLOR Iteration %010d | Res %.6e\n",iter,res);
 
-    fprintf(file_log,"%.6e\n",res[iter]);
+    fprintf(file_log,"%.6e\n",res);
 
     // Test for convergence
-    if(res[iter] <= config->eps && iter != 0){
+    if(res <= config->eps && iter != 0){
       puts("<< Convergence! >>");
       iter++;
       break;
     }
 
-    if(res[iter] >= div_ref){
+    if(res >= div_ref){
       puts("- Divergence");
       iter++;
       break;
@@ -790,7 +788,6 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   free(filename_save);
   free(filename_log);
   free(buffer);
-  free(res);
   fclose(file_log);
 }
 
@@ -812,7 +809,7 @@ void solve_sor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   int str_end_idx;
   // Residuals
   char *filename_log = malloc(sizeof(char)*200);
-  double *res = calloc(config->max_iter + 1,sizeof(double));
+  double res;
   FILE *file_log;
 
   // Configure log file
@@ -839,27 +836,28 @@ void solve_sor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
 
   for(iter;iter<=config->max_iter;iter++){
     // Calculate residual operator
+    res = 0.;
     for(int j=1;j<m-1;j++){
       for(int i=1;i<n-1;i++){
         scheme_der2_o2_central_var_deltas_xy(&L_phi[j-1][i-1],m,n,phi,x,y,i,j);
         
-        if(fabs(L_phi[j-1][i-1]) > res[iter])
-          res[iter] = fabs(L_phi[j-1][i-1]);
+        if(fabs(L_phi[j-1][i-1]) > res)
+          res = fabs(L_phi[j-1][i-1]);
       }
     }
     
-    printf("SOR Iteration %010d | Res %.6e\n",iter,res[iter]);
+    printf("SOR Iteration %010d | Res %.6e\n",iter,res);
 
-    fprintf(file_log,"%.6e\n",res[iter]);
+    fprintf(file_log,"%.6e\n",res);
 
     // Test for convergence
-    if(res[iter] <= config->eps && iter != 0){
+    if(res <= config->eps && iter != 0){
       puts("<< Convergence! >>");
       iter++;
       break;
     }
 
-    if(res[iter] >= div_ref){
+    if(res >= div_ref){
       puts("- Divergence");
       iter++;
       break;
@@ -904,6 +902,5 @@ void solve_sor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   free(filename_save);
   free(filename_log);
   free(buffer);
-  free(res);
   fclose(file_log);
 }

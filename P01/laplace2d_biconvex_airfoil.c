@@ -15,17 +15,17 @@ int main(){
   // Solution configurations
   sim_parameters config;
   config.Ntype = 4;
-  config.r = 1.8;
-  config.max_iter = 100000;
+  config.r = .8;
+  config.max_iter = 10000;
   config.qtimes = 1;
   config.save_i_c = 0;
   config.save_last_only = 1;
-  config.eps = 1.e-5; // Convergence criterion
+  config.eps = 1.e-6; // Convergence criterion
   char output_file[] = "results/bi_air";
 
   // Mesh
   bi_air_phys_mesh b_a_mesh;
-  int mtype = 4;
+  int mtype = 1;
   set_mesh_prmtrs(mtype,&b_a_mesh);
   int chord_l = b_a_mesh.ITE - b_a_mesh.ILE + 1;
 

@@ -5,12 +5,21 @@ def main():
 
   casename = "bi_air"
 
-  address_list = ["./mesh_conv/mtype1/",
-                  "./mesh_conv/mtype2/",
-                  "./mesh_conv/mtype3/",
-                  "./mesh_conv/mtype4/"]
-  ILE = [10,20,40,5]
-  ITE = [30,60,120,15]
+  # # mesh convergence, pj
+  # address_list = ["./mesh_conv/pj/mtype1/",
+  #                 "./mesh_conv/pj/mtype2/",
+  #                 "./mesh_conv/pj/mtype3/",
+  #                 "./mesh_conv/pj/mtype4/",
+  #                 "./mesh_conv/pj/mtype5/"]
+  # mesh convergence, gs
+  address_list = ["./mesh_conv/pj/mtype1/",
+                  "./mesh_conv/pj/mtype2/",
+                  "./mesh_conv/pj/mtype3/",
+                  "./mesh_conv/pj/mtype4/",
+                  "./mesh_conv/pj/mtype5/"]
+
+  ILE = [10,20,40,80,5]
+  ITE = [30,60,120,240,15]
 
   execute(address_list,casename,ILE,ITE)
 
