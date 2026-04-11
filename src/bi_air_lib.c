@@ -16,9 +16,20 @@
 */
 void apply_down_b_c(int m,int n,double phi[m][n],double *x,double *y,
                     bi_air_phys_mesh *b_a_m){
+  double (*af_shape_dx)(double,double);
+
+  if(b_a_m->af_type == 1)
+    af_shape_dx = bi_air_shape_dx;
+
+  if(b_a_m->af_type == 2)
+    af_shape_dx = naca4_symm_dx;
+
   for(int i=1;i<n-1;i++){
     if(i >= b_a_m->ILE-1 && i < b_a_m->ITE){  // Airfoil
-      phi[0][i] = phi[1][i] - (y[1] - y[0])*b_a_m->uinf*bi_air_shape_dx(b_a_m->t,x[i]);
+      if(i == b_a_m->ILE-1 && b_a_m->af_type == 2)
+        phi[0][i] = phi[1][i] - (y[1] - y[0])*b_a_m->uinf*(*af_shape_dx)(b_a_m->t,x[i+1]);
+      else
+        phi[0][i] = phi[1][i] - (y[1] - y[0])*b_a_m->uinf*(*af_shape_dx)(b_a_m->t,x[i]);
     }
     else{  // Free stream
       phi[0][i] = phi[1][i];
@@ -50,6 +61,9 @@ void biconvex_airfoil_mesh(bi_air_phys_mesh *b_a_m,double *x, double*y){
 
   for(int j=2;j<b_a_m->JMAX;j++)
     y[j] = y[j-1] + (y[j-1] - y[j-2])*b_a_m->YSF;
+
+  // if(b_a_m->af_type == 2)
+  //   x[b_a_m->ILE-1] += delta_x*.1;
 }
 
 // /*
@@ -105,7 +119,7 @@ void bi_air_dirichlet_vals_wall(double *x,b_conditions_2d *b_c,double uinf,
 // }
 
 /*
-this version calculates everything but the main diagonal
+this version calculates everything but the main diagonal. for lgs and slor only
 - gigiaero, 09/04/2026, 1318 hours
 */
 void build_linear_sys_matrix_cols2(int m,int n,double A[m-2][m-2],double *py1,
@@ -121,6 +135,24 @@ void build_linear_sys_matrix_cols2(int m,int n,double A[m-2][m-2],double *py1,
     A[m-3][m-4] = 1./py2[m-3];
   }
 }
+
+// /*
+// for lgs and slor only
+// - gigiaero, 10/04/2026, 1404 hours
+// */
+// void build_linear_sys_matrix_lines2(int m,int n,double A[n-2][n-2],double *px1,
+//                                     double *px2){
+//   for(int j=1;j<m-1;j++){
+//     A[0][1] = 1./px1[0];
+
+//     for(int i=1;i<n-3;i++){
+//       A[i][i-1] = 1./px2[i];
+//       A[i][i+1] = 1./px1[i];
+//     }
+
+//     A[n-3][n-4] = 1./px2[n-3];
+//   }
+// }
 
 /*
 - gigiaero, 25/03/2026, 1521 hours
@@ -156,6 +188,11 @@ void evaluate_delta_form_bi_air(int m,int n,double phi[m][n],double *x,
       solve_slor_2d_rectangular_bi_air(m,n,phi,x,y,config,b_a_m);
       break;
 
+    case 6:
+      puts("ADI, biconvex airfoil");
+      solve_adi_2d_rectangular_bi_air(m,n,phi,x,y,config,b_a_m);
+      break;
+
     default:
       puts("evaluate_delta_form: Invalid Ntype");
       exit(32);
@@ -184,7 +221,7 @@ void get_cp_bi_air(int m,int n,double cp[m][n],double u[m][n],double v[m][n],
 
 /*
 - gigiaero, 06/04/2026, 1607 hours
-(kudos to gibson helping me find a certain dumb mistake)
+(kudos to gibson for helping me find a certain dumb mistake)
 */
 void get_cp_bi_air_chord(double *cp,int m,int n,double phi[m][n],double u[m][n],
                          double *x,double *y,bi_air_phys_mesh *b_a_m){
@@ -242,6 +279,24 @@ void get_u_v_potential(int m,int n,double phi[m][n],double u[m][n],
 }
 
 /*
+- gigiaero, 10/04/2026, 2249 hours
+*/
+double naca4_symm_dx(double t,double x_i){
+  // if(x_i == 0)
+    // x_i = 1e-4;
+    // return 5.*t*(-0.1260 - 2.*0.3516*x_i + 
+          //  3.*0.2843*pow(x_i,2.) - 4.*0.1036*pow(x_i,3.));
+    // return 0.;
+  
+  // else
+    return 5.*t*(0.5*0.2969*pow(x_i,-0.5) - 0.1260 - 2.*0.3516*x_i + 
+          3.*0.2843*pow(x_i,2.) - 4.*0.1036*pow(x_i,3.));
+  // return 5.*t*(0.2969*pow(x_i,0.5) - 0.1260*x_i - 0.3516*pow(x_i,2.) + 
+  //        0.2843*pow(x_i,3.) - 0.1036*pow(x_i,4.)); // original
+}
+
+
+/*
 - gigiaero, 09/04/2026, 0857 hours
 */
 void set_mesh_prmtrs(int mtype,bi_air_phys_mesh *b_a_mesh){
@@ -296,6 +351,202 @@ void set_mesh_prmtrs(int mtype,bi_air_phys_mesh *b_a_mesh){
       puts("Invalid mtype");
       exit(4);
   }
+}
+
+void solve_adi_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
+                                     double *y,sim_parameters *config,
+                                     bi_air_phys_mesh *b_a_m){
+  // Solver variables
+  double (*L_phi)[n-2] = calloc(m-2,sizeof *L_phi);
+  double (*Cij)[n] = calloc(m,sizeof *Cij);
+  double (*fij)[n] = calloc(m,sizeof *fij);
+  double (*A1)[n-2] = calloc(n-2,sizeof *A1);
+  double (*A2)[m-2] = calloc(m-2,sizeof *A2);
+  double *f1 = malloc(sizeof(double)*(n-2));
+  double *u1 = malloc(sizeof(double)*(n-2));
+  double *f2 = malloc(sizeof(double)*(m-2));
+  double *u2 = malloc(sizeof(double)*(m-2));
+  double *px1 = malloc(sizeof(double)*(n-2));
+  double *px2 = malloc(sizeof(double)*(n-2));
+  double *py1 = malloc(sizeof(double)*(m-2));
+  double *py2 = malloc(sizeof(double)*(m-2));
+  double vars_old,val;
+  double a = config->r;
+  double w = config->w;
+  int iter = 0;
+  // Save files
+  char *filename_save = malloc(sizeof(char)*200);
+  char *buffer = malloc(sizeof(char)*200);
+  int str_end_idx;
+  // Residuals
+  char *filename_log = malloc(sizeof(char)*200);
+  double res;
+  FILE *file_log;
+
+  // Configure log file
+  sprintf(filename_log,"%s.log",config->casename);
+  file_log = fopen(filename_log,"w");
+
+  // Prepare string to save simulation data  
+  sprintf(filename_save,"%s_iter_",config->casename);
+  find_str_end(filename_save,&str_end_idx);
+
+  // for(int i=1;i<n-1;i++){
+  //   dx2[i-1] = delta_xy(x,i);
+  //   dx2[i-1] *= dx2[i-1];
+  // }
+
+  for(int i=1;i<n-1;i++){
+    px1[i-1] = (x[i+1] - x[i-1])*(x[i+1] - x[i]);
+    px2[i-1] = (x[i+1] - x[i-1])*(x[i] - x[i-1]);
+  }
+
+  for(int j=1;j<m-1;j++){
+    py1[j-1] = (y[j+1] - y[j-1])*(y[j+1] - y[j]);
+    py2[j-1] = (y[j+1] - y[j-1])*(y[j] - y[j-1]);
+  }
+
+  // Save initial condition
+  if(config->save_i_c)
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+
+  // for(int j=1;j<n-1;j++){
+  //   for(int i=1;i<n-1;i++)
+  //       fij[j][i] = 1.;
+  // }
+
+  for(iter;iter<=config->max_iter;iter++){
+    // Calculate residual operator
+    res = 0.;
+    for(int j=1;j<m-1;j++){
+      for(int i=1;i<n-1;i++){
+        scheme_der2_o2_central_var_deltas_xy(&L_phi[j-1][i-1],m,n,phi,x,y,i,j);
+        
+        if(fabs(L_phi[j-1][i-1]) > res)
+          res = fabs(L_phi[j-1][i-1]);
+      }
+    }
+
+    // print_2d_array(m-2,n-2,L_phi);
+
+    printf("ADI Iteration %010d | Res %.6e\n",iter,res);
+
+    fprintf(file_log,"%.6e\n",res);
+
+    // Test for convergence
+    if(res <= config->eps && iter != 0){
+      puts("<< Convergence! >>");
+      iter++;
+      break;
+    }
+
+    if(res >= div_ref){
+      puts("- Divergence");
+      iter++;
+      break;
+    }
+
+    // Solve for fij
+    for(int j=1;j<m-1;j++){
+      A1[0][0] =  a + 2./px1[0] + 2./px2[0];
+      A1[0][1] = -2./px1[0];
+      f1[0] = a*w*L_phi[j][0] + 2./px2[0]*fij[j][0];
+      // printf("%f\n",L_phi[j][1]);
+  
+      for(int i=1;i<n-3;i++){
+        A1[i][i-1] = -2./px2[i];
+        A1[i][i] = a + 2./px1[i] + 2./px2[i];
+        A1[i][i+1] = -2./px1[i];
+        f1[i] = a*w*L_phi[j][i];
+      }
+  
+      A1[n-3][n-4] = -2./px2[n-3];
+      A1[n-3][n-3] = a + 2./px1[n-3] + 2./px2[n-3];
+      f1[n-3] = a*w*L_phi[j][n-3] + 2./px1[n-3]*fij[j][n-1];
+
+      diagonal_matrix_solver(n-2,A1,f1,u1);
+
+      // print_1d_array(n-2,u1);
+
+      for(int i=1;i<n-1;i++)
+        fij[j][i] = u1[i-1];
+
+    }
+
+    // // print_2d_array(n-2,n-2,A1);
+    // print_1d_array(n-2,f1);
+    // print_1d_array(n-2,u1);
+    // putchar('\n');
+
+    // print_2d_array_to_file(n-2,n-2,A1,"A1.txt",0);
+
+    // Solve for Cij
+    for(int i=1;i<n-1;i++){
+      A2[0][0] = a + 2./py1[0] + 2./py2[0];
+      A2[0][1] = -2./py1[0];
+      f2[0] = fij[1][i] + 2./py2[0]*Cij[1][i]; // implicit bc on Cij
+
+      for(int j=1;j<m-3;j++){
+        A2[j][j-1] = -2./py2[j];
+        A2[j][j] = a + 2./py1[j] + 2./py2[j];
+        A2[j][j+1] = -2./py1[j];
+        f2[j] = fij[j+1][i];
+      }
+      
+      A2[m-3][m-4] = -2./py2[m-3];
+      A2[m-3][m-3] = a + 2./py1[m-3] + 2./py2[m-3];
+      f2[m-3] = fij[m-3][i] + 2./py1[m-3]*Cij[m-1][i];
+      
+      diagonal_matrix_solver(m-2,A2,f2,u2);
+
+      for(int j=1;j<m-1;j++)
+        Cij[j][i] = u2[j-1];
+    }
+
+    // // print_2d_array(m-2,m-2,A2);
+    // print_1d_array(m-2,f2);
+    // print_1d_array(m-2,u2);
+    // // print_2d_array_to_file(m-2,m-2,A2,"A2.txt",0);
+
+    // Calculate phi^{n+1}
+    for(int j=1;j<m-1;j++){
+      for(int i=1;i<n-1;i++)
+        phi[j][i] += Cij[j][i];
+    }
+
+    // Apply boundary conditions (low edge)
+    apply_down_b_c(m,n,phi,x,y,b_a_m);
+
+    if(!config->save_last_only)
+      save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                          &str_end_idx);
+  }
+
+  // Save last iteration if it wasn't saved
+  if(iter%config->qtimes != 0 || config->save_last_only){
+    iter--; // To get the correct iteration number
+    sprintf(buffer,"L");
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                        &str_end_idx);
+  }
+
+  free(L_phi);
+  free(Cij);
+  free(fij);
+  free(A1);
+  free(A2);
+  free(f1);
+  free(u1);
+  free(f2);
+  free(u2);
+  free(px1);
+  free(px2);
+  free(py1);
+  free(py2);
+  free(filename_save);
+  free(filename_log);
+  free(buffer);
+  fclose(file_log);
 }
 
 /*
@@ -441,7 +692,6 @@ void solve_lgs_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
 
   // Configure log file
   sprintf(filename_log,"%s.log",config->casename);
-  puts(filename_log);
   file_log = fopen(filename_log,"w");
 
   // Prepare string to save simulation data  
@@ -683,7 +933,6 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
 
   // Configure log file
   sprintf(filename_log,"%s.log",config->casename);
-  puts(filename_log);
   file_log = fopen(filename_log,"w");
 
   // Prepare string to save simulation data  

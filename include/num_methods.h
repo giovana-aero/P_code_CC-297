@@ -10,6 +10,7 @@ Defined in the context of laplace2d
 typedef struct s_parameters{
   int Ntype;
   double r;
+  double w;
   long int max_iter;
   int qtimes;
   int save_i_c; // Save initial condition
