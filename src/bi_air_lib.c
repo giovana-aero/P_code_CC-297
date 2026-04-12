@@ -27,7 +27,7 @@ void apply_down_b_c(int m,int n,double phi[m][n],double *x,double *y,
   for(int i=1;i<n-1;i++){
     if(i >= b_a_m->ILE-1 && i < b_a_m->ITE){  // Airfoil
       if(i == b_a_m->ILE-1 && b_a_m->af_type == 2)
-        phi[0][i] = phi[1][i] - (y[1] - y[0])*b_a_m->uinf*(*af_shape_dx)(b_a_m->t,x[i+1]);
+        phi[0][i] = phi[1][i] - (y[1] - y[0])*b_a_m->uinf*(*af_shape_dx)(b_a_m->t,x[i+1]*.5);
       else
         phi[0][i] = phi[1][i] - (y[1] - y[0])*b_a_m->uinf*(*af_shape_dx)(b_a_m->t,x[i]);
     }
@@ -66,12 +66,12 @@ void biconvex_airfoil_mesh(bi_air_phys_mesh *b_a_m,double *x, double*y){
   //   x[b_a_m->ILE-1] += delta_x*.1;
 }
 
-// /*
-// - gigiaero, 06/04/2026, 1051 hours
-// */
-// double bi_air_shape(double t,double x_i){
-//   return 2.*t*x_i*(1. - x_i);
-// }
+/*
+- gigiaero, 06/04/2026, 1051 hours
+*/
+double bi_air_shape(double t,double x_i){
+  return 2.*t*x_i*(1. - x_i);
+}
 
 /*
 - gigiaero, 23/03/2026, 1021 hours

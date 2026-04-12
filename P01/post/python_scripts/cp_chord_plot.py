@@ -6,17 +6,19 @@ def main():
   casename = "bi_air"
 
   # # mesh convergence, pj
-  # address_list = ["./mesh_conv/pj/mtype1/",
-  #                 "./mesh_conv/pj/mtype2/",
-  #                 "./mesh_conv/pj/mtype3/",
-  #                 "./mesh_conv/pj/mtype4/",
-  #                 "./mesh_conv/pj/mtype5/"]
+  # address_list = ["../mesh_conv/pj/mtype1/",
+  #                 "../mesh_conv/pj/mtype2/",
+  #                 "../mesh_conv/pj/mtype3/",
+  #                 "../mesh_conv/pj/mtype4/",
+  #                 "../mesh_conv/pj/mtype5/"]
   # mesh convergence, gs
-  address_list = ["./mesh_conv/pj/mtype1/",
-                  "./mesh_conv/pj/mtype2/",
-                  "./mesh_conv/pj/mtype3/",
-                  "./mesh_conv/pj/mtype4/",
-                  "./mesh_conv/pj/mtype5/"]
+  # address_list = ["../mesh_conv/pj/mtype1/",
+  #                 "../mesh_conv/pj/mtype2/",
+  #                 "../mesh_conv/pj/mtype3/",
+  #                 "../mesh_conv/pj/mtype4/",
+  #                 "../mesh_conv/pj/mtype5/"]
+
+  address_list = ["../results/"]
 
   ILE = [10,20,40,80,5]
   ITE = [30,60,120,240,15]
@@ -50,6 +52,7 @@ def execute(address_list,casename,ILE,ITE):
     i += 1
 
   plt.legend()
+  plt.savefig('asdfsadf.eps', format='eps')
   plt.show()
 
 if __name__ == "__main__":

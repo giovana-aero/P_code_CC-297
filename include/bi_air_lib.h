@@ -14,6 +14,7 @@ typedef struct biconvex_airfoil_physics_mesh_config{
 void apply_down_b_c(int m,int n,double phi[m][n],double *x,double *y,
                     bi_air_phys_mesh *b_a_m);
 void biconvex_airfoil_mesh(bi_air_phys_mesh *b_a_m,double *x, double*y);
+double bi_air_shape(double t,double x_i);
 double bi_air_shape_dx(double t,double x_i);
 void bi_air_dirichlet_vals_free(double *x,b_conditions_2d *b_c,double uinf);
 void bi_air_dirichlet_vals_wall(double *x,b_conditions_2d *b_c,double uinf,

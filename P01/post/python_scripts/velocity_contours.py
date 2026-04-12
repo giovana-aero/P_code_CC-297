@@ -7,7 +7,7 @@ import re
 
 def main():
 
-  address = "./results/"
+  address = "../results/"
   casename = "bi_air"
 
   execute(address,casename)
