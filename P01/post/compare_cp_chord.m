@@ -6,53 +6,65 @@ save_figs = 1;
 
 % bi_air, t005
 address_list = {'../final_results_slor/t005_mtype1/',...
-                '../final_results_slor/t005_mtype3/'};
-address_ref = '../original_cp_chord_005.dat';
-filename = 'compare_cp_chord_t005';
-lgds = {'Malha 1','Malha 3'};
+                '../final_results_slor/t005_mtype4/'};
+address_ref = {'../original_cp_chord_005.dat',...
+               '../../../P01/ref_data/t005.dat'};
+lgds = {'Malha 1','Malha 4'};
+lgds_ref = {'Referencia (corda)','Referencia (geometria completa)'};
 linestyles = {'-','-'};
-colors = {cmap(100,:),cmap(200,:)};
+linestyles_ref = {'--',':'};
+colors = {cmap(100,:),cmap(150,:)};
+colors_ref = {'k','k'};
+ILE = [11,81];
+ITE = [31,241];
+filename = 'compare_cp_chord_t005';
+
+% % bi_air, t010
+% address_list = {'../final_results_slor/t010_mtype1/',...
+%                 '../final_results_slor/t010_mtype4/'};
+% address_ref = {'../../../P01/ref_data/t010.dat'};
+% lgds = {'Malha 1','Malha 4'};
+% lgds_ref = {'Referencia (geometria completa)'};
+% linestyles = {'-','-'};
+% linestyles_ref = {'--',':'};
+% colors = {cmap(100,:),cmap(150,:)};
+% colors_ref = {'k','k'};
+% ILE = [11,81];
+% ITE = [31,241];
+% filename = 'compare_cp_chord_t010';
 
 % % naca0005
 % address_list = {'../final_results_slor/naca0005_mtype1/',...
 %                 '../final_results_slor/naca0005_mtype3/'};
-% address_ref = '../naca0005_cp_chord.dat';
-% filename = 'compare_cp_chord_naca0005';
+% address_ref = {'../naca0005_cp_chord.dat'};
 % lgds = {'Malha 1','Malha 3'};
+% lgds_ref = {'XFOIL'};
 % linestyles = {'-','-'};
+% linestyles_ref = {'--'};
 % colors = {cmap(100,:),cmap(200,:)};
+% colors_ref = {'k'};
+% ILE = [11,41];
+% ITE = [31,121];
+% filename = 'compare_cp_chord_naca0005';
 
 % % naca0010
 % address_list = {'../final_results_slor/naca0010_mtype1/',...
 %                 '../final_results_slor/naca0010_mtype3/'};
-% address_ref = '../naca0010_cp_chord.dat';
-% filename = 'compare_cp_chord_naca0010';
+% address_ref = {'../naca0010_cp_chord.dat'};
 % lgds = {'Malha 1','Malha 3'};
+% lgds_ref = {'XFOIL'};
 % linestyles = {'-','-'};
+% linestyles_ref = {'--'};
 % colors = {cmap(100,:),cmap(200,:)};
-
-% i = 3;
-% ILE = [11,21,41,81,6];
-% ITE = [31,61,121,241,16];
-ILE = [11,41];
-ITE = [31,121];
-
-% lgds = {'Malha 1','Malha 2','Malha 3','Malha 4','Malha 5'};
-% linestyles = {'-','--','-','-.','-'};
+% colors_ref = {'k'};
+% ILE = [11,41];
+% ITE = [31,121];
+% filename = 'compare_cp_chord_naca0010';
 
 fontsize = 14;
 lnwdth = 1.5;
 pos = [1000,500];
 pba = [2,1];
-
-% colors = config_colors_cmap(length(address_list),cmap,0);
-
-% figure(1),clf,grid on,hold on
-% mesh_x = readmatrix([address,casename,'_mesh_x.msh'],'filetype','delimitedtext');
-% cp = readmatrix([address,casename,'_cp_chord.dat'],'filetype','delimitedtext');
-% chord = mesh_x(ILE(i):ITE(i));
-% plot(chord,cp,'color',cmap(30,:),'linestyle','-','displayname','Simulação','linewidth',lnwdth)
-
 
 figure(1),clf,grid on,hold on
 for i = 1:length(address_list)
@@ -66,22 +78,28 @@ for i = 1:length(address_list)
   %         'displayname',lgds{i},'linewidth',lnwdth)
 end
 
-cp_ref = readmatrix(address_ref,'filetype','delimitedtext');
-if contains(address_ref,'naca')
-  plot(cp_ref(:,1),cp_ref(:,2),'k--','displayname','Referencia','linewidth',lnwdth)
-else
-  plot(cp_ref(:,1),-cp_ref(:,2),'k--','displayname','Referencia','linewidth',lnwdth)
+for i = 1:length(address_ref)
+  cp_ref = readmatrix(address_ref{i},'filetype','delimitedtext');
+
+  if contains(address_ref{i},'naca')
+    plot(cp_ref(:,1),cp_ref(:,2),'color',colors_ref{i},'linestyle',linestyles_ref{i},'displayname',lgds_ref{i},'linewidth',lnwdth)
+  elseif contains(address_ref{i},'/P01/ref_data/')
+    plot(cp_ref(:,1),cp_ref(:,3),'color',colors_ref{i},'linestyle',linestyles_ref{i},'displayname',lgds_ref{i},'linewidth',lnwdth)
+  else
+    plot(cp_ref(:,1),-cp_ref(:,2),'color',colors_ref{i},'linestyle',linestyles_ref{i},'displayname',lgds_ref{i},'linewidth',lnwdth)
+  end
+
 end
 
-if contains(address_ref,'naca0005')
-  xlim([-.1,1.1])
-  ylim([-.3,.3])
-elseif contains(address_ref,'naca0010')
-  xlim([-.1,1.1])
-  ylim([-.7,.5])
-else
-  xlim([-.1,1.1])
+xlim([-.1,1.1])
+if contains(address_list{i},'t005')
   ylim([-.2,.3])
+elseif contains(address_list{i},'t010')
+  ylim([-.35,.5])
+elseif contains(address_ref{1},'naca0005')
+  ylim([-.3,.3])
+elseif contains(address_ref{1},'naca0010')
+  ylim([-.7,.5])
 end
 
 xylabel_latex('x/c','Cp');

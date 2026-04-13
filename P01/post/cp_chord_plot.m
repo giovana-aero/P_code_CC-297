@@ -11,24 +11,49 @@ save_figs = 1;
 %                 '../mesh_conv/pj/mtype3/',
 %                 '../mesh_conv/pj/mtype4/',
 %                 '../mesh_conv/pj/mtype5/'};
-% % mesh convergence, gs
-% address_list = {'../mesh_conv/pj/mtype1/',
-%                 '../mesh_conv/pj/mtype2/',
-%                 '../mesh_conv/pj/mtype3/',
-%                 '../mesh_conv/pj/mtype4/',
-%                 '../mesh_conv/pj/mtype5/'};
+% lgds = {'Malha 1','Malha 2','Malha 3','Malha 4','Malha 5'};
+% linestyles = {'-','--','-','-.','-'};
+% filename = 'mesh_conv_pj';
 
-% mesh convergence, slor
-address_list = {'../mesh_conv/slor/mtype1/',
-                '../mesh_conv/slor/mtype2/',
-                '../mesh_conv/slor/mtype3/',
-                '../mesh_conv/slor/mtype4/',
-                '../mesh_conv/slor/mtype5/'};
-filename = 'mesh_conv_slor';
-
-
+% mesh convergence, gs
+address_list = {'../mesh_conv/pj/mtype1/',
+                '../mesh_conv/pj/mtype2/',
+                '../mesh_conv/pj/mtype3/',
+                '../mesh_conv/pj/mtype4/',
+                '../mesh_conv/pj/mtype5/'};
 lgds = {'Malha 1','Malha 2','Malha 3','Malha 4','Malha 5'};
 linestyles = {'-','--','-','-.','-'};
+filename = 'mesh_conv_gs';
+
+% % mesh convergence, gs
+% address_list = {'../mesh_conv/sor/mtype1/',
+%                 '../mesh_conv/sor/mtype2/',
+%                 '../mesh_conv/sor/mtype3/',
+%                 '../mesh_conv/sor/mtype4/',
+%                 '../mesh_conv/sor/mtype5/'};
+% lgds = {'Malha 1','Malha 2','Malha 3','Malha 4','Malha 5'};
+% linestyles = {'-','--','-','-.','-'};
+% filename = 'mesh_conv_sor';
+
+% % mesh convergence, gs
+% address_list = {'../mesh_conv/lgs/mtype1/',
+%                 '../mesh_conv/lgs/mtype2/',
+%                 '../mesh_conv/lgs/mtype3/',
+%                 '../mesh_conv/lgs/mtype4/',
+%                 '../mesh_conv/lgs/mtype5/'};
+% lgds = {'Malha 1','Malha 2','Malha 3','Malha 4','Malha 5'};
+% linestyles = {'-','--','-','-.','-'};
+% filename = 'mesh_conv_lgs';
+
+% % mesh convergence, slor
+% address_list = {'../mesh_conv/slor/mtype1/',
+%                 '../mesh_conv/slor/mtype2/',
+%                 '../mesh_conv/slor/mtype3/',
+%                 '../mesh_conv/slor/mtype4/',
+%                 '../mesh_conv/slor/mtype5/'};
+% lgds = {'Malha 1','Malha 2','Malha 3','Malha 4','Malha 5'};
+% linestyles = {'-','--','-','-.','-'};
+% filename = 'mesh_conv_slor';
 
 
 ILE = [11,21,41,81,6];
