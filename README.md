@@ -1,4 +1,4 @@
-# \<\< C-297 - Elementos de mecânica dos fluidos computacional - Project code \>\>
+# \<\< CC-297 - Elementos de mecânica dos fluidos computacional - Project code \>\>
 
 Folder structure:
 - P01: Project 01 code (biconvex airfoil, chord approximation)
