@@ -15,3 +15,10 @@ To compile a given case, compile the main script along with the source, such as:
 Where the `-lm` flag is required by the `math.h` library.
 
 There are some MATLAB functions I have not included here yet.
+
+
+---
+
+Giovana W. Fernandes, MSc\
+Instituto Tecnológico de Aeronáutica\
+São josé dos Campos, 2026
