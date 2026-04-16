@@ -24,6 +24,9 @@ void apply_down_b_c(int m,int n,double phi[m][n],double *x,double *y,
   if(b_a_m->af_type == 2)
     af_shape_dx = naca4_symm_dx;
 
+  // if(b_a_m->af_type == 3)
+  //   af_shape_dx = naca4_symm_dx_CST_t005;
+
   for(int i=1;i<n-1;i++){
     if(i >= b_a_m->ILE-1 && i < b_a_m->ITE){  // Airfoil
       if(i == b_a_m->ILE-1 && b_a_m->af_type == 2)
@@ -122,18 +125,18 @@ void bi_air_dirichlet_vals_wall(double *x,b_conditions_2d *b_c,double uinf,
 this version calculates everything but the main diagonal. for lgs and slor only
 - gigiaero, 09/04/2026, 1318 hours
 */
-void build_linear_sys_matrix_cols2(int m,int n,double A[m-2][m-2],double *py1,
+void build_linear_sys_matrix_cols2(int m,double A[m-2][m-2],double *py1,
                                   double *py2){
-  for(int i=1;i<n-1;i++){
-    A[0][1] = 1./py1[0];
+  // for(int i=1;i<n-1;i++){
+  A[0][1] = 1./py1[0];
 
-    for(int j=1;j<m-3;j++){
-      A[j][j-1] = 1./py2[j];
-      A[j][j+1] = 1./py1[j];
-    }
-
-    A[m-3][m-4] = 1./py2[m-3];
+  for(int j=1;j<m-3;j++){
+    A[j][j-1] = 1./py2[j];
+    A[j][j+1] = 1./py1[j];
   }
+
+  A[m-3][m-4] = 1./py2[m-3];
+  // }
 }
 
 // /*
@@ -295,6 +298,51 @@ double naca4_symm_dx(double t,double x_i){
   //        0.2843*pow(x_i,3.) - 0.1036*pow(x_i,4.)); // original
 }
 
+/*
+- gigiaero, 16/04/2026, 1940 hours
+*/
+double naca4_symm_CST_t005(double t,double x_i){
+  // {0.002579,0.063728,0.070283,0.055543,0.064390,0.056486,
+  //   3.523900,0}; original beta value in degrees
+  double v_ex[] = {0.002579,0.063728,0.070283,0.055543,0.064390,0.056486,
+                   0.061504,0};
+
+  double A[] = {pow(2.*v_ex[0],.5),v_ex[1],v_ex[2],v_ex[3],v_ex[4],v_ex[5],
+                tan(v_ex[6]),v_ex[7]};
+  double N1 = .5,N2 = 1.;
+  double sum = 0.,K;
+  int n = 6;
+
+  for(int r=0;r<=n;r++){
+    K = factorial(n)/(factorial(r)*factorial(n-r));
+    sum += A[r]*K*pow(x_i,r)*pow(1. - x_i,n - r);
+  }
+
+  return pow(x_i,N1)*pow(1.-x_i,N2)*sum;
+}
+
+/*
+- gigiaero, 16/04/2026, 1940 hours
+*/
+double naca4_symm_dx_CST_t005(double t,double x_i){
+  // {0.002579,0.063728,0.070283,0.055543,0.064390,0.056486,
+  //   3.523900,0}; original beta value in degrees
+  double v_ex[] = {0.002579,0.063728,0.070283,0.055543,0.064390,0.056486,
+                   0.061504,0};
+
+  double A[] = {pow(2.*v_ex[0],.5),v_ex[1],v_ex[2],v_ex[3],v_ex[4],v_ex[5],
+                tan(v_ex[6]),v_ex[7]};
+  double N1 = .5,N2 = 1.;
+  double sum = 0.,K;
+  int n = 6;
+
+  for(int r=0;r<=n;r++){
+    K = factorial(n)/(factorial(r)*factorial(n-r));
+    sum += -A[r]*K*r*pow(x_i,r-1)*(n - r)*pow(1. - x_i,n - r - 1);
+  }
+
+  return -N1*pow(x_i,N1-1.)*N2*pow(1.-x_i,N2-1.)*sum;
+}
 
 /*
 - gigiaero, 09/04/2026, 0857 hours
@@ -742,7 +790,7 @@ void solve_lgs_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
     }
 
     // Build the matrix of the linear system
-    build_linear_sys_matrix_cols2(m,n,A,py1,py2);
+    build_linear_sys_matrix_cols2(m,A,py1,py2);
 
     // Solve for Cij
     for(int i=1;i<n-1;i++){
@@ -953,7 +1001,7 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
   if(config->save_i_c)
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
 
-  build_linear_sys_matrix_cols2(m,n,A,py1,py2);
+  build_linear_sys_matrix_cols2(m,A,py1,py2);
 
   for(iter;iter<=config->max_iter;iter++){
     // Calculate residual operator

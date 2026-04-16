@@ -23,7 +23,8 @@ int main(){
 
   puts("i  | x       | y");
   for(int i=b_a_mesh.ILE-1,idx=0;i<b_a_mesh.ITE;i++,idx++)
-    printf("%d | %f | %f\n",i,x[i],bi_air_shape(t,x[i]));
+    // printf("%d | %f | %f\n",i,x[i],bi_air_shape(t,x[i]));
+    printf("%f %f\n",x[i],naca4_symm_CST_t005(t,x[i]));
 
   free(x);
   free(y);

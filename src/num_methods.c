@@ -11,6 +11,10 @@
 
 #define div_ref 1e100
 
+// double binomials(){
+
+// }
+
 /*
 - gigiaero, 01/04/2026, 1633 hours
 */
@@ -212,6 +216,21 @@ void evaluate_delta_form(int m,int n,double phi[m][n],double *x,double *y,
       exit(32);
   }
 }
+
+/*
+- gigiaero, 16/04/2026, 1925 hours
+*/
+double factorial(int n){
+  double r = 1.;
+
+  for(int i=n;i>0;i--)
+    r *= (double) i;
+
+  return r;
+}
+
+
+
 
 /*
 - gigiaero, 19/03/2026, 2318 hours

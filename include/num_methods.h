@@ -19,6 +19,7 @@ typedef struct s_parameters{
   char *casename;
 }sim_parameters;
 
+double factorial(int n);
 double C_op(int m,int n,double phi[m][n],double phi_old[m][n],int i,int j);
 void calc_residual(double *phi_elem,double *phi_old_elem,double *N_elem,
                   double *res_elem);

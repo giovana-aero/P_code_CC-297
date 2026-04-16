@@ -14,14 +14,14 @@ int main(){
 
   // Solution configurations
   sim_parameters config;
-  config.Ntype = 3;
-  config.r = 1.8; // sor
-  // config.r = 1.6; //slor
+  config.Ntype = 5;
+  // config.r = 1.8; // sor
+  config.r = 1.6; //slor
   // config.w = 1.5;
-  config.max_iter = 100000;
+  config.max_iter = 40;
   config.qtimes = 1;
   config.save_i_c = 1;
-  config.save_last_only = 1;
+  config.save_last_only = 0;
   config.eps = 1.e-6; // Convergence criterion
   char output_file[] = "results/bi_air";
 
