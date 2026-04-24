@@ -193,7 +193,8 @@ void evaluate_delta_form_bi_air(int m,int n,double phi[m][n],double *x,
 
     case 6:
       puts("ADI, biconvex airfoil");
-      solve_adi_2d_rectangular_bi_air(m,n,phi,x,y,config,b_a_m);
+      // solve_adi_2d_rectangular_bi_air(m,n,phi,x,y,config,b_a_m);
+      puts("implementation incomplete! :/ ");
       break;
 
     default:
