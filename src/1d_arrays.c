@@ -35,7 +35,7 @@ void ones_1d_array(int n,double *v){
 */
 void print_1d_array(int n,double *v){
   for(int i=0;i<n;i++)
-    printf("%e ",v[i]);
+    printf("%f ",v[i]);
 
   putchar('\n');
 }

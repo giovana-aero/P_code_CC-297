@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 def main():
   # address = "../exercise_laplace2d/results/"
   # casename = "laplace2d"
-  address = "../P01/results/"
-  casename = "bi_air"
+  # address = "../P01/results/"
+  # casename = "bi_air"
+  address = "../P02/"
+  casename = "test"
 
   execute(address,casename)
 
