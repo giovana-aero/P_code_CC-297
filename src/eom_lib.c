@@ -1,6 +1,7 @@
 #include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
 #include"../include/bi_air_lib.h"
 #include"../include/eom_lib.h"
 
@@ -26,6 +27,97 @@ void cosspace(double *x,double xi,double xf,int n,int half){
       x[i] = xi + midp*(1. - cos(th));
       th += th_i;
   }
+}
+
+void cst_airfoil(int n_pts,double *x,double *yu,double *yl,double *prmtrs,
+                 double c){
+  int n = (int) prmtrs[0];
+  double *v_ex = malloc(sizeof(double)*(n+2));
+  double *v_in = malloc(sizeof(double)*(n+2));
+  double *A1 = malloc(sizeof(double)*(n+1));
+  double *A2 = malloc(sizeof(double)*(n+1));
+  double N1 = .5,N2 = 1.;
+  double sum1,sum2,K;
+
+  for(int i=0;i<n+2;i++){
+    v_ex[i] = prmtrs[i+1];
+    // prmtrs[i+1] = v_ex[i];
+    v_in[i] = prmtrs[i+1+n+2];
+    // prmtrs[i+1+n+2] = v_in[i];
+  }
+
+  A1[0] = pow(2.*v_ex[0],.5);
+  A2[0] = pow(2.*v_in[0],.5);
+  for(int k=1;k<n;k++){
+    A1[k] = v_ex[k];
+    A2[k] = v_in[k];
+  }
+  A1[n] = tan(v_ex[n]) + v_ex[n+1]/c;
+  A2[n] = tan(v_in[n]) + v_in[n+1]/c;
+
+  for(int i=0;i<n_pts;i++){
+    sum1 = 0.;
+    sum2 = 0.;
+    for(int r=0;r<n+1;r++){
+      K = factorial(n)/(factorial(r)*factorial(n-r));
+      sum1 += A1[r]*K*pow(x[i],r)*pow(1. - x[i],n - r);
+      sum2 += A2[r]*K*pow(x[i],r)*pow(1. - x[i],n - r);
+    }
+
+    yu[i] = pow(x[i],N1)*pow(1.-x[i],N2)*sum1;
+    yl[i] = pow(x[i],N1)*pow(1.-x[i],N2)*sum2;
+  }
+
+  free(v_ex);
+  free(v_in);
+  free(A1);
+  free(A2);
+}
+
+/*
+- gigiaero, 25/04/2026, 1134 hours
+*/
+void cst_prmtrs(int af,double *prmtrs){
+  int n = prmtrs[0];
+  double *v_ex = malloc(sizeof(double)*(n+2));
+  double *v_in = malloc(sizeof(double)*(n+2));
+  char *filename = malloc(sizeof(char)*100);
+  sprintf(filename,"./reverse_cst/");
+  FILE *input;
+  
+  switch(af){
+    case 1: // whitcomb supercritical, n = 10
+      strcat(filename,"whitcomb_cst_prmtrs.dat");
+      break;
+    
+    default:
+      puts("cst_prmtrs: invalid airfoil")  ;
+      exit(108);
+  }
+
+  input = fopen(filename,"r");
+
+  for(int i=0;i<n+2;i++){
+    if(fscanf(input,"%lf",&v_ex[i]) == EOF)
+      break;
+  }
+
+  for(int i=0;i<n+2;i++){
+    if(fscanf(input,"%lf",&v_in[i]) == EOF)
+      break;
+  }
+
+  for(int i=0;i<n+2;i++){
+    prmtrs[i+1] = v_ex[i];
+    prmtrs[i+1+n+2] = v_in[i];
+  }
+
+  // print_1d_array((n+2)*2 + 1,prmtrs);
+
+  free(v_ex);
+  free(v_in);
+  free(filename);
+  fclose(input);
 }
 
 /*
@@ -67,6 +159,29 @@ void init_af_bi_air(double *x,double *y,double *x_axis,int chord_n,
     y[i1] = -bi_air_shape(msh->af_prmtrs[0],x_axis[k]);
     y[i2] = bi_air_shape(msh->af_prmtrs[0],x_axis[k]);
   }
+}
+
+void init_af_cst(double *x,double *y,double *x_axis,int chord_n,
+                 msh_prmtrs *msh){
+  double *yu = malloc(sizeof(double)*chord_n);
+  double *yl = malloc(sizeof(double)*chord_n);
+  
+  // naca4(chord_n,x_axis,xu,xl,yu,yl,msh->af_prmtrs);
+  cst_airfoil(chord_n,x_axis,yu,yl,msh->af_prmtrs,msh->c);
+  
+  // x[chord_n] = xu[0];
+  y[chord_n] = yu[0];
+  for(int i1=chord_n-2,i2=chord_n,k=1;i1>=0;i1--,i2++,k++){
+    x[i1] = x_axis[k];
+    x[i2] = x_axis[k];
+    y[i1] = -yl[k];
+    y[i2] = yu[k];
+  }
+
+  // free(xu);
+  // free(xl);
+  free(yu);
+  free(yl);
 }
 
 void init_af_naca4(double *x,double *y,double *x_axis,int chord_n,
@@ -177,8 +292,7 @@ void initialize_mesh(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
       break;
 
     case 3:
-      puts("af_type 3 pending!");
-      exit(13);
+      init_af_cst(x[0],y[0],x_axis,chord_n,msh);
       break;
 
     default:
@@ -260,6 +374,9 @@ double max_thickness(int m,int n,double y[m][n]){
   return t;
 }
 
+/*
+- gigiaero, 10/11/2023, 1526 hours
+*/
 void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
            double *prmtrs){
   double *thcknss = malloc(sizeof(double)*n);
@@ -288,7 +405,7 @@ void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
         yl[i] = -thcknss[i];
     }
   }
-  // Assymetric
+  // Asymmetric
   else{
     double *crvtr = malloc(sizeof(double)*n);
     double *slope = malloc(sizeof(double)*n);

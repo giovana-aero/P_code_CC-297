@@ -24,17 +24,22 @@ typedef struct mesh_parameters{
 }msh_prmtrs;
 
 void cosspace(double *x,double xi,double xf,int n,int half);
+void cst_airfoil(int n_pts,double *x,double *yu,double *yl,double *prmtrs,
+                 double c);
+void cst_prmtrs(int af,double *prmtrs);
 void ellipse(double *x,double *y,double *prmtrs,int n,int invert_th);
 void init_af_bi_air(double *x,double *y,double *x_axis,int chord_n,
                     msh_prmtrs *msh);
+void init_af_cst(double *x,double *y,double *x_axis,int chord_n,
+                 msh_prmtrs *msh);
+void init_af_naca4(double *x,double *y,double *x_axis,int chord_n,
+                   msh_prmtrs *msh);
 void init_type1(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh);
 void init_type2(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh);
 void init_type3(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh);
 void initialize_mesh(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh);
 void linspace(double *x,double xi,double xf,int n);
 double max_thickness(int m,int n,double y[m][n]);
-void init_af_naca4(double *x,double *y,double *x_axis,int chord_n,
-                   msh_prmtrs *msh);
 void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
            double *prmtrs);
 

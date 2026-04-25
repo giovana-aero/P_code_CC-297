@@ -9,35 +9,40 @@
 
 int main(){
   msh_prmtrs msh;
-  msh.af_prmtrs = malloc(sizeof(double)*3);
+  int n = 10; // cst - bernstein polynomial order
+  msh.af_prmtrs = malloc(sizeof(double)*((n+2)*2 + 1));
   msh.end_prmtrs = malloc(sizeof(double)*4);
-  // n
+  /* IMAX */
   msh.IMAX = 93;
-  // m
-  // msh.JMAX = 15;
-  msh.JMAX = 30;
-  // c
+  /* JMAX */
+  msh.JMAX = 15;
+  /* c */
   msh.c = 1.;
-  // af_type
-  msh.af_type = 2;
-  // af_prmtrs (bi_air)
+  /* af_type */
+  msh.af_type = 3;
+  /* af_prmtrs (bi_air) */
   // msh.af_prmtrs[0] = 0.1;
-  // af_prmtrs (naca4)
-  msh.af_prmtrs[0] = 8.;
-  msh.af_prmtrs[1] = 4.;
-  msh.af_prmtrs[2] = 12;
-  // end_prmtrs
+  /* af_prmtrs (naca4) */
+  // msh.af_prmtrs[0] = 8.;
+  // msh.af_prmtrs[1] = 4.;
+  // msh.af_prmtrs[2] = 12;
+  /* af_prmtrs (cst) */
+  msh.af_prmtrs[0] = n;
+  cst_prmtrs(1,msh.af_prmtrs);
+  /* end_prmtrs */
   msh.end_prmtrs[0] = 6.5*msh.c;
   msh.end_prmtrs[1] = 6.5*msh.c;
   msh.end_prmtrs[2] = msh.c*.5;
   msh.end_prmtrs[3] = 0.;
-  // init_type
-  msh.init_type = 1;
+  /* init_type */
+  msh.init_type = 3;
 
 
 
   double (*x)[msh.IMAX] = calloc(msh.JMAX,sizeof *x);
   double (*y)[msh.IMAX] = calloc(msh.JMAX,sizeof *y);
+
+  // cst_airfoil(10,&msh.af_prmtrs[0],&msh.af_prmtrs[0],&msh.af_prmtrs[0],msh.af_prmtrs);
 
   initialize_mesh(msh.JMAX,msh.IMAX,x,y,&msh);
 

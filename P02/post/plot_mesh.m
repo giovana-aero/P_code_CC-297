@@ -7,8 +7,9 @@ casename = 'test';
 mesh_x = dlmread('../mesh_x.dat');
 mesh_y = dlmread('../mesh_y.dat');
 
-figure(3),clf,hold on
+figure(1),clf,hold on
 for j = 1:size(mesh_x,1)
+% for j =1
   plot(mesh_x(j,:),mesh_y(j,:),'k')
 end
 
