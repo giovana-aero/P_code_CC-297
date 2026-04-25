@@ -69,6 +69,30 @@ void init_af_bi_air(double *x,double *y,double *x_axis,int chord_n,
   }
 }
 
+void init_af_naca4(double *x,double *y,double *x_axis,int chord_n,
+                   msh_prmtrs *msh){
+  double *xu = malloc(sizeof(double)*chord_n);
+  double *xl = malloc(sizeof(double)*chord_n);
+  double *yu = malloc(sizeof(double)*chord_n);
+  double *yl = malloc(sizeof(double)*chord_n);
+  
+  naca4(chord_n,x_axis,xu,xl,yu,yl,msh->af_prmtrs);
+  
+  x[chord_n] = xu[0];
+  y[chord_n] = yu[0];
+  for(int i1=chord_n-2,i2=chord_n,k=1;i1>=0;i1--,i2++,k++){
+    x[i1] = xl[k];
+    x[i2] = xu[k];
+    y[i1] = yl[k];
+    y[i2] = yu[k];
+  }
+
+  free(xu);
+  free(xl);
+  free(yu);
+  free(yl);
+}
+
 /*
 - gigiaero, 24/04/2026, 2241 hours
 */
@@ -149,8 +173,7 @@ void initialize_mesh(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
       break;
 
     case 2:
-      puts("af_type 2 pending!");
-      exit(13);
+      init_af_naca4(x[0],y[0],x_axis,chord_n,msh);
       break;
 
     case 3:
@@ -235,4 +258,71 @@ double max_thickness(int m,int n,double y[m][n]){
   }
 
   return t;
+}
+
+void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
+           double *prmtrs){
+  double *thcknss = malloc(sizeof(double)*n);
+
+  double m = prmtrs[0]/100.;
+  double p = prmtrs[1]/10.;
+  double t = prmtrs[2]/100.;
+
+  double a0 = 0.2969;
+  double a1 = -0.1260;
+  double a2 = -0.3516;
+  double a3 = 0.2843;
+  // double a4 = -0.1015; // open trailing edge
+  double a4 = -0.1036;
+
+  for(int i=0;i<n;i++)
+    thcknss[i] = 5.*t*(a0*pow(x[i],0.5) + a1*x[i] + a2*pow(x[i],2.) +
+                       a3*pow(x[i],3.) + a4*pow(x[i],4.));
+
+  // Symmetric 
+  if(m==0. && p==0.){
+    for(int i=0;i<n;i++){
+        xu[i] = x[i];
+        yu[i] = thcknss[i];
+        xl[i] = x[i];
+        yl[i] = -thcknss[i];
+    }
+  }
+  // Assymetric
+  else{
+    double *crvtr = malloc(sizeof(double)*n);
+    double *slope = malloc(sizeof(double)*n);
+    double *theta = malloc(sizeof(double)*n);
+
+    for(int i=0;i<n;i++){
+        if(x[i] >= 0. && x[i] <= p)
+            crvtr[i] = m/pow(p,2.)*(2.*p*x[i] - pow(x[i],2.));
+
+        else if(x[i] >= p && x[i] <= 1)
+            crvtr[i] = m/pow(1.-p,2.)*((1. - 2.*p) + 2.*p*x[i] - pow(x[i],2.));
+    }
+
+    for(int i=0;i<n;i++){
+        if(x[i] >= 0. && x[i] <= p)
+            slope[i] = 2.*m/pow(p,2.)*(p - x[i]);
+
+        else if(x[i] >= p && x[i] <= 1.)
+            slope[i] = 2.*m/pow(1.-p,2.)*(p - x[i]);
+
+        theta[i] = atan(slope[i]);
+    }
+
+    for(int i=0;i<n;i++){
+        xu[i] = x[i] - thcknss[i]*sin(theta[i]);
+        yu[i] = crvtr[i] + thcknss[i]*cos(theta[i]);
+        xl[i] = x[i] + thcknss[i]*sin(theta[i]);
+        yl[i] = crvtr[i] - thcknss[i]*cos(theta[i]);
+    }
+
+    free(crvtr);
+    free(slope);
+    free(theta);
+  }
+	
+  free(thcknss);
 }
