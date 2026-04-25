@@ -1,5 +1,7 @@
 #include<math.h>
+#include<stdio.h>
 #include<stdlib.h>
+#include"../include/bi_air_lib.h"
 #include"../include/eom_lib.h"
 
 #define pi 3.1415926535897932384626433
@@ -7,10 +9,17 @@
 /*
 - gigiaero, 24/04/2026, 1352 hours
 */
-void cosspace(double *x,double xi,double xf,int n){
-  double midp = (xf - xi)/2.;
+void cosspace(double *x,double xi,double xf,int n,int half){
+  double midp;
   double th_i = pi/(((double) n) - 1.);
   double th = th_i;
+
+  if(half){
+    midp = xf - xi;
+    th_i /= 2.;
+  }
+  else 
+    midp = (xf - xi)/2.;
 
   x[0] = xi;
   for(int i=1;i<n;i++){
@@ -20,15 +29,18 @@ void cosspace(double *x,double xi,double xf,int n){
 }
 
 /*
+prmtrs = {rx,ry,dx,dy}
 also makes circles when rx = ry
 - gigiaero, 24/04/2026,1635 hours
 */
-void ellipse(double *x,double *y,double *prmtrs,int n){
+void ellipse(double *x,double *y,double *prmtrs,int n,int invert_th){
   double *th = malloc(sizeof(double)*n);
 
-  linspace(th,0.,2*pi,n);
+  if(invert_th)
+    linspace(th,2*pi,0.,n);
+  else
+    linspace(th,0.,2*pi,n);
 
-  // prmtrs = {rx,ry,dx,dy}
   for(int i=0;i<n;i++){
     x[i] = prmtrs[2] + prmtrs[0]*cos(th[i]);
     y[i] = prmtrs[3] + prmtrs[1]*sin(th[i]);
@@ -37,9 +49,147 @@ void ellipse(double *x,double *y,double *prmtrs,int n){
   free(th);
 }
 
-// void evaluate_delta_form_eom(){
+// void evaluate_delta_form_eom(msh_prmtrs *msh){
+
 
 // }
+
+/*
+- gigiaero, 24/04/2026, 2231 hours
+*/
+void init_af_bi_air(double *x,double *y,double *x_axis,int chord_n,
+                    msh_prmtrs *msh){
+  x[chord_n] = x_axis[0];
+  y[chord_n] = x_axis[0];
+  for(int i1=chord_n-2,i2=chord_n,k=1;i1>=0;i1--,i2++,k++){
+    x[i1] = x_axis[k];
+    x[i2] = x_axis[k];
+    y[i1] = -bi_air_shape(msh->af_prmtrs[0],x_axis[k]);
+    y[i2] = bi_air_shape(msh->af_prmtrs[0],x_axis[k]);
+  }
+}
+
+/*
+- gigiaero, 24/04/2026, 2241 hours
+*/
+void init_type1(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
+  double *vrx = malloc(sizeof(double)*msh->JMAX);
+  double *vry = malloc(sizeof(double)*msh->JMAX);
+
+  linspace(vrx,msh->c*.5,msh->end_prmtrs[0],msh->JMAX);
+  linspace(vry,max_thickness(m,n,y)*.5,msh->end_prmtrs[1],msh->JMAX);
+
+  for(int j=1;j<msh->JMAX-1;j++){
+    msh->end_prmtrs[0] = vrx[j];
+    msh->end_prmtrs[1] = vry[j];
+    ellipse(x[j],y[j],msh->end_prmtrs,msh->IMAX,1);
+  }
+
+  // restore original values
+  msh->end_prmtrs[0] = vrx[msh->JMAX-1];
+  msh->end_prmtrs[1] = vry[msh->JMAX-1];
+
+  free(vrx);
+  free(vry);
+}
+
+/*
+- gigiaero, 24/04/2026, 2204 hours
+*/
+void init_type2(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
+  double *vx = malloc(sizeof(double)*msh->JMAX);
+  double *vy = malloc(sizeof(double)*msh->JMAX);
+
+  for(int i=0;i<msh->IMAX;i++){
+    linspace(vx,x[0][i],x[msh->JMAX-1][i],msh->JMAX);
+    linspace(vy,y[0][i],y[msh->JMAX-1][i],msh->JMAX);
+    
+    for(int j=1;j<msh->JMAX-1;j++){
+      x[j][i] = vx[j];
+      y[j][i] = vy[j];
+    }
+  }
+
+  free(vx);
+  free(vy);
+}
+
+/*
+- gigiaero, 24/04/2026, 2204 hours
+*/
+void init_type3(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
+  double *vx = malloc(sizeof(double)*msh->JMAX);
+  double *vy = malloc(sizeof(double)*msh->JMAX);
+
+  for(int i=0;i<msh->IMAX;i++){
+    cosspace(vx,x[0][i],x[msh->JMAX-1][i],msh->JMAX,1);
+    cosspace(vy,y[0][i],y[msh->JMAX-1][i],msh->JMAX,1);
+    
+    for(int j=1;j<msh->JMAX-1;j++){
+      x[j][i] = vx[j];
+      y[j][i] = vy[j];
+    }
+  }
+
+  free(vx);
+  free(vy);
+}
+
+/*
+- gigiaero, 24/04/2026, 2204 hours
+*/
+void initialize_mesh(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
+  int chord_n = (n+1)/2;
+  double *x_axis = malloc(sizeof(double)*chord_n);
+  cosspace(x_axis,0.,msh->c,chord_n,0);
+  
+  switch(msh->af_type){
+    case 1:
+      init_af_bi_air(x[0],y[0],x_axis,chord_n,msh);
+      break;
+
+    case 2:
+      puts("af_type 2 pending!");
+      exit(13);
+      break;
+
+    case 3:
+      puts("af_type 3 pending!");
+      exit(13);
+      break;
+
+    default:
+      puts("initialize_mesh: invalid af_type");
+      exit(13);
+  }
+
+  ellipse(x[m-1],y[m-1],msh->end_prmtrs,n,1);
+
+  switch(msh->init_type){
+    case 1:
+      init_type1(m,n,x,y,msh);
+      break;
+
+    case 2:
+      init_type2(m,n,x,y,msh);
+      break;
+
+    case 3:
+      init_type3(m,n,x,y,msh);
+      break;
+
+    case 4:
+      puts("init_type 4 pending!");
+      exit(4);
+      break;
+
+    default:
+      puts("initialize_mesh: invalid init_type");
+      exit(4);
+  }
+
+  free(x_axis);
+}
 
 /*
 - gigiaero, 24/04/2026, 1313 hours
@@ -70,3 +220,19 @@ void linspace(double *x,double xi,double xf,int n){
 //   }
 
 // }
+
+/*
+- gigiaero, 24/04/2026, 2241 hours
+*/
+double max_thickness(int m,int n,double y[m][n]){
+  int chord_n = (n+1)/2;
+  double t = 0.,s;
+
+  for(int i1=chord_n-2,i2=chord_n;i1>=0;i1--,i2++){
+    s = fabs(y[0][i1] - y[0][i2]); 
+    if(s > t)
+      t = s;
+  }
+
+  return t;
+}

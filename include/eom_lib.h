@@ -2,8 +2,9 @@
 #define _lib_eom_
 
 typedef struct mesh_parameters{
-  int n; // number of points (circunference)
-  int m; // number of points (normal)
+  int IMAX; // number of points (circunference)
+  int JMAX; // number of points (normal)
+  double c; // chord length
   /* 1-biconvex, 2-naca4, 3-cst */
   int af_type; 
   /*
@@ -22,8 +23,15 @@ typedef struct mesh_parameters{
   int init_type;
 }msh_prmtrs;
 
-void cosspace(double *x,double xi,double xf,int n);
-void ellipse(double *x,double *y,double *prmtrs,int n);
+void cosspace(double *x,double xi,double xf,int n,int half);
+void ellipse(double *x,double *y,double *prmtrs,int n,int invert_th);
+void init_af_bi_air(double *x,double *y,double *x_axis,int chord_n,
+                    msh_prmtrs *msh);
+void init_type1(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh);
+void init_type2(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh);
+void init_type3(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh);
+void initialize_mesh(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh);
 void linspace(double *x,double xi,double xf,int n);
+double max_thickness(int m,int n,double y[m][n]);
 
 #endif
