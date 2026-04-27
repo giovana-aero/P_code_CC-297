@@ -2,9 +2,12 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include"../include/2d_arrays.h"
 #include"../include/bi_air_lib.h"
 #include"../include/eom_lib.h"
+#include"../include/strings.h"
 
+#define div_ref 1e100
 #define pi 3.1415926535897932384626433
 
 /*
@@ -192,31 +195,39 @@ void ellipse(double *x,double *y,double *prmtrs,int n,int invert_th){
 /*
 - gigiaero, 26/04/2026, 1003 hours
 */
-void evaluate_delta_form_eom(sim_prmtrs *config,msh_prmtrs *msh){
+void evaluate_delta_form_eom(sim_prmtrs *config,msh_prmtrs *msh,int init_only){
   double (*x)[msh->IMAX] = calloc(msh->JMAX,sizeof *x);
   double (*y)[msh->IMAX] = calloc(msh->JMAX,sizeof *y);
 
   initialize_mesh(msh->JMAX,msh->IMAX,x,y,msh);
 
-  switch(config->Ntype){
-    case 1:
-      // slor
-      break;
-    
-    case 2:
-      // adi
-      break;
-      
-    default:
-      puts("evaluate_delta_form_eom: Invalid Ntype");
-      exit(32);
+  if(config->save_i_c){
+    char *filename = malloc(sizeof(char)*200);
+
+    sprintf(filename,"%s%s",config->casename,"_initial_x.dat");
+    print_2d_array_to_file(msh->JMAX,msh->IMAX,x,filename,0);
+    sprintf(filename,"%s%s",config->casename,"_initial_y.dat");
+    print_2d_array_to_file(msh->JMAX,msh->IMAX,y,filename,0);
+
+    free(filename);
   }
 
-  
-
-  // print_2d_array_to_file(msh.JMAX,msh.IMAX,x,"mesh_x.dat",0);
-  // print_2d_array_to_file(msh.JMAX,msh.IMAX,y,"mesh_y.dat",0);
-
+  if(!init_only){
+    switch(config->Ntype){
+      case 1:
+        // slor
+        break;
+      
+      case 2:
+        puts("ADI, elliptical O mesh");
+        solve_adi_2d_rectangular_eom(msh->JMAX,msh->IMAX,x,y,config);
+        break;
+        
+      default:
+        puts("evaluate_delta_form_eom: Invalid Ntype");
+        exit(32);
+    }
+  }
 
   free(x);
   free(y);
@@ -401,6 +412,24 @@ void initialize_mesh(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
 }
 
 /*
+- gigiaero, 27/04/2026, 1317 hours
+*/
+void L_phi_eom(int m,int n,double L_phi_xy[m][n],double xy[m][n],double A[m][n],
+               double B[m][n],double C[m][n],double D[m][n]){
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++)
+      L_phi_xy[j][i] = A[j][i]*uniform_scheme_der2_o2_central(m,n,xy,i,j,1) - 
+                       2.*B[j][i]*uniform_scheme_der2_o2_central(m,n,xy,i,j,3) + 
+                       C[j][i]*uniform_scheme_der2_o2_central(m,n,xy,i,j,2);
+                       /*
+                       D[j][i]*(P*uniform_scheme_der1_o2_central(m,n,xy,i,j,1) +
+                                Q*uniform_scheme_der1_o2_central(m,n,xy,i,j,2));
+                       
+                       */
+  }
+}
+
+/*
 - gigiaero, 24/04/2026, 1313 hours
 */
 void linspace(double *x,double xi,double xf,int n){
@@ -503,10 +532,28 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   // Solver variables
   double (*L_phi_x)[n] = calloc(m,sizeof *L_phi_x);
   double (*L_phi_y)[n] = calloc(m,sizeof *L_phi_y);
+  double (*Delta_x)[n] = calloc(m,sizeof *Delta_x);
+  double (*Delta_y)[n] = calloc(m,sizeof *Delta_y);
   double (*A)[n] = calloc(m,sizeof *A);
   double (*B)[n] = calloc(m,sizeof *B);
   double (*C)[n] = calloc(m,sizeof *C);
   double (*D)[n] = calloc(m,sizeof *D);
+  double (*fx)[n] = calloc(m,sizeof *fx);
+  double (*fy)[n] = calloc(m,sizeof *fy);
+  double *ak = malloc(sizeof(double)*(n-2));
+  double *bk = malloc(sizeof(double)*(n-1));
+  double *ck = malloc(sizeof(double)*(n-2));
+  double *ukx = malloc(sizeof(double)*(n-1));
+  double *uky = malloc(sizeof(double)*(n-1));
+  double *fkx = malloc(sizeof(double)*(n-1));
+  double *fky = malloc(sizeof(double)*(n-1));
+  double *an = malloc(sizeof(double)*(m-3));
+  double *bn = malloc(sizeof(double)*(m-2));
+  double *cn = malloc(sizeof(double)*(m-3));
+  double *unx = malloc(sizeof(double)*(m-2));
+  double *uny = malloc(sizeof(double)*(m-2));
+  double *fnx = malloc(sizeof(double)*(m-2));
+  double *fny = malloc(sizeof(double)*(m-2));
   int iter = 0;
   // Save files
   char *filename_save_x = malloc(sizeof(char)*200);
@@ -520,101 +567,115 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
 
   // Configure log file
   sprintf(filename_log,"%s.log",config->casename);
-  file_log = fopen(filename_log,"w");
+  // file_log = fopen(filename_log,"w");
 
   // Prepare string to save simulation data  
   sprintf(filename_save_x,"%s_x_iter_",config->casename);
   sprintf(filename_save_y,"%s_y_iter_",config->casename);
   find_str_end(filename_save_x,&str_end_idx);
 
+  puts(filename_log);
+  puts(filename_save_x);
+  puts(filename_save_y);
+
   for(iter;iter<=config->max_iter;iter++){
-    // calcular operadores residuo
+    calc_A(m,n,A,x,y);
+    calc_B(m,n,B,x,y);
+    calc_C(m,n,C,x,y);
+    calc_D(m,n,D,x,y);
 
-    // teste de convergencia
-    // break;
+    // Calculate residual operators
+    L_phi_eom(m,n,L_phi_x,x,A,B,C,D);
+    L_phi_eom(m,n,L_phi_y,y,A,B,C,D);
 
-    // calculo das correcoes
+    printf("Elliptical O mesh Iteration %010d | Res %.6e\n",iter,res);
 
-    // atualizacao das coordenadas
+    fprintf(file_log,"%.6e\n",res);
 
+    // Test for convergence
+    if(res <= config->eps & iter != 0){
+      puts("<< Convergence! >>");
+      iter++;
+      break;
+    }
+
+    if(res >= div_ref){
+      puts("- Divergence");
+      iter++;
+      break;
+    }
+
+    // Solve for the deltas - step 1 (x)
+    for(int j=1;j<m-1;j++){
+      for(int i=0;i<n-1;i++){
+        ak[i] = -A[j][i];
+        bk[i] = alpha + 2.*A[j][i];
+        ck[i] = -A[j][i];
+        fkx[i] = omega*alpha*L_phi_x[j][i];
+        fky[i] = omega*alpha*L_phi_y[j][i];
+      }
+
+      tridiagonal_pmatrix_solver(n-1,ak,bk,ck,fkx,ukx);
+      tridiagonal_pmatrix_solver(n-1,ak,bk,ck,fky,uky);
+
+      for(int i=0;i<n-1;i++){
+        fx[j][i] = ukx[i];
+        fy[j][i] = uky[i];
+      }
+    }
+
+    // Solve for the deltas - step 2 (y)
+    for(int i=0;i<n-1;i++){
+      for(int j=1;j<m-1;j++){
+        an[j] = -A[j][i];
+        bn[j] = alpha + 2.*A[j][i];
+        cn[j] = -A[j][i];
+      }
+
+      tridiagonal_matrix_solver
+
+      get deltas here
+
+    }
+
+    // Calculate new x and y
+
+
+    // Reapply periodicity boundary condition
+    for(int j=0;j<m;j++){
+      x[n-1][j] = x[0][j];
+      y[n-1][j] = y[0][j];
+    }
 
   }
 
   free(L_phi_x);
   free(L_phi_y);
+  free(Delta_x);
+  free(Delta_y);
   free(A);
   free(B);
   free(C);
   free(D);
+  free(fx);
+  free(fy);
+  free(ak);
+  free(bk);
+  free(ck);
+  free(ukx);
+  free(uky);
+  free(fkx);
+  free(fky);
+  free(an);
+  free(bn);
+  free(cn);
+  free(unx);
+  free(uny);
+  free(fnx);
+  free(fny);
   free(filename_save_x);
   free(filename_save_y);
   free(buffer);
   free(filename_log);
-  fclose(file_log);
-}
-
-/*
-periodic tridiagonal matrices
-- gigiaero, 26/04/2026, 2236 hours
-*/
-void tridiagonal_pmatrix_solver(int n,double *a,double *b,double *c,double *f,
-                                double *u){
-  double *x = malloc(sizeof(double)*(n-1));
-  double *w = malloc(sizeof(double)*n);
-  double *k = malloc(sizeof(double)*(n-1));
-  double *g = malloc(sizeof(double)*(n-2));
-  double *h = malloc(sizeof(double)*(n-2));
-  double *y = malloc(sizeof(double)*n);
-
-  // Obtain matrix coefficients
-  h[0] = c[n-1];
-  w[0] = b[0];
-  g[0] = a[0]/w[0];
-  x[0] = c[0]/w[0];
-  k[0] = a[1];
-
-  for(int i=1;i<n-2;i++){
-    h[i] = -h[i-1]*x[i-1];
-    w[i] = b[i] - k[i-1]*x[i-1];
-    g[i] = -g[i-1]*k[i-1]/w[i];
-    x[i] = c[i]/w[i];
-    k[i] = a[i+1];
-  }
-
-  w[n-2] = b[n-2] - k[n-3]*x[n-3];
-  x[n-2] = (c[n-2] - g[n-3]*k[n-3])/w[n-2];
-  k[n-2] = a[n-1] - h[n-3]*x[n-3];
-
-  w[n-1] = b[n-1] - k[n-2]*x[n-2];
-  for(int i=0;i<n-2;i++)
-    w[n-1] -= g[i]*h[i];
-  
-  // Calculate y
-  y[0] = f[0]/w[0];
-  y[n-1] = f[n-1] - h[0]*y[0];
-
-  for(int i=1;i<n-1;i++){
-    y[i] = (f[i] - k[i-1]*y[i-1])/w[i];
-    
-    if(i != n-2)
-      y[n-1] -= h[i]*y[i];
-
-    else
-      y[n-1] -= k[i]*y[i];
-  }
-
-  y[n-1] /= w[n-1];
-  
-  // Calculate solution
-  u[n-1] = y[n-1];
-  u[n-2] = y[n-2] - u[n-1]*x[n-2];
-  for(int i=n-3;i>=0;i--)
-    u[i] = y[i] - u[i+1]*x[i] - u[n-1]*g[i];
-
-  free(x);
-  free(w);
-  free(k);
-  free(g);
-  free(h);
-  free(y);
+  // fclose(file_log);
 }

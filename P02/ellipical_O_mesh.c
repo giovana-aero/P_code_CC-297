@@ -10,7 +10,7 @@
 int main(){
   // Solution configurations
   sim_prmtrs config;
-  config.Ntype = 5;
+  config.Ntype = 2;
   config.r = 1.6; //slor
   // config.w = 1.5;
   config.max_iter = 40;
@@ -30,6 +30,15 @@ int main(){
   msh.JMAX = 15;
   /* c */
   msh.c = 1.;
+  /* end_prmtrs */
+  msh.end_prmtrs[0] = 6.5*msh.c;
+  msh.end_prmtrs[1] = 6.5*msh.c;
+  msh.end_prmtrs[2] = msh.c*.5;
+  msh.end_prmtrs[3] = 0.;
+  /* init_type */
+  msh.init_type = 3;
+  int init_only = 1; // Initialize only, do not solve
+
   /* af_type */
   msh.af_type = 1;
   /* af_prmtrs (bi_air) */
@@ -37,30 +46,19 @@ int main(){
   /* af_prmtrs (naca4) */
   // msh.af_prmtrs[0] = 8.;
   // msh.af_prmtrs[1] = 4.;
-  // msh.af_prmtrs[2] = 12;
+  // msh.af_prmtrs[2] = 12.;
   /* af_prmtrs (cst) */
   // msh.af_prmtrs[0] = n;
-  cst_prmtrs(1,msh.af_prmtrs);
-  /* end_prmtrs */
-  msh.end_prmtrs[0] = 6.5*msh.c;
-  msh.end_prmtrs[1] = 6.5*msh.c;
-  msh.end_prmtrs[2] = msh.c*.5;
-  msh.end_prmtrs[3] = 0.;
-  /* init_type */
-  msh.init_type = 1;
+  // cst_prmtrs(1,msh.af_prmtrs);
 
-
-
-  
-
-  
-
-
-  
-
+  // Solve
+  config.casename = malloc(sizeof(char)*200);
+  sprintf(config.casename,"%s",output_file);
+  evaluate_delta_form_eom(&config,&msh,init_only);
 
   free(msh.af_prmtrs);
   free(msh.end_prmtrs);
+  free(config.casename);
 
 
   // free(x_tmp);

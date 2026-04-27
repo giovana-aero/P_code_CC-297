@@ -85,44 +85,6 @@ void diagonal_matrix_solver(int n,double A[n][n],double *f,double *u){
   // Intermediary solution
   double *y = (double *)malloc(sizeof(double)*n);
   
-
-  if(a == NULL){
-    puts("diagonal_matrix_solver: Allocation failed (a)");
-    exit(1);
-  }
-  if(b == NULL){
-    puts("diagonal_matrix_solver: Allocation failed (b)");
-    exit(1);
-  }
-  if(c == NULL){
-    puts("diagonal_matrix_solver: Allocation failed (c)");
-    exit(1);
-  }
-  if(d == NULL){
-    puts("diagonal_matrix_solver: Allocation failed (d)");
-    exit(1);
-  }
-  if(k == NULL){
-    puts("diagonal_matrix_solver: Allocation failed (k)");
-    exit(1);
-  }
-  if(w == NULL){
-    puts("diagonal_matrix_solver: Allocation failed (w)");
-    exit(1);
-  }
-  if(x == NULL){
-    puts("diagonal_matrix_solver: Allocation failed (x)");
-    exit(1);
-  }
-  if(z == NULL){
-    puts("diagonal_matrix_solver: Allocation failed (z)");
-    exit(1);
-  }
-  if(y == NULL){
-    puts("diagonal_matrix_solver: Allocation failed (y)");
-    exit(1);
-  }
-
   // Get coefficients of the original matrix
   for(int i=0;i<n;i++){
     b[i] = A[i][i];
@@ -960,6 +922,137 @@ void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
 }
 
 /*
+yeah, i know, there was already a diagonal matrix solver done from series 02. 
+but i wanted to get rid of the superfluous upper diagonal and change the formats
+of the inputs, so here is a new version.
+- gigiaero, 27/04/2026, 1410 hours
+*/
+void tridiagonal_matrix_solver(int n,double *a,double *b,double *c,double *f,
+                               double *u){
+  double *x = malloc(sizeof(double)*(n-1));
+  double *w = malloc(sizeof(double)*n);
+  double *k = malloc(sizeof(double)*(n-1));
+  double *y = malloc(sizeof(double)*n);
+
+  // Obtain matrix coefficients
+  k[0] = a[0];
+  w[0] = b[0];
+  x[0] = c[0]/w[0];
+
+  for(int i=1;i<n-1;i++){
+    k[i] = a[i];
+    w[i] = b[i] - k[i-1]*x[i-1];
+    x[i] = c[i]/w[i];
+  }
+
+  w[n-1] = b[n-1] - k[n-2]*x[n-2];
+  
+  // Calculate y
+  y[0] = f[0]/w[0];
+
+  for(int i=0;i<n;i++)
+    y[i] = (f[i] - k[i-1]*y[i-1])/w[i];
+
+  // Calculate solution
+  u[n-1] = y[n-1];
+  for(int i=n-2;i>=0;i--)
+    u[i] = y[i] - u[i+1]*x[i];
+
+  free(x);
+  free(w);
+  free(k);
+  free(y);
+}
+
+/*
+periodic tridiagonal matrices, where a is the lower diagonal, b is the main 
+diagonal and c is the upper diagonal. a[0] is the upper right element of the 
+matrix, and c[n-1] is the lower left element.
+- gigiaero, 26/04/2026, 2236 hours
+*/
+void tridiagonal_pmatrix_solver(int n,double *a,double *b,double *c,double *f,
+                                double *u){
+  double *x = malloc(sizeof(double)*(n-1));
+  double *w = malloc(sizeof(double)*n);
+  double *k = malloc(sizeof(double)*(n-1));
+  double *g = malloc(sizeof(double)*(n-2));
+  double *h = malloc(sizeof(double)*(n-2));
+  double *y = malloc(sizeof(double)*n);
+
+  // Obtain matrix coefficients
+  h[0] = c[n-1];
+  w[0] = b[0];
+  g[0] = a[0]/w[0];
+  x[0] = c[0]/w[0];
+  k[0] = a[1];
+
+  for(int i=1;i<n-2;i++){
+    h[i] = -h[i-1]*x[i-1];
+    w[i] = b[i] - k[i-1]*x[i-1];
+    g[i] = -g[i-1]*k[i-1]/w[i];
+    x[i] = c[i]/w[i];
+    k[i] = a[i+1];
+  }
+
+  w[n-2] = b[n-2] - k[n-3]*x[n-3];
+  x[n-2] = (c[n-2] - g[n-3]*k[n-3])/w[n-2];
+  k[n-2] = a[n-1] - h[n-3]*x[n-3];
+
+  w[n-1] = b[n-1] - k[n-2]*x[n-2];
+  for(int i=0;i<n-2;i++)
+    w[n-1] -= g[i]*h[i];
+  
+  // Calculate y
+  y[0] = f[0]/w[0];
+  y[n-1] = f[n-1] - h[0]*y[0];
+
+  for(int i=1;i<n-1;i++){
+    y[i] = (f[i] - k[i-1]*y[i-1])/w[i];
+    
+    if(i != n-2)
+      y[n-1] -= h[i]*y[i];
+
+    else
+      y[n-1] -= k[i]*y[i];
+  }
+
+  y[n-1] /= w[n-1];
+  
+  // Calculate solution
+  u[n-1] = y[n-1];
+  u[n-2] = y[n-2] - u[n-1]*x[n-2];
+  for(int i=n-3;i>=0;i--)
+    u[i] = y[i] - u[i+1]*x[i] - u[n-1]*g[i];
+
+  free(x);
+  free(w);
+  free(k);
+  free(g);
+  free(h);
+  free(y);
+}
+
+/*
+- gigiaero, 27/04/2026, 1303 hours
+*/
+double uniform_scheme_der1_o2_central(int m,int n,double phi[m][n],int i,int j,
+                                      int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return (phi[j][i+1] - phi[j][i-1])*.5;
+      break;
+
+    case 2: // Vertical
+      return (phi[j+1][i] - phi[j-1][i])*.5;
+      break;
+
+    default:
+      puts("uniform_scheme_der1_o2_central: invalid axis");
+      exit(15);
+  }
+}
+
+/*
 - gigiaero, 27/04/2026, 1303 hours
 */
 double uniform_scheme_der2_o2_central(int m,int n,double phi[m][n],int i,int j,
@@ -979,26 +1072,6 @@ double uniform_scheme_der2_o2_central(int m,int n,double phi[m][n],int i,int j,
 
     default:
       puts("uniform_scheme_der2_o2_central: invalid axis");
-      exit(15);
-  }
-}
-
-/*
-- gigiaero, 27/04/2026, 1303 hours
-*/
-double uniform_scheme_der1_o2_central(int m,int n,double phi[m][n],int i,int j,
-                                      int axis){
-  switch(axis){
-    case 1: // Horizontal
-      return (phi[j][i+1] - phi[j][i-1])*.5;
-      break;
-
-    case 2: // Vertical
-      return (phi[j+1][i] - phi[j-1][i])*.5;
-      break;
-
-    default:
-      puts("uniform_scheme_der1_o2_central: invalid axis");
       exit(15);
   }
 }

@@ -109,7 +109,7 @@ int main(){
 
   // Solve
   config.casename = malloc(sizeof(char)*200);
-  strcpy(config.casename,output_file);
+  fprintf(config.casename,"%s",output_file);
   evaluate_delta_form_bi_air(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,x,y,&config,
                              &b_a_mesh);
   // evaluate_delta_form(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,x,y,&config,num_b_c_r,NULL);

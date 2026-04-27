@@ -1,11 +1,12 @@
 clc,clear
 
-address = './';
-casename = 'test';
+address = '../results/';
+casename = 'eom';
 
-% mesh_x = readmatrix([address,casename,'_mesh_x.msh'],'filetype','delimitedtext');
-mesh_x = dlmread('../mesh_x.dat');
-mesh_y = dlmread('../mesh_y.dat');
+% mesh_x = readmatrix([address,casename,'_initial_x.msh'],'filetype','delimitedtext');
+% mesh_x = readmatrix([address,casename,'_initial_y.msh'],'filetype','delimitedtext');
+mesh_x = dlmread([address,casename,'_initial_x.dat']);
+mesh_y = dlmread([address,casename,'_initial_y.dat']);
 
 figure(1),clf,hold on
 for j = 1:size(mesh_x,1)
@@ -14,6 +15,7 @@ for j = 1:size(mesh_x,1)
 end
 
 for i = 1:size(mesh_x,2)-1
+% for i = [1,2,size(mesh_x,2)-1,size(mesh_x,2)-2]
   plot(mesh_x(:,i),mesh_y(:,i),'m')
 end
 

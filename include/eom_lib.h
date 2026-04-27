@@ -32,6 +32,7 @@ void cst_airfoil(int n_pts,double *x,double *yu,double *yl,double *prmtrs,
                  double c);
 void cst_prmtrs(int af,double *prmtrs);
 void ellipse(double *x,double *y,double *prmtrs,int n,int invert_th);
+void evaluate_delta_form_eom(sim_prmtrs *config,msh_prmtrs *msh,int init_only);
 void init_af_bi_air(double *x,double *y,double *x_axis,int chord_n,
                     msh_prmtrs *msh);
 void init_af_cst(double *x,double *y,double *x_axis,int chord_n,
@@ -42,11 +43,13 @@ void init_type1(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh);
 void init_type2(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh);
 void init_type3(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh);
 void initialize_mesh(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh);
+void L_phi_eom(int m,int n,double L_phi_xy[m][n],double xy[m][n],double A[m][n],
+               double B[m][n],double C[m][n],double D[m][n]);
 void linspace(double *x,double xi,double xf,int n);
 double max_thickness(int m,int n,double y[m][n]);
 void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
            double *prmtrs);
-void tridiagonal_pmatrix_solver(int n,double *a,double *b,double *c,double *f,
-                                double *u);
+void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
+                                  sim_prmtrs *config);
 
 #endif
