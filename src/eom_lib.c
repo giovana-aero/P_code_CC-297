@@ -8,6 +8,54 @@
 #define pi 3.1415926535897932384626433
 
 /*
+- gigiaero, 27/04/2026, 1310 hours
+*/
+void calc_A(int m,int n,double A[m][n],double x[m][n],double y[m][n]){
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++)
+      A[j][i] = pow(uniform_scheme_der1_o2_central(m,n,x,i,j,2),2) + 
+                pow(uniform_scheme_der1_o2_central(m,n,y,i,j,2),2);
+  }
+}
+
+/*
+- gigiaero, 27/04/2026, 1310 hours
+*/
+void calc_B(int m,int n,double B[m][n],double x[m][n],double y[m][n]){
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++)
+      B[j][i] = uniform_scheme_der1_o2_central(m,n,x,i,j,1)*
+                uniform_scheme_der1_o2_central(m,n,x,i,j,2) + 
+                uniform_scheme_der1_o2_central(m,n,y,i,j,1)*
+                uniform_scheme_der1_o2_central(m,n,y,i,j,2);
+  }
+}
+
+/*
+- gigiaero, 27/04/2026, 1310 hours
+*/
+void calc_C(int m,int n,double C[m][n],double x[m][n],double y[m][n]){
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++)
+      C[j][i] = pow(uniform_scheme_der1_o2_central(m,n,x,i,j,1),2) + 
+                pow(uniform_scheme_der1_o2_central(m,n,y,i,j,1),2);
+  }
+}
+
+/*
+- gigiaero, 27/04/2026, 1310 hours
+*/
+void calc_D(int m,int n,double D[m][n],double x[m][n],double y[m][n]){
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++)
+      D[j][i] = pow(uniform_scheme_der1_o2_central(m,n,x,i,j,1)*
+                    uniform_scheme_der1_o2_central(m,n,y,i,j,2) - 
+                    uniform_scheme_der1_o2_central(m,n,x,i,j,2)*
+                    uniform_scheme_der1_o2_central(m,n,y,i,j,1),2);
+  }
+}
+
+/*
 - gigiaero, 24/04/2026, 1352 hours
 */
 void cosspace(double *x,double xi,double xf,int n,int half){
@@ -194,10 +242,8 @@ void init_af_cst(double *x,double *y,double *x_axis,int chord_n,
   double *yu = malloc(sizeof(double)*chord_n);
   double *yl = malloc(sizeof(double)*chord_n);
   
-  // naca4(chord_n,x_axis,xu,xl,yu,yl,msh->af_prmtrs);
   cst_airfoil(chord_n,x_axis,yu,yl,msh->af_prmtrs,msh->c);
   
-  // x[chord_n] = xu[0];
   y[chord_n] = yu[0];
   for(int i1=chord_n-2,i2=chord_n,k=1;i1>=0;i1--,i2++,k++){
     x[i1] = x_axis[k];
@@ -206,8 +252,6 @@ void init_af_cst(double *x,double *y,double *x_axis,int chord_n,
     y[i2] = yu[k];
   }
 
-  // free(xu);
-  // free(xl);
   free(yu);
   free(yl);
 }
@@ -456,9 +500,35 @@ void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
 
 void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
                                   sim_prmtrs *config){
+  // Solver variables
+  double (*L_phi_x)[n] = calloc(m,sizeof *L_phi_x);
+  double (*L_phi_y)[n] = calloc(m,sizeof *L_phi_y);
+  double (*A)[n] = calloc(m,sizeof *A);
+  double (*B)[n] = calloc(m,sizeof *B);
+  double (*C)[n] = calloc(m,sizeof *C);
+  double (*D)[n] = calloc(m,sizeof *D);
+  int iter = 0;
+  // Save files
+  char *filename_save_x = malloc(sizeof(char)*200);
+  char *filename_save_y = malloc(sizeof(char)*200);
+  char *buffer = malloc(sizeof(char)*200);
+  int str_end_idx;
+  // Residuals
+  char *filename_log = malloc(sizeof(char)*200);
+  double res;
+  FILE *file_log;
+
+  // Configure log file
+  sprintf(filename_log,"%s.log",config->casename);
+  file_log = fopen(filename_log,"w");
+
+  // Prepare string to save simulation data  
+  sprintf(filename_save_x,"%s_x_iter_",config->casename);
+  sprintf(filename_save_y,"%s_y_iter_",config->casename);
+  find_str_end(filename_save_x,&str_end_idx);
 
   for(iter;iter<=config->max_iter;iter++){
-    // calcular operadores residuos
+    // calcular operadores residuo
 
     // teste de convergencia
     // break;
@@ -468,9 +538,19 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
     // atualizacao das coordenadas
 
 
-
   }
 
+  free(L_phi_x);
+  free(L_phi_y);
+  free(A);
+  free(B);
+  free(C);
+  free(D);
+  free(filename_save_x);
+  free(filename_save_y);
+  free(buffer);
+  free(filename_log);
+  fclose(file_log);
 }
 
 /*

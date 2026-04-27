@@ -60,5 +60,9 @@ void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
 void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
                               double *y,sim_prmtrs *config,
                               int num_b_c_r,b_conditions_2d *b_c_r);
+double uniform_scheme_der2_o2_central(int m,int n,double phi[m][n],int i,int j,
+                                      int axis);
+double uniform_scheme_der1_o2_central(int m,int n,double phi[m][n],int i,int j,
+                                      int axis);
 
 #endif

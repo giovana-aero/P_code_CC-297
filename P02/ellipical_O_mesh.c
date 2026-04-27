@@ -20,7 +20,6 @@ int main(){
   config.eps = 1.e-6; // Convergence criterion
   char output_file[] = "results/eom";
 
-
   msh_prmtrs msh;
   int n = 10; // cst - bernstein polynomial order
   msh.af_prmtrs = malloc(sizeof(double)*((n+2)*2 + 1));

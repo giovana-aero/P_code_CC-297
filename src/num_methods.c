@@ -293,6 +293,10 @@ double scheme_der1_o2_backward(double *f,int m,int n,double phi[m][n],double *xy
       *f = (3.*phi[j][i] - 4.*phi[j-1][i] + phi[j-2][i])/
       (3.*xy[j] - 4.*xy[j-1] + xy[j-2]);
       break;
+
+    default:
+      puts("scheme_der1_o2_backward: invalid axis");
+      exit(15);
   }
 }
 
@@ -310,6 +314,10 @@ double scheme_der1_o2_central(double *f,int m,int n,double phi[m][n],double *xy,
     case 2: // Vertical
       *f = (phi[j+1][i] - phi[j-1][i])/(xy[j+1] - xy[j-1]);
       break;
+
+    default:
+      puts("scheme_der1_o2_central: invalid axis");
+      exit(15);
   }
 }
 
@@ -332,9 +340,12 @@ double scheme_der1_o2_forward(double *f,int m,int n,double phi[m][n],
       *f = (-3.*phi[j][i] + 4.*phi[j+1][i] - phi[j+2][i])/
            (-3.*xy[j] + 4.*xy[j+1] - xy[j+2]);
       break;
+    
+    default:
+      puts("scheme_der1_o2_forward: invalid axis");
+      exit(15);
   }
 }
-
 
 /*
 - gigiaero, 19/03/2026, 2333 hours
@@ -946,4 +957,48 @@ void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
   free(buffer);
   free(res);
   fclose(file_log);
+}
+
+/*
+- gigiaero, 27/04/2026, 1303 hours
+*/
+double uniform_scheme_der2_o2_central(int m,int n,double phi[m][n],int i,int j,
+                                      int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return phi[j][i+1] - 2.*phi[j][i] + phi[j][i-1];
+      break;
+
+    case 2: // Vertical
+      return phi[j+1][i] - 2.*phi[j][i] + phi[j-1][i];
+      break;
+
+    case 3: // Mixed
+      return (phi[j+1][i+1] - phi[j-1][i+1] - phi[j+1][i-1] +phi[j-1][i-1])*.25;
+      break;
+
+    default:
+      puts("uniform_scheme_der2_o2_central: invalid axis");
+      exit(15);
+  }
+}
+
+/*
+- gigiaero, 27/04/2026, 1303 hours
+*/
+double uniform_scheme_der1_o2_central(int m,int n,double phi[m][n],int i,int j,
+                                      int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return (phi[j][i+1] - phi[j][i-1])*.5;
+      break;
+
+    case 2: // Vertical
+      return (phi[j+1][i] - phi[j-1][i])*.5;
+      break;
+
+    default:
+      puts("uniform_scheme_der1_o2_central: invalid axis");
+      exit(15);
+  }
 }

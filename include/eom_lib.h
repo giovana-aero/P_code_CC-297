@@ -23,6 +23,10 @@ typedef struct mesh_parameters{
   int init_type;
 }msh_prmtrs;
 
+void calc_A(int m,int n,double A[m][n],double x[m][n],double y[m][n]);
+void calc_B(int m,int n,double B[m][n],double x[m][n],double y[m][n]);
+void calc_C(int m,int n,double C[m][n],double x[m][n],double y[m][n]);
+void calc_D(int m,int n,double D[m][n],double x[m][n],double y[m][n]);
 void cosspace(double *x,double xi,double xf,int n,int half);
 void cst_airfoil(int n_pts,double *x,double *yu,double *yl,double *prmtrs,
                  double c);
