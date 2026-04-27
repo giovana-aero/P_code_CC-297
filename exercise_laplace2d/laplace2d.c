@@ -12,7 +12,7 @@
 int main(){
 
   // Solution configurations
-  sim_parameters config;
+  sim_prmtrs config;
   config.Ntype = 4;
   config.r = 1;
   config.max_iter = 50000;

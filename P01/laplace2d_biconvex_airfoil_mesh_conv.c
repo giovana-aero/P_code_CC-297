@@ -13,7 +13,7 @@
 int main(){
 
   // Solution configurations
-  sim_parameters config;
+  sim_prmtrs config;
   config.max_iter = 9999999999;
   config.qtimes = 1;
   config.save_i_c = 0;

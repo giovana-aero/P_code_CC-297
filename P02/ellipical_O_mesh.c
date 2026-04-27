@@ -8,6 +8,19 @@
 #include"../include/mesh.h"
 
 int main(){
+  // Solution configurations
+  sim_prmtrs config;
+  config.Ntype = 5;
+  config.r = 1.6; //slor
+  // config.w = 1.5;
+  config.max_iter = 40;
+  config.qtimes = 1;
+  config.save_i_c = 1;
+  config.save_last_only = 0;
+  config.eps = 1.e-6; // Convergence criterion
+  char output_file[] = "results/eom";
+
+
   msh_prmtrs msh;
   int n = 10; // cst - bernstein polynomial order
   msh.af_prmtrs = malloc(sizeof(double)*((n+2)*2 + 1));
@@ -19,15 +32,15 @@ int main(){
   /* c */
   msh.c = 1.;
   /* af_type */
-  msh.af_type = 3;
+  msh.af_type = 1;
   /* af_prmtrs (bi_air) */
-  // msh.af_prmtrs[0] = 0.1;
+  msh.af_prmtrs[0] = 0.1;
   /* af_prmtrs (naca4) */
   // msh.af_prmtrs[0] = 8.;
   // msh.af_prmtrs[1] = 4.;
   // msh.af_prmtrs[2] = 12;
   /* af_prmtrs (cst) */
-  msh.af_prmtrs[0] = n;
+  // msh.af_prmtrs[0] = n;
   cst_prmtrs(1,msh.af_prmtrs);
   /* end_prmtrs */
   msh.end_prmtrs[0] = 6.5*msh.c;
@@ -35,46 +48,22 @@ int main(){
   msh.end_prmtrs[2] = msh.c*.5;
   msh.end_prmtrs[3] = 0.;
   /* init_type */
-  msh.init_type = 3;
+  msh.init_type = 1;
 
 
 
-  double (*x)[msh.IMAX] = calloc(msh.JMAX,sizeof *x);
-  double (*y)[msh.IMAX] = calloc(msh.JMAX,sizeof *y);
+  
 
-  // cst_airfoil(10,&msh.af_prmtrs[0],&msh.af_prmtrs[0],&msh.af_prmtrs[0],msh.af_prmtrs);
-
-  initialize_mesh(msh.JMAX,msh.IMAX,x,y,&msh);
+  
 
 
+  
 
-  // double *v = malloc(sizeof(double)*4);
-  // copy_1d_array_range(0,3,msh.end_prmtrs,v);
-
-  // double ri = msh.end_prmtrs[0]/(msh.JMAX);
-  // for(int j=msh.JMAX-1;j>=0;j--){
-  //   ellipse(x[j],y[j],v,msh.IMAX,1);
-  //   v[0] -= ri;
-  //   v[1] -= ri;
-  // }
-
-  print_2d_array_to_file(msh.JMAX,msh.IMAX,x,"mesh_x.dat",0);
-  print_2d_array_to_file(msh.JMAX,msh.IMAX,y,"mesh_y.dat",0);
-
-  // double *x_tmp = malloc(sizeof(double)*msh.IMAX);
-  // double *y_tmp = malloc(sizeof(double)*msh.IMAX);
-  // ellipse(x_tmp,y_tmp,msh.end_prmtrs,msh.IMAX,1);
-
-  // ellipse(x[1],y[1],msh.end_prmtrs,msh.IMAX);
-  // bi_air_shape(msh.IMAX,msh.af_prmtrs[0],)
-
-  // save_mesh(msh.IMAX,msh.IMAX,x_tmp,y_tmp,"test");
 
   free(msh.af_prmtrs);
   free(msh.end_prmtrs);
 
-  free(x);
-  free(y);
+
   // free(x_tmp);
   // free(y_tmp);
 

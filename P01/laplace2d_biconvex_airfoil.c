@@ -13,7 +13,7 @@
 int main(){
 
   // Solution configurations
-  sim_parameters config;
+  sim_prmtrs config;
   config.Ntype = 5;
   // config.r = 1.8; // sor
   config.r = 1.6; //slor

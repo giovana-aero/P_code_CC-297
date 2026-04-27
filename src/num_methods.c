@@ -181,7 +181,7 @@ void diagonal_matrix_solver(int n,double A[n][n],double *f,double *u){
 - gigiaero, 19/03/2026, 2318 hours
 */
 void evaluate_delta_form(int m,int n,double phi[m][n],double *x,double *y,
-                        sim_parameters *config,int num_b_c_r,
+                        sim_prmtrs *config,int num_b_c_r,
                         b_conditions_2d *b_c_r){
   save_mesh(m,n,x,y,config->casename);
 
@@ -252,7 +252,7 @@ function in the solvers was reorganized
 - gigiaero, 06/04/2026, 1623 hours
 */
 void save_results_qtimes(int m,int n,double phi[m][n],int *iter,
-                        sim_parameters *s_p,char *buffer,char *filename_save,
+                        sim_prmtrs *s_p,char *buffer,char *filename_save,
                         int *str_end_idx){
   if((*iter)%(s_p->qtimes) == 0 || buffer[0] == 'L'){
     sprintf(buffer,"%010d",*iter);
@@ -354,7 +354,7 @@ void scheme_der2_o2_central_var_deltas_xy(double *f,int m,int n,
 - gigiaero, 23/03/2026 hours
 */
 void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,
-                                   double *y,sim_parameters *config,
+                                   double *y,sim_prmtrs *config,
                                    int num_b_c_r,b_conditions_2d *b_c_r){
   // Solver variables
   double (*phi_old)[n] = calloc(m,sizeof *phi_old);
@@ -466,7 +466,7 @@ void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,
 - gigiaero, 24/03/2026, 1732 hours
 */
 void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
-                              sim_parameters *config,
+                              sim_prmtrs *config,
                               int num_b_c_r,b_conditions_2d *b_c_r){
   // Solver variables
   double (*phi_old)[n] = calloc(m,sizeof *phi_old);
@@ -605,7 +605,7 @@ void solve_lgs_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
 - gigiaero, 24/03/2026, 2135 hours
 */
 void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
-                               sim_parameters *config,
+                               sim_prmtrs *config,
                                int num_b_c_r,b_conditions_2d *b_c_r){
   // Solver variables
   double (*phi_old)[n] = calloc(m,sizeof *phi_old);
@@ -748,7 +748,7 @@ void solve_slor_2d_rectangular(int m,int n,double phi[m][n],double *x,double *y,
 - gigiaero, 19/03/2026, 2338 hours
 */
 void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
-                                   double *y,sim_parameters *config,
+                                   double *y,sim_prmtrs *config,
                                    int num_b_c_r,b_conditions_2d *b_c_r){
   // Solver variables
   double (*phi_old)[n] = calloc(m,sizeof *phi_old);
@@ -839,7 +839,7 @@ void solve_p_jacobi_2d_rectangular(int m,int n,double phi[m][n],double *x,
 }
 
 void solve_sor_2d_rectangular(int m,int n,double phi[m][n],double *x,
-                              double *y,sim_parameters *config,
+                              double *y,sim_prmtrs *config,
                               int num_b_c_r,b_conditions_2d *b_c_r){
   // Solver variables
   double (*phi_old)[n] = calloc(m,sizeof *phi_old);

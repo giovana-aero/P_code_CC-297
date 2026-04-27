@@ -161,7 +161,7 @@ void build_linear_sys_matrix_cols2(int m,double A[m-2][m-2],double *py1,
 - gigiaero, 25/03/2026, 1521 hours
 */
 void evaluate_delta_form_bi_air(int m,int n,double phi[m][n],double *x,
-                                double *y,sim_parameters *config,
+                                double *y,sim_prmtrs *config,
                                 bi_air_phys_mesh *b_a_m){
   save_mesh(m,n,x,y,config->casename); 
 
@@ -402,8 +402,12 @@ void set_mesh_prmtrs(int mtype,bi_air_phys_mesh *b_a_mesh){
   }
 }
 
+/*
+still unfinished
+- gigiaero, 26/04/2026, 1028 hours
+*/
 void solve_adi_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
-                                     double *y,sim_parameters *config,
+                                     double *y,sim_prmtrs *config,
                                      bi_air_phys_mesh *b_a_m){
   // Solver variables
   double (*L_phi)[n-2] = calloc(m-2,sizeof *L_phi);
@@ -603,7 +607,7 @@ void solve_adi_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
 */
 void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
                                           double *x,double *y,
-                                          sim_parameters *config,
+                                          sim_prmtrs *config,
                                           bi_air_phys_mesh *b_a_m){
   // Solver variables
   double (*L_phi)[n-2] = calloc(m-2,sizeof *L_phi);
@@ -717,7 +721,7 @@ void solve_g_seidel_2d_rectangular_bi_air(int m,int n,double phi[m][n],
 - gigiaero , 08/04/2026, 2137 hours
 */
 void solve_lgs_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
-                                     double *y,sim_parameters *config,
+                                     double *y,sim_prmtrs *config,
                                      bi_air_phys_mesh *b_a_m){
   // Solver variables
   double (*L_phi)[n-2] = calloc(m-2,sizeof *L_phi);
@@ -854,7 +858,7 @@ void solve_lgs_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
 */
 void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
                                           double *x,double *y,
-                                          sim_parameters *config,
+                                          sim_prmtrs *config,
                                           bi_air_phys_mesh *b_a_m){
   // Solver variables
   double (*N)[n-2] = calloc(m,sizeof *N-2);
@@ -957,7 +961,7 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
 - gigiaero, 07/04/2026, 2251 hours
 */
 void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
-                                      double *y,sim_parameters *config,
+                                      double *y,sim_prmtrs *config,
                                       bi_air_phys_mesh *b_a_m){
   // Solver variables
   double (*L_phi)[n-2] = calloc(m-2,sizeof *L_phi);
@@ -1093,7 +1097,7 @@ void solve_slor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
 - gigiaero, 07/04/2026, 1558 hours
 */
 void solve_sor_2d_rectangular_bi_air(int m,int n,double phi[m][n],double *x,
-                                     double *y,sim_parameters *config,
+                                     double *y,sim_prmtrs *config,
                                      bi_air_phys_mesh *b_a_m){
   // Solver variables
   double (*L_phi)[n-2] = calloc(m-2,sizeof *L_phi);

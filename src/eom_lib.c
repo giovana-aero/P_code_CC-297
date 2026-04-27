@@ -141,10 +141,38 @@ void ellipse(double *x,double *y,double *prmtrs,int n,int invert_th){
   free(th);
 }
 
-// void evaluate_delta_form_eom(msh_prmtrs *msh){
+/*
+- gigiaero, 26/04/2026, 1003 hours
+*/
+void evaluate_delta_form_eom(sim_prmtrs *config,msh_prmtrs *msh){
+  double (*x)[msh->IMAX] = calloc(msh->JMAX,sizeof *x);
+  double (*y)[msh->IMAX] = calloc(msh->JMAX,sizeof *y);
+
+  initialize_mesh(msh->JMAX,msh->IMAX,x,y,msh);
+
+  switch(config->Ntype){
+    case 1:
+      // slor
+      break;
+    
+    case 2:
+      // adi
+      break;
+      
+    default:
+      puts("evaluate_delta_form_eom: Invalid Ntype");
+      exit(32);
+  }
+
+  
+
+  // print_2d_array_to_file(msh.JMAX,msh.IMAX,x,"mesh_x.dat",0);
+  // print_2d_array_to_file(msh.JMAX,msh.IMAX,y,"mesh_y.dat",0);
 
 
-// }
+  free(x);
+  free(y);
+}
 
 /*
 - gigiaero, 24/04/2026, 2231 hours
@@ -340,24 +368,6 @@ void linspace(double *x,double xi,double xf,int n){
     x[i] = x[i-1] + step;
 }
 
-// void solve_slor_eom(){
-
-//   for(iter;iter<=config->max_iter;iter++){
-//     // calcular operadores residuos
-
-//     // teste deconvergencia
-//     // break;
-
-//     // calculo das correcoes
-
-//     // atualizacao das coordenadas
-
-
-
-//   }
-
-// }
-
 /*
 - gigiaero, 24/04/2026, 2241 hours
 */
@@ -442,4 +452,89 @@ void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
   }
 	
   free(thcknss);
+}
+
+void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
+                                  sim_prmtrs *config){
+
+  for(iter;iter<=config->max_iter;iter++){
+    // calcular operadores residuos
+
+    // teste de convergencia
+    // break;
+
+    // calculo das correcoes
+
+    // atualizacao das coordenadas
+
+
+
+  }
+
+}
+
+/*
+periodic tridiagonal matrices
+- gigiaero, 26/04/2026, 2236 hours
+*/
+void tridiagonal_pmatrix_solver(int n,double *a,double *b,double *c,double *f,
+                                double *u){
+  double *x = malloc(sizeof(double)*(n-1));
+  double *w = malloc(sizeof(double)*n);
+  double *k = malloc(sizeof(double)*(n-1));
+  double *g = malloc(sizeof(double)*(n-2));
+  double *h = malloc(sizeof(double)*(n-2));
+  double *y = malloc(sizeof(double)*n);
+
+  // Obtain matrix coefficients
+  h[0] = c[n-1];
+  w[0] = b[0];
+  g[0] = a[0]/w[0];
+  x[0] = c[0]/w[0];
+  k[0] = a[1];
+
+  for(int i=1;i<n-2;i++){
+    h[i] = -h[i-1]*x[i-1];
+    w[i] = b[i] - k[i-1]*x[i-1];
+    g[i] = -g[i-1]*k[i-1]/w[i];
+    x[i] = c[i]/w[i];
+    k[i] = a[i+1];
+  }
+
+  w[n-2] = b[n-2] - k[n-3]*x[n-3];
+  x[n-2] = (c[n-2] - g[n-3]*k[n-3])/w[n-2];
+  k[n-2] = a[n-1] - h[n-3]*x[n-3];
+
+  w[n-1] = b[n-1] - k[n-2]*x[n-2];
+  for(int i=0;i<n-2;i++)
+    w[n-1] -= g[i]*h[i];
+  
+  // Calculate y
+  y[0] = f[0]/w[0];
+  y[n-1] = f[n-1] - h[0]*y[0];
+
+  for(int i=1;i<n-1;i++){
+    y[i] = (f[i] - k[i-1]*y[i-1])/w[i];
+    
+    if(i != n-2)
+      y[n-1] -= h[i]*y[i];
+
+    else
+      y[n-1] -= k[i]*y[i];
+  }
+
+  y[n-1] /= w[n-1];
+  
+  // Calculate solution
+  u[n-1] = y[n-1];
+  u[n-2] = y[n-2] - u[n-1]*x[n-2];
+  for(int i=n-3;i>=0;i--)
+    u[i] = y[i] - u[i+1]*x[i] - u[n-1]*g[i];
+
+  free(x);
+  free(w);
+  free(k);
+  free(g);
+  free(h);
+  free(y);
 }

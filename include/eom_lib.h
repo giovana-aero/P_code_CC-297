@@ -42,5 +42,7 @@ void linspace(double *x,double xi,double xf,int n);
 double max_thickness(int m,int n,double y[m][n]);
 void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
            double *prmtrs);
+void tridiagonal_pmatrix_solver(int n,double *a,double *b,double *c,double *f,
+                                double *u);
 
 #endif
