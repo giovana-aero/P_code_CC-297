@@ -12,7 +12,8 @@ int main(){
   sim_prmtrs config;
   config.Ntype = 2;
   config.r = 1.6; //slor
-  // config.w = 1.5;
+  config.w = 1;
+  config.alpha = 1;
   config.max_iter = 40;
   config.qtimes = 1;
   config.save_i_c = 1;
@@ -36,8 +37,8 @@ int main(){
   msh.end_prmtrs[2] = msh.c*.5;
   msh.end_prmtrs[3] = 0.;
   /* init_type */
-  msh.init_type = 3;
-  int init_only = 1; // Initialize only, do not solve
+  msh.init_type = 1;
+  int init_only = 0; // Initialize only, do not solve
 
   /* af_type */
   msh.af_type = 1;

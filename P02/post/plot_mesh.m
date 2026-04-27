@@ -3,28 +3,12 @@ clc,clear
 address = '../results/';
 casename = 'eom';
 
-% mesh_x = readmatrix([address,casename,'_initial_x.msh'],'filetype','delimitedtext');
-% mesh_x = readmatrix([address,casename,'_initial_y.msh'],'filetype','delimitedtext');
-mesh_x = dlmread([address,casename,'_initial_x.dat']);
-mesh_y = dlmread([address,casename,'_initial_y.dat']);
+initial = {'_initial_x.dat','_initial_y.dat'};
+result = {'_x_iter_0000000002.dat','_y_iter_0000000002.dat'};
 
-figure(1),clf,hold on
-for j = 1:size(mesh_x,1)
-% for j =1
-  plot(mesh_x(j,:),mesh_y(j,:),'k')
-end
+f_plot_mesh(1,address,casename,initial)
+f_plot_mesh(2,address,casename,result)
 
-for i = 1:size(mesh_x,2)-1
-% for i = [1,2,size(mesh_x,2)-1,size(mesh_x,2)-2]
-  plot(mesh_x(:,i),mesh_y(:,i),'m')
-end
+% mesh_x = dlmread([address,casename,'_initial_x.dat']);
+% mesh_y = dlmread([address,casename,'_initial_y.dat']);
 
-% xlim([-.1,1.1])
-
-axis equal
-grid on
-xlabel('x')
-ylabel('y')
-
-% figure(2),clf
-% plot mesh in the transformed domain?

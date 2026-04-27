@@ -908,7 +908,7 @@ void solve_p_jacobi_2d_rectangular_bi_air(int m,int n,double phi[m][n],
     fprintf(file_log,"%.6e\n",res);
 
     // Test for convergence
-    if(res <= config->eps & iter != 0){
+    if(res <= config->eps && iter != 0){
       puts("<< Convergence! >>");
       iter++;
       break;

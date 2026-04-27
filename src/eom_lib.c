@@ -540,20 +540,22 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   double (*D)[n] = calloc(m,sizeof *D);
   double (*fx)[n] = calloc(m,sizeof *fx);
   double (*fy)[n] = calloc(m,sizeof *fy);
-  double *ak = malloc(sizeof(double)*(n-2));
+  double *ak = malloc(sizeof(double)*(n-1));
   double *bk = malloc(sizeof(double)*(n-1));
-  double *ck = malloc(sizeof(double)*(n-2));
-  double *ukx = malloc(sizeof(double)*(n-1));
-  double *uky = malloc(sizeof(double)*(n-1));
+  double *ck = malloc(sizeof(double)*(n-1));
   double *fkx = malloc(sizeof(double)*(n-1));
   double *fky = malloc(sizeof(double)*(n-1));
+  double *ukx = malloc(sizeof(double)*(n-1));
+  double *uky = malloc(sizeof(double)*(n-1));
   double *an = malloc(sizeof(double)*(m-3));
   double *bn = malloc(sizeof(double)*(m-2));
   double *cn = malloc(sizeof(double)*(m-3));
-  double *unx = malloc(sizeof(double)*(m-2));
-  double *uny = malloc(sizeof(double)*(m-2));
   double *fnx = malloc(sizeof(double)*(m-2));
   double *fny = malloc(sizeof(double)*(m-2));
+  double *unx = malloc(sizeof(double)*(m-2));
+  double *uny = malloc(sizeof(double)*(m-2));
+  double omega = config->w;
+  double alpha = config->alpha;
   int iter = 0;
   // Save files
   char *filename_save_x = malloc(sizeof(char)*200);
@@ -561,20 +563,25 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   char *buffer = malloc(sizeof(char)*200);
   int str_end_idx;
   // Residuals
-  char *filename_log = malloc(sizeof(char)*200);
-  double res;
-  FILE *file_log;
+  char *filename_log_x = malloc(sizeof(char)*200);
+  char *filename_log_y = malloc(sizeof(char)*200);
+  double res_x,res_y;
+  FILE *file_log_x;
+  FILE *file_log_y;
 
-  // Configure log file
-  sprintf(filename_log,"%s.log",config->casename);
-  // file_log = fopen(filename_log,"w");
+  // Configure log files
+  sprintf(filename_log_x,"%s_x.log",config->casename);
+  file_log_x = fopen(filename_log_x,"w");
+  sprintf(filename_log_y,"%s_y.log",config->casename);
+  file_log_y = fopen(filename_log_y,"w");
 
   // Prepare string to save simulation data  
   sprintf(filename_save_x,"%s_x_iter_",config->casename);
   sprintf(filename_save_y,"%s_y_iter_",config->casename);
   find_str_end(filename_save_x,&str_end_idx);
 
-  puts(filename_log);
+  puts(filename_log_x);
+  puts(filename_log_y);
   puts(filename_save_x);
   puts(filename_save_y);
 
@@ -588,18 +595,30 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
     L_phi_eom(m,n,L_phi_x,x,A,B,C,D);
     L_phi_eom(m,n,L_phi_y,y,A,B,C,D);
 
-    printf("Elliptical O mesh Iteration %010d | Res %.6e\n",iter,res);
+    for(int j=1;j<m-1;j++){
+      for(int i=1;i<n-1;i++){
+        if(fabs(L_phi_x[j][i]) > res_x)
+          res_x = fabs(L_phi_x[j][i]);
 
-    fprintf(file_log,"%.6e\n",res);
+        if(fabs(L_phi_y[j][i]) > res_y)
+          res_y = fabs(L_phi_y[j][i]);
+      }
+    }
+
+    printf("Elliptical O mesh Iteration %010d | Res x %.6e | Res y %.6e\n",
+           iter,res_x,res_y);
+
+    fprintf(file_log_x,"%.6e\n",res_x);
+    fprintf(file_log_y,"%.6e\n",res_y);
 
     // Test for convergence
-    if(res <= config->eps & iter != 0){
+    if(res_x <= config->eps && res_y <= config->eps && iter != 0){
       puts("<< Convergence! >>");
       iter++;
       break;
     }
 
-    if(res >= div_ref){
+    if(res_x >= div_ref || res_y >= div_ref){
       puts("- Divergence");
       iter++;
       break;
@@ -611,6 +630,7 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
         ak[i] = -A[j][i];
         bk[i] = alpha + 2.*A[j][i];
         ck[i] = -A[j][i];
+
         fkx[i] = omega*alpha*L_phi_x[j][i];
         fky[i] = omega*alpha*L_phi_y[j][i];
       }
@@ -624,30 +644,60 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
       }
     }
 
+    // Reapply periodicity boundary condition (for f) [confirmar se isto realmente é necessário]
+    for(int j=1;j<m;j++){
+      fx[n-1][j] = fx[0][j];
+      fy[n-1][j] = fy[0][j];
+    }
+
     // Solve for the deltas - step 2 (y)
     for(int i=0;i<n-1;i++){
-      for(int j=1;j<m-1;j++){
-        an[j] = -A[j][i];
-        bn[j] = alpha + 2.*A[j][i];
-        cn[j] = -A[j][i];
+      an[0] = -C[1][i];
+      bn[0] = alpha + 2.*C[1][i];
+      cn[0] = -C[1][i];
+      fnx[0] = fx[1][i] + C[1][i]*x[0][i];
+      fny[0] = fy[1][i] + C[1][i]*y[0][i];
+      
+      for(int j=2;j<m-2;j++){
+        an[j-1] = -C[j][i];
+        bn[j-1] = alpha + 2.*C[j][i];
+        cn[j-1] = -C[j][i];
+        fnx[j-1] = fx[j][i];
+        fny[j-1] = fy[j][i];
       }
 
-      tridiagonal_matrix_solver
+      an[m-4] = -C[m-2][i];
+      bn[m-3] = alpha + 2.*C[m-2][i];
+      cn[m-4] = -C[m-2][i];
+      fnx[m-3] = fx[m-2][i] + C[m-2][i]*x[m-1][i];
+      fny[m-3] = fy[m-2][i] + C[m-2][i]*y[m-1][i];
 
-      get deltas here
+      tridiagonal_matrix_solver(m-2,an,bn,cn,fnx,unx);
+      tridiagonal_matrix_solver(m-2,an,bn,cn,fny,uny);
 
+      for(int j=1;j<m-1;j++){
+        Delta_x[j][i] = unx[j];
+        Delta_y[j][i] = uny[j];
+      }
     }
 
     // Calculate new x and y
-
+    for(int j=1;j<m-1;j++){
+      for(int i=0;i<n-1;i++){
+        x[j][i] += Delta_x[j][i];
+        y[j][i] += Delta_y[j][i];
+      }
+    }
 
     // Reapply periodicity boundary condition
-    for(int j=0;j<m;j++){
+    for(int j=1;j<m;j++){
       x[n-1][j] = x[0][j];
       y[n-1][j] = y[0][j];
     }
-
   }
+
+  save_results_qtimes(m,n,x,&iter,config,buffer,filename_save_x,&str_end_idx);
+  save_results_qtimes(m,n,y,&iter,config,buffer,filename_save_y,&str_end_idx);
 
   free(L_phi_x);
   free(L_phi_y);
@@ -676,6 +726,6 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   free(filename_save_x);
   free(filename_save_y);
   free(buffer);
-  free(filename_log);
-  // fclose(file_log);
+  free(filename_log_x);
+  fclose(file_log_x);
 }
