@@ -10,11 +10,11 @@
 int main(){
   // Solution configurations
   sim_prmtrs config;
-  config.Ntype = 2;
-  config.r = 1.6; //slor
-  config.w = 1;
-  config.alpha = 1;
-  config.max_iter = 1000;
+  config.Ntype = 1;
+  config.r = 1.; //slor
+  config.w = 1.;
+  config.alpha = 1.;
+  config.max_iter = 100;
   config.qtimes = 1;
   config.save_i_c = 1;
   config.save_last_only = 1;

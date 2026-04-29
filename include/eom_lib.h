@@ -52,6 +52,8 @@ void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
            double *prmtrs);
 void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
                                   sim_prmtrs *config);
+void solve_slor_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
+                                   sim_prmtrs *config);
 double uniform_scheme_der1_o2_central_prdc_ksi(int m,int n,double phi[m][n],
                                                int j);
 double uniform_scheme_der2_o2_central_prdc_ksi(int m,int n,double phi[m][n],

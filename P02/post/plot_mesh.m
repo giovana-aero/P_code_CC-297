@@ -5,7 +5,7 @@ casename = 'eom';
 
 iter = -1;
 
-initial = {'_initial_x.dat','_initial_y.dat'};
+initial = {'_x_initial.dat','_y_initial.dat'};
 
 if iter < 0
   iter_list_x = dir([address,casename,'_x_iter_*']);
