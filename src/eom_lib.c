@@ -14,8 +14,8 @@
 - gigiaero, 27/04/2026, 1310 hours
 */
 void calc_A(int m,int n,double A[m][n],double x[m][n],double y[m][n]){
-  for(int j=0;j<m;j++){
-    for(int i=0;i<n;i++)
+  for(int j=1;j<m-1;j++){
+    for(int i=0;i<n-1;i++)
       A[j][i] = pow(uniform_scheme_der1_o2_central(m,n,x,i,j,2),2) + 
                 pow(uniform_scheme_der1_o2_central(m,n,y,i,j,2),2);
   }
@@ -23,10 +23,22 @@ void calc_A(int m,int n,double A[m][n],double x[m][n],double y[m][n]){
 
 /*
 - gigiaero, 27/04/2026, 1310 hours
+
+added correction for the periodicity condition
+- gigiaero, 28/04/2026, 2105 hours
 */
 void calc_B(int m,int n,double B[m][n],double x[m][n],double y[m][n]){
-  for(int j=0;j<m;j++){
-    for(int i=0;i<n;i++)
+  for(int j=1;j<m-1;j++){
+    B[j][0] = uniform_scheme_der1_o2_central_prdc_ksi(m,n,x,j)*
+              uniform_scheme_der1_o2_central(m,n,x,0,j,2) + 
+              uniform_scheme_der1_o2_central_prdc_ksi(m,n,y,j)*
+              uniform_scheme_der1_o2_central(m,n,y,0,j,2);
+    // B[j][0] = (x[j][1] - x[j][n-2])*.5*
+    //           uniform_scheme_der1_o2_central(m,n,x,0,j,2) + 
+    //           (y[j][1] - y[j][n-2])*.5*
+    //           uniform_scheme_der1_o2_central(m,n,y,0,j,2);
+
+    for(int i=1;i<n-1;i++)
       B[j][i] = uniform_scheme_der1_o2_central(m,n,x,i,j,1)*
                 uniform_scheme_der1_o2_central(m,n,x,i,j,2) + 
                 uniform_scheme_der1_o2_central(m,n,y,i,j,1)*
@@ -36,10 +48,18 @@ void calc_B(int m,int n,double B[m][n],double x[m][n],double y[m][n]){
 
 /*
 - gigiaero, 27/04/2026, 1310 hours
+
+added correction for the periodicity condition
+- gigiaero, 28/04/2026, 2109 hours
 */
 void calc_C(int m,int n,double C[m][n],double x[m][n],double y[m][n]){
-  for(int j=0;j<m;j++){
-    for(int i=0;i<n;i++)
+  for(int j=1;j<m-1;j++){
+    C[j][0] = pow(uniform_scheme_der1_o2_central_prdc_ksi(m,n,x,j),2) + 
+              pow(uniform_scheme_der1_o2_central_prdc_ksi(m,n,y,j),2);
+    // C[j][0] = pow((x[j][1] - x[j][n-2])*.5,2) + 
+    //           pow((y[j][1] - y[j][n-2])*.5,2);
+
+    for(int i=1;i<n-1;i++)
       C[j][i] = pow(uniform_scheme_der1_o2_central(m,n,x,i,j,1),2) + 
                 pow(uniform_scheme_der1_o2_central(m,n,y,i,j,1),2);
   }
@@ -47,10 +67,22 @@ void calc_C(int m,int n,double C[m][n],double x[m][n],double y[m][n]){
 
 /*
 - gigiaero, 27/04/2026, 1310 hours
+
+added correction for the periodicity condition
+- gigiaero, 28/04/2026, 2111 hours
 */
 void calc_D(int m,int n,double D[m][n],double x[m][n],double y[m][n]){
-  for(int j=0;j<m;j++){
-    for(int i=0;i<n;i++)
+  for(int j=1;j<m-1;j++){
+    D[j][0] = pow(uniform_scheme_der1_o2_central_prdc_ksi(m,n,x,j)*
+                  uniform_scheme_der1_o2_central(m,n,y,0,j,2) - 
+                  uniform_scheme_der1_o2_central(m,n,x,0,j,2)*
+                  uniform_scheme_der1_o2_central_prdc_ksi(m,n,y,j),2);
+    // D[j][0] = pow((x[j][1] - x[j][n-2])*.5*
+    //               uniform_scheme_der1_o2_central(m,n,y,0,j,2) - 
+    //               uniform_scheme_der1_o2_central(m,n,x,0,j,2)*
+    //               (y[j][1] - y[j][n-2])*.5,2);
+
+    for(int i=1;i<n-1;i++)
       D[j][i] = pow(uniform_scheme_der1_o2_central(m,n,x,i,j,1)*
                     uniform_scheme_der1_o2_central(m,n,y,i,j,2) - 
                     uniform_scheme_der1_o2_central(m,n,x,i,j,2)*
@@ -92,9 +124,7 @@ void cst_airfoil(int n_pts,double *x,double *yu,double *yl,double *prmtrs,
 
   for(int i=0;i<n+2;i++){
     v_ex[i] = prmtrs[i+1];
-    // prmtrs[i+1] = v_ex[i];
     v_in[i] = prmtrs[i+1+n+2];
-    // prmtrs[i+1+n+2] = v_in[i];
   }
 
   A1[0] = pow(2.*v_ex[0],.5);
@@ -110,9 +140,11 @@ void cst_airfoil(int n_pts,double *x,double *yu,double *yl,double *prmtrs,
     sum1 = 0.;
     sum2 = 0.;
     for(int r=0;r<n+1;r++){
-      K = factorial(n)/(factorial(r)*factorial(n-r));
-      sum1 += A1[r]*K*pow(x[i],r)*pow(1. - x[i],n - r);
-      sum2 += A2[r]*K*pow(x[i],r)*pow(1. - x[i],n - r);
+      // K is just the binomial coefficient, but bear with me here
+      K = factorial(n)/(factorial(r)*factorial(n-r))*
+          pow(x[i],r)*pow(1. - x[i],n - r);
+      sum1 += A1[r]*K;
+      sum2 += A2[r]*K;
     }
 
     yu[i] = pow(x[i],N1)*pow(1.-x[i],N2)*sum1;
@@ -357,6 +389,11 @@ void init_type3(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
   free(vy);
 }
 
+// parabolic mesh
+// void init_type4(){
+
+// }
+
 /*
 - gigiaero, 24/04/2026, 2204 hours
 */
@@ -413,19 +450,46 @@ void initialize_mesh(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
 
 /*
 - gigiaero, 27/04/2026, 1317 hours
+
+added correction for the periodicity condition
+- gigiaero, 28/04/2026, 2115 hours
 */
-void L_phi_eom(int m,int n,double L_phi_xy[m][n],double xy[m][n],double A[m][n],
+void L_phi_eom(int m,int n,double L_phi_x[m][n],double L_phi_y[m][n],
+               double x[m][n],double y[m][n],double A[m][n],
                double B[m][n],double C[m][n],double D[m][n]){
-  for(int j=0;j<m;j++){
-    for(int i=0;i<n;i++)
-      L_phi_xy[j][i] = A[j][i]*uniform_scheme_der2_o2_central(m,n,xy,i,j,1) - 
-                       2.*B[j][i]*uniform_scheme_der2_o2_central(m,n,xy,i,j,3) + 
-                       C[j][i]*uniform_scheme_der2_o2_central(m,n,xy,i,j,2);
+  for(int j=1;j<m-1;j++){
+    L_phi_x[j][0] = A[j][0]*uniform_scheme_der2_o2_central_prdc_ksi(m,n,x,j,1) - 
+                    2.*B[j][0]*uniform_scheme_der2_o2_central_prdc_ksi(m,n,x,j,3) + 
+                    C[j][0]*uniform_scheme_der2_o2_central(m,n,x,0,j,2);
+                    /*
+                    D[j][0]*(P*uniform_scheme_der1_o2_central(m,n,x,i,j,1) +
+                            Q*uniform_scheme_der1_o2_central(m,n,x,i,j,2));
+                    */
+                    
+    L_phi_y[j][0] = A[j][0]*uniform_scheme_der2_o2_central_prdc_ksi(m,n,y,j,1) - 
+                    2.*B[j][0]*uniform_scheme_der2_o2_central_prdc_ksi(m,n,y,j,3) + 
+                    C[j][0]*uniform_scheme_der2_o2_central(m,n,y,0,j,2);
+                    /*
+                    D[j][0]*(P*uniform_scheme_der1_o2_central(m,n,y,i,j,1) +
+                              Q*uniform_scheme_der1_o2_central(m,n,y,i,j,2));
+                    */
+
+    for(int i=1;i<n-1;i++){
+      L_phi_x[j][i] = A[j][i]*uniform_scheme_der2_o2_central(m,n,x,i,j,1) - 
+                       2.*B[j][i]*uniform_scheme_der2_o2_central(m,n,x,i,j,3) + 
+                       C[j][i]*uniform_scheme_der2_o2_central(m,n,x,i,j,2);
                        /*
-                       D[j][i]*(P*uniform_scheme_der1_o2_central(m,n,xy,i,j,1) +
-                                Q*uniform_scheme_der1_o2_central(m,n,xy,i,j,2));
-                       
+                       D[j][i]*(P*uniform_scheme_der1_o2_central(m,n,x,i,j,1) +
+                                Q*uniform_scheme_der1_o2_central(m,n,x,i,j,2));
                        */
+      L_phi_y[j][i] = A[j][i]*uniform_scheme_der2_o2_central(m,n,y,i,j,1) - 
+                       2.*B[j][i]*uniform_scheme_der2_o2_central(m,n,y,i,j,3) + 
+                       C[j][i]*uniform_scheme_der2_o2_central(m,n,y,i,j,2);
+                       /*
+                       D[j][i]*(P*uniform_scheme_der1_o2_central(m,n,y,i,j,1) +
+                                Q*uniform_scheme_der1_o2_central(m,n,y,i,j,2));
+                       */
+    }
   }
 }
 
@@ -556,7 +620,7 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   double *uny = malloc(sizeof(double)*(m-2));
   double omega = config->w;
   double alpha = config->alpha;
-  int iter = 0;
+  int iter = 1;
   // Save files
   char *filename_save_x = malloc(sizeof(char)*200);
   char *filename_save_y = malloc(sizeof(char)*200);
@@ -592,11 +656,10 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
     calc_D(m,n,D,x,y);
 
     // Calculate residual operators
-    L_phi_eom(m,n,L_phi_x,x,A,B,C,D);
-    L_phi_eom(m,n,L_phi_y,y,A,B,C,D);
+    L_phi_eom(m,n,L_phi_x,L_phi_y,x,y,A,B,C,D);
 
     for(int j=1;j<m-1;j++){
-      for(int i=1;i<n-1;i++){
+      for(int i=0;i<n-1;i++){
         if(fabs(L_phi_x[j][i]) > res_x)
           res_x = fabs(L_phi_x[j][i]);
 
@@ -605,8 +668,7 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
       }
     }
 
-    printf("Elliptical O mesh Iteration %010d | Res x %.6e | Res y %.6e\n",
-           iter,res_x,res_y);
+    printf("ADI Iteration %010d | Res x %.6e | Res y %.6e\n",iter,res_x,res_y);
 
     fprintf(file_log_x,"%.6e\n",res_x);
     fprintf(file_log_y,"%.6e\n",res_y);
@@ -624,7 +686,7 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
       break;
     }
 
-    // Solve for the deltas - step 1 (x)
+    // Solve for the deltas - step 1 (ksi)
     for(int j=1;j<m-1;j++){
       for(int i=0;i<n-1;i++){
         ak[i] = -A[j][i];
@@ -645,30 +707,34 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
     }
 
     // Reapply periodicity boundary condition (for f) [confirmar se isto realmente é necessário]
-    for(int j=1;j<m;j++){
-      fx[n-1][j] = fx[0][j];
-      fy[n-1][j] = fy[0][j];
+    for(int j=1;j<m-1;j++){
+      fx[j][n-1] = fx[j][0];
+      fy[j][n-1] = fy[j][0];
     }
 
-    // Solve for the deltas - step 2 (y)
+    // Solve for the deltas - step 2 (eta)
     for(int i=0;i<n-1;i++){
-      an[0] = -C[1][i];
+      // an[0] = -C[1][i];
       bn[0] = alpha + 2.*C[1][i];
       cn[0] = -C[1][i];
+
       fnx[0] = fx[1][i] + C[1][i]*x[0][i];
       fny[0] = fy[1][i] + C[1][i]*y[0][i];
       
       for(int j=2;j<m-2;j++){
-        an[j-1] = -C[j][i];
+        an[j-2] = -C[j][i];
         bn[j-1] = alpha + 2.*C[j][i];
         cn[j-1] = -C[j][i];
+
         fnx[j-1] = fx[j][i];
         fny[j-1] = fy[j][i];
+        // printf("%i\n",j);
       }
 
       an[m-4] = -C[m-2][i];
       bn[m-3] = alpha + 2.*C[m-2][i];
-      cn[m-4] = -C[m-2][i];
+      // cn[m-4] = -C[m-2][i];
+
       fnx[m-3] = fx[m-2][i] + C[m-2][i]*x[m-1][i];
       fny[m-3] = fy[m-2][i] + C[m-2][i]*y[m-1][i];
 
@@ -676,8 +742,8 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
       tridiagonal_matrix_solver(m-2,an,bn,cn,fny,uny);
 
       for(int j=1;j<m-1;j++){
-        Delta_x[j][i] = unx[j];
-        Delta_y[j][i] = uny[j];
+        Delta_x[j][i] = unx[j-1];
+        Delta_y[j][i] = uny[j-1];
       }
     }
 
@@ -690,14 +756,26 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
     }
 
     // Reapply periodicity boundary condition
-    for(int j=1;j<m;j++){
-      x[n-1][j] = x[0][j];
-      y[n-1][j] = y[0][j];
+    for(int j=1;j<m-1;j++){
+      x[j][n-1] = x[j][0];
+      y[j][n-1] = y[j][0];
+    }
+
+    if(!config->save_last_only){
+      save_results_qtimes(m,n,x,&iter,config,buffer,filename_save_x,
+                          &str_end_idx);
+      save_results_qtimes(m,n,y,&iter,config,buffer,filename_save_y,
+                          &str_end_idx);
     }
   }
 
-  save_results_qtimes(m,n,x,&iter,config,buffer,filename_save_x,&str_end_idx);
-  save_results_qtimes(m,n,y,&iter,config,buffer,filename_save_y,&str_end_idx);
+  // Save last iteration if it wasn't saved
+  if(iter%config->qtimes != 0 || config->save_last_only){
+    iter--; // To get the correct iteration number
+    sprintf(buffer,"L");
+    save_results_qtimes(m,n,x,&iter,config,buffer,filename_save_x,&str_end_idx);
+    save_results_qtimes(m,n,y,&iter,config,buffer,filename_save_y,&str_end_idx);
+  }
 
   free(L_phi_x);
   free(L_phi_y);
@@ -728,4 +806,26 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   free(buffer);
   free(filename_log_x);
   fclose(file_log_x);
+}
+
+double uniform_scheme_der1_o2_central_prdc_ksi(int m,int n,double phi[m][n],
+                                               int j){
+  return (phi[j][1] - phi[j][n-2])*.5;
+}
+
+double uniform_scheme_der2_o2_central_prdc_ksi(int m,int n,double phi[m][n],
+                                               int j,int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return phi[j][1] - 2.*phi[j][0] + phi[j][n-2];
+      break;
+
+    case 3: // Mixed
+      return (phi[j+1][1] - phi[j-1][1] - phi[j+1][n-2] + phi[j-1][n-2])*.25;
+      break;
+
+    default:
+      puts("uniform_scheme_der2_o2_central_prdc_ksi: invalid axis");
+      exit(15);
+  }
 }

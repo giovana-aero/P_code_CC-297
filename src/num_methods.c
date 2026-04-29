@@ -191,9 +191,6 @@ double factorial(int n){
   return r;
 }
 
-
-
-
 /*
 - gigiaero, 19/03/2026, 2318 hours
 */

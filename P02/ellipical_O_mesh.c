@@ -14,16 +14,14 @@ int main(){
   config.r = 1.6; //slor
   config.w = 1;
   config.alpha = 1;
-  config.max_iter = 40;
+  config.max_iter = 1000;
   config.qtimes = 1;
   config.save_i_c = 1;
-  config.save_last_only = 0;
+  config.save_last_only = 1;
   config.eps = 1.e-6; // Convergence criterion
   char output_file[] = "results/eom";
 
   msh_prmtrs msh;
-  int n = 10; // cst - bernstein polynomial order
-  msh.af_prmtrs = malloc(sizeof(double)*((n+2)*2 + 1));
   msh.end_prmtrs = malloc(sizeof(double)*4);
   /* IMAX */
   msh.IMAX = 93;
@@ -41,6 +39,8 @@ int main(){
   int init_only = 0; // Initialize only, do not solve
 
   /* af_type */
+  int n = 10; // cst - bernstein polynomial order
+  msh.af_prmtrs = malloc(sizeof(double)*((n+2)*2 + 1));
   msh.af_type = 1;
   /* af_prmtrs (bi_air) */
   msh.af_prmtrs[0] = 0.1;
