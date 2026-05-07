@@ -77,10 +77,6 @@ void calc_D(int m,int n,double D[m][n],double x[m][n],double y[m][n]){
                   uniform_scheme_der1_o2_central(m,n,y,0,j,2) - 
                   uniform_scheme_der1_o2_central(m,n,x,0,j,2)*
                   uniform_scheme_der1_o2_central_prdc_ksi(m,n,y,j),2);
-    // D[j][0] = pow((x[j][1] - x[j][n-2])*.5*
-    //               uniform_scheme_der1_o2_central(m,n,y,0,j,2) - 
-    //               uniform_scheme_der1_o2_central(m,n,x,0,j,2)*
-    //               (y[j][1] - y[j][n-2])*.5,2);
 
     for(int i=1;i<n-1;i++)
       D[j][i] = pow(uniform_scheme_der1_o2_central(m,n,x,i,j,1)*
@@ -92,11 +88,15 @@ void calc_D(int m,int n,double D[m][n],double x[m][n],double y[m][n]){
 
 /*
 - gigiaero, 24/04/2026, 1352 hours
+
+corrected a little mistake regarding th
+
+- gigiaero, 29/04/2026, 2136 hours
 */
 void cosspace(double *x,double xi,double xf,int n,int half){
   double midp;
   double th_i = pi/(((double) n) - 1.);
-  double th = th_i;
+  double th;
 
   if(half){
     midp = xf - xi;
@@ -104,6 +104,8 @@ void cosspace(double *x,double xi,double xf,int n,int half){
   }
   else 
     midp = (xf - xi)/2.;
+  
+  th = th_i;
 
   x[0] = xi;
   for(int i=1;i<n;i++){
@@ -436,7 +438,7 @@ void initialize_mesh(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
       init_type3(m,n,x,y,msh);
       break;
 
-    case 4:
+    case 4: // parabolic generator
       puts("init_type 4 pending!");
       exit(4);
       break;
@@ -491,6 +493,9 @@ void L_phi_eom(int m,int n,double L_phi_x[m][n],double L_phi_y[m][n],
                                 Q*uniform_scheme_der1_o2_central(m,n,y,i,j,2));
                        */
     }
+
+    L_phi_x[j][n-1] = L_phi_x[j][0];
+    L_phi_y[j][n-1] = L_phi_y[j][0];
   }
 }
 
@@ -656,17 +661,19 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
     calc_C(m,n,C,x,y);
     calc_D(m,n,D,x,y);
 
-    print_2d_array_to_file(m,n,A,"mat_A.dat",1);
-    print_2d_array_to_file(m,n,B,"mat_B.dat",1);
-    print_2d_array_to_file(m,n,C,"mat_C.dat",1);
-    print_2d_array_to_file(m,n,D,"mat_D.dat",1);
+    // print_2d_array_to_file(m,n,A,"mat_A.dat",1);
+    // print_2d_array_to_file(m,n,B,"mat_B.dat",1);
+    // print_2d_array_to_file(m,n,C,"mat_C.dat",1);
+    // print_2d_array_to_file(m,n,D,"mat_D.dat",1);
 
     // Calculate residual operators
     L_phi_eom(m,n,L_phi_x,L_phi_y,x,y,A,B,C,D);
 
-    print_2d_array_to_file(m,n,L_phi_x,"mat_L_phi_x.dat",1);
-    print_2d_array_to_file(m,n,L_phi_y,"mat_L_phi_y.dat",1);
+    // print_2d_array_to_file(m,n,L_phi_x,"mat_L_phi_x.dat",1);
+    // print_2d_array_to_file(m,n,L_phi_y,"mat_L_phi_y.dat",1);
 
+    res_x = 0.;
+    res_y = 0.;
     for(int j=1;j<m-1;j++){
       for(int i=0;i<n-1;i++){
         if(fabs(L_phi_x[j][i]) > res_x)
@@ -721,8 +728,8 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
       fy[j][n-1] = fy[j][0];
     }
 
-    print_2d_array_to_file(m,n,fx,"mat_fx.dat",1);
-    print_2d_array_to_file(m,n,fy,"mat_fy.dat",1);
+    // print_2d_array_to_file(m,n,fx,"mat_fx.dat",1);
+    // print_2d_array_to_file(m,n,fy,"mat_fy.dat",1);
 
     // Solve for the deltas - step 2 (eta)
     for(int i=0;i<n-1;i++){
@@ -730,8 +737,8 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
       bn[0] = alpha + 2.*C[1][i];
       cn[0] = -C[1][i];
 
-      fnx[0] = fx[1][i] + C[1][i]*x[0][i];
-      fny[0] = fy[1][i] + C[1][i]*y[0][i];
+      fnx[0] = fx[1][i];// + C[1][i]*x[0][i];
+      fny[0] = fy[1][i];// + C[1][i]*y[0][i];
       
       for(int j=2;j<m-2;j++){
         an[j-2] = -C[j][i];
@@ -747,8 +754,8 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
       bn[m-3] = alpha + 2.*C[m-2][i];
       // cn[m-4] = -C[m-2][i];
 
-      fnx[m-3] = fx[m-2][i] + C[m-2][i]*x[m-1][i];
-      fny[m-3] = fy[m-2][i] + C[m-2][i]*y[m-1][i];
+      fnx[m-3] = fx[m-2][i];// + C[m-2][i]*x[m-1][i];
+      fny[m-3] = fy[m-2][i];// + C[m-2][i]*y[m-1][i];
 
       tridiagonal_matrix_solver(m-2,an,bn,cn,fnx,unx);
       tridiagonal_matrix_solver(m-2,an,bn,cn,fny,uny);
@@ -759,8 +766,8 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
       }
     }
 
-    print_2d_array_to_file(m,n,Delta_x,"mat_Delta_x.dat",1);
-    print_2d_array_to_file(m,n,Delta_y,"mat_Delta_y.dat",1);
+    // print_2d_array_to_file(m,n,Delta_x,"mat_Delta_x.dat",1);
+    // print_2d_array_to_file(m,n,Delta_y,"mat_Delta_y.dat",1);
 
     // Calculate new x and y
     for(int j=1;j<m-1;j++){
@@ -915,42 +922,42 @@ void solve_slor_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
 
     // Solve for the deltas
     // Column i = 0
-    bn[0] = -2.*(inv_r + C[1][0]);
-    cn[0] = C[1][0];
+    // bn[0] = -2.*(inv_r + C[1][0]);
+    // cn[0] = C[1][0];
 
-    fnx[0] = -omega*L_phi_x[1][0] - x[1][0] - C[1][0]*x[0][0];
-    fny[0] = -omega*L_phi_y[1][0] - y[1][0] - C[1][0]*y[0][0];
+    // fnx[0] = -omega*L_phi_x[1][0] - x[1][0] - C[1][0]*x[0][0];
+    // fny[0] = -omega*L_phi_y[1][0] - y[1][0] - C[1][0]*y[0][0];
     
-    for(int j=2;j<m-2;j++){
-      an[j-2] = C[j][0];
-      bn[j-1] = -2.*(inv_r + C[j][0]);
-      cn[j-1] = C[j][0];
+    // for(int j=2;j<m-2;j++){
+    //   an[j-2] = C[j][0];
+    //   bn[j-1] = -2.*(inv_r + C[j][0]);
+    //   cn[j-1] = C[j][0];
 
-      fnx[j-1] = -omega*L_phi_x[j][0] - x[j][n-2];
-      fny[j-1] = -omega*L_phi_y[j][0] - y[j][n-2];
-    }
+    //   fnx[j-1] = -omega*L_phi_x[j][0] - x[j][n-2];
+    //   fny[j-1] = -omega*L_phi_y[j][0] - y[j][n-2];
+    // }
 
-    an[m-4] = C[m-2][0];
-    bn[m-3] = -2.*(inv_r + C[m-2][0]);
+    // an[m-4] = C[m-2][0];
+    // bn[m-3] = -2.*(inv_r + C[m-2][0]);
 
-    fnx[m-3] = -omega*L_phi_x[m-2][0] - x[m-2][n-2] - C[1][0]*x[m-1][0];
-    fny[m-3] = -omega*L_phi_y[m-2][0] - y[m-2][n-2] - C[1][0]*y[m-1][0];
+    // fnx[m-3] = -omega*L_phi_x[m-2][0] - x[m-2][n-2] - C[m-2][0]*x[m-1][0];
+    // fny[m-3] = -omega*L_phi_y[m-2][0] - y[m-2][n-2] - C[m-2][0]*y[m-1][0];
 
-    tridiagonal_matrix_solver(m-2,an,bn,cn,fnx,unx);
-    tridiagonal_matrix_solver(m-2,an,bn,cn,fny,uny);
+    // tridiagonal_matrix_solver(m-2,an,bn,cn,fnx,unx);
+    // tridiagonal_matrix_solver(m-2,an,bn,cn,fny,uny);
 
-    for(int j=1;j<m-1;j++){
-      Delta_x[j][0] = unx[j-1];
-      Delta_y[j][0] = uny[j-1];
-    }
+    // for(int j=1;j<m-1;j++){
+    //   Delta_x[j][0] = unx[j-1];
+    //   Delta_y[j][0] = uny[j-1];
+    // }
 
     // Rest of the domain
     for(int i=1;i<n-1;i++){
       bn[0] = -2.*(inv_r + C[1][i]);
       cn[0] = C[1][i];
 
-      fnx[0] = -omega*L_phi_x[1][i] - x[1][i] - C[1][i]*x[0][i];
-      fny[0] = -omega*L_phi_y[1][i] - y[1][i] - C[1][i]*y[0][i];
+      fnx[0] = -omega*L_phi_x[1][i] - x[1][i-1] - C[1][i]*x[0][i];
+      fny[0] = -omega*L_phi_y[1][i] - y[1][i-1] - C[1][i]*y[0][i];
       
       for(int j=2;j<m-2;j++){
         an[j-2] = C[j][i];
@@ -964,8 +971,8 @@ void solve_slor_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
       an[m-4] = C[m-2][i];
       bn[m-3] = -2.*(inv_r + C[m-2][i]);
 
-      fnx[m-3] = -omega*L_phi_x[m-2][i] - x[m-2][i-1] - C[1][i]*x[m-1][i];
-      fny[m-3] = -omega*L_phi_y[m-2][i] - y[m-2][i-1] - C[1][i]*y[m-1][i];
+      fnx[m-3] = -omega*L_phi_x[m-2][i] - x[m-2][i-1] - C[m-2][i]*x[m-1][i];
+      fny[m-3] = -omega*L_phi_y[m-2][i] - y[m-2][i-1] - C[m-2][i]*y[m-1][i];
 
       tridiagonal_matrix_solver(m-2,an,bn,cn,fnx,unx);
       tridiagonal_matrix_solver(m-2,an,bn,cn,fny,uny);

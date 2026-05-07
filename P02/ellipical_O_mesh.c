@@ -10,11 +10,12 @@
 int main(){
   // Solution configurations
   sim_prmtrs config;
-  config.Ntype = 1;
-  config.r = 1.; //slor
-  config.w = 1.;
-  config.alpha = 1.;
-  config.max_iter = 100;
+  config.Ntype = 2;
+  config.w = 2.;
+  config.r = 1.;
+  config.alpha = .01;
+  // config.alpha = 1.;
+  config.max_iter = 100000;
   config.qtimes = 1;
   config.save_i_c = 1;
   config.save_last_only = 1;
@@ -26,7 +27,7 @@ int main(){
   /* IMAX */
   msh.IMAX = 93;
   /* JMAX */
-  msh.JMAX = 15;
+  msh.JMAX = 25;
   /* c */
   msh.c = 1.;
   /* end_prmtrs */
@@ -35,7 +36,7 @@ int main(){
   msh.end_prmtrs[2] = msh.c*.5;
   msh.end_prmtrs[3] = 0.;
   /* init_type */
-  msh.init_type = 1;
+  msh.init_type = 3;
   int init_only = 0; // Initialize only, do not solve
 
   /* af_type */
@@ -60,7 +61,6 @@ int main(){
   free(msh.af_prmtrs);
   free(msh.end_prmtrs);
   free(config.casename);
-
 
   // free(x_tmp);
   // free(y_tmp);

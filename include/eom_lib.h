@@ -1,3 +1,5 @@
+#include"./num_methods.h"
+
 #ifndef _lib_eom_
 #define _lib_eom_
 
@@ -13,12 +15,12 @@ typedef struct mesh_parameters{
   3-[(depends on the order of the bernstein polynomial)]
   */
   double *af_prmtrs;
-  double *end_prmtrs; // [rx,ry,dx,dy]
+  double *end_prmtrs; // parameters of the last ellipse [rx,ry,dx,dy]
   /*
   1-uniform (ie, always ellipses)
   2-linspace
   3-cosspace_half
-  4-parabollic
+  4-parabolic
   */
   int init_type;
 }msh_prmtrs;
