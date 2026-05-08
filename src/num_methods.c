@@ -321,6 +321,20 @@ void scheme_der2_o2_central_var_deltas_xy(double *f,int m,int n,
 }
 
 /*
+- gigiaero, 07/05/2026, 2005 hours
+*/
+double sgn(int x){
+  if(x > 0)
+    return 1.;
+  
+  else if(x < 0)
+    return -1.;
+
+  else
+    return 0.;
+}
+
+/*
 - gigiaero, 23/03/2026 hours
 */
 void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,

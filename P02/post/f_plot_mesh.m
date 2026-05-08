@@ -1,20 +1,26 @@
-function f_plot_mesh(fignum,address,casename,filename)
+function f_plot_mesh(fignum,address,casename,filename,linestyle)
+
+if nargin == 4
+  linestyle = '-';
+end
 
 % mesh_x = readmatrix([address,casename,'_initial_x.msh'],'filetype','delimitedtext');
 % mesh_x = readmatrix([address,casename,'_initial_y.msh'],'filetype','delimitedtext');
 
+disp(filename{1})
+disp([address,casename,filename{1}])
 mesh_x = dlmread([address,casename,filename{1}]);
 mesh_y = dlmread([address,casename,filename{2}]);
 
-figure(fignum),clf,hold on
+figure(fignum),hold on
 for j = 1:size(mesh_x,1)
 % for j = 1
-  plot(mesh_x(j,:),mesh_y(j,:),'k')
+  plot(mesh_x(j,:),mesh_y(j,:),['k',linestyle])
 end
 
 for i = 1:size(mesh_x,2)-1
 % for i = [1,2,size(mesh_x,2)-1,size(mesh_x,2)-2]
-  plot(mesh_x(:,i),mesh_y(:,i),'m')
+  plot(mesh_x(:,i),mesh_y(:,i),['m',linestyle])
 end
 
 % xlim([-.1,1.1])

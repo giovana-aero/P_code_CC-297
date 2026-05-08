@@ -46,6 +46,7 @@ double scheme_der1_o2_forward(double *f,int m,int n,double phi[m][n],double *xy,
 void scheme_der2_o2_central_var_deltas_xy(double *f,int m,int n,
                                           double phi[m][n],double *x,double *y,
                                           int i,int j);
+double sgn(int x);
 void solve_g_seidel_2d_rectangular(int m,int n,double phi[m][n],double *x,
                                    double *y,sim_prmtrs *config,
                                    int num_b_c_r,b_conditions_2d *b_c_r);

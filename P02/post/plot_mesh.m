@@ -16,7 +16,9 @@ else
             sprintf("%s_y_iter_%010d.dat",casename,iter)};
 end
 
+figure(1),clf
 f_plot_mesh(1,address,casename,initial)
+figure(2),clf
 f_plot_mesh(2,address,'',result)
 
 % mesh_x = dlmread([address,casename,'_initial_x.dat']);
