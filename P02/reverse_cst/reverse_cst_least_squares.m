@@ -1,3 +1,6 @@
+% (thanks to 2022 gigi for the awesome work :3)
+
+
 %% Este código lê as coordenadas de algum aerofólio e fornece os parâmetros 
 %% CST que geram a mesma geometria por meio do método dos mínimos quadrados
 
@@ -25,7 +28,7 @@ pre = 10;
 p_op = 1;
 
 % Ler coordenadas de arquivos de texto
-% filename = 'filenamerdenadas.dat';
+% filename = 'coordenadas.dat';
 % filename = 'naca2412.txt';
 %filename = 'naca5311.txt';
 %filename = 'naca0012.txt';

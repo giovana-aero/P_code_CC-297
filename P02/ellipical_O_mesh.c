@@ -24,16 +24,18 @@ void malloc_c_prmtrs(control_prmtrs *c_prmtrs){
 int main(){
   // Solution configurations
   sim_prmtrs config;
-  config.Ntype = 2;
+  config.Ntype = 1;
   config.w = 2.;
+  // config.w = 1.;
   config.r = 1.6;
+  // config.r = 1;
   config.alpha = .01;
   // config.alpha = 1.;
   config.max_iter = 100000;
-  config.qtimes = 1;
+  config.qtimes = 25000;
   config.save_i_c = 1;
   config.save_last_only = 1;
-  config.eps = 1.e-6; // Convergence criterion
+  config.eps = 1.e-7; // Convergence criterion
   char output_file[] = "results/eom";
 
   // Mesh parameters
@@ -73,7 +75,7 @@ int main(){
   c_prmtrs.L = 1;
   c_prmtrs.M = 1;
   malloc_c_prmtrs(&c_prmtrs);
-  c_prmtrs.al[0] = 2;
+  c_prmtrs.al[0] = 0;
   c_prmtrs.bm[0] = 0;
   c_prmtrs.cl[0] = 10;
   c_prmtrs.dm[0] = 1;

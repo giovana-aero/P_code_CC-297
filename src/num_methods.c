@@ -50,6 +50,10 @@ int check_num_digits_int(int *num){
   return i;
 }
 
+void disp(double x){
+  printf("%e\n",x);
+}
+
 /*
 - gigiaero, 24/03/2026, 1526 hours
 */

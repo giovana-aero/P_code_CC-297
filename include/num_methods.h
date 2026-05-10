@@ -25,6 +25,7 @@ double C_op(int m,int n,double phi[m][n],double phi_old[m][n],int i,int j);
 void calc_residual(double *phi_elem,double *phi_old_elem,double *N_elem,
                   double *res_elem);
 int check_num_digits_int(int *num);
+void disp(double x);
 double d_yy(int m,int n,double A[m][n],double *y,int i,int j);
 double delta_xy(double *xy,int i);
 void diagonal_matrix_solver(int n,double A[n][n],double *f,double *u);
