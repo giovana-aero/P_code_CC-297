@@ -5,6 +5,7 @@
 #include"../include/2d_arrays.h"
 #include"../include/bi_air_lib.h"
 #include"../include/eom_lib.h"
+#include"../include/pom_lib.h"
 #include"../include/strings.h"
 
 #define div_ref 1e100
@@ -432,9 +433,9 @@ void init_type3(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
 }
 
 // parabolic mesh
-// void init_type4(){
-
-// }
+void init_type4(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
+  
+}
 
 /*
 - gigiaero, 24/04/2026, 2204 hours
@@ -478,8 +479,7 @@ void initialize_mesh(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
       break;
 
     case 4: // parabolic generator
-      puts("init_type 4 pending!");
-      exit(4);
+      parabolic_mesh(m,n,x,y,msh);
       break;
 
     default:

@@ -36,6 +36,8 @@ void N_p_jacobi(double *N,double *x,double *y,int i,int j);
 void save_results_qtimes(int m,int n,double phi[m][n],int *iter,
                          sim_prmtrs *s_p,char *buffer,char *filename_save,
                          int *str_end_idx);
+double uniform_scheme_der1_o1_forward(int m,int n,double phi[m][n],int i,int j,
+                                      int axis);
 double scheme_der1_o2_backward(double *f,int m,int n,double phi[m][n],
                                double *xy,int i,int j,int axis);
 double scheme_der1_o2_central(double *f,int m,int n,double phi[m][n],double *xy,
