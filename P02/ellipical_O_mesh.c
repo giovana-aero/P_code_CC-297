@@ -24,7 +24,7 @@ void malloc_c_prmtrs(control_prmtrs *c_prmtrs){
 int main(){
   // Solution configurations
   sim_prmtrs config;
-  config.Ntype = 1;
+  config.Ntype = 2;
   config.w = 2.;
   // config.w = 1.;
   config.r = 1.6;
@@ -54,21 +54,21 @@ int main(){
   msh.end_prmtrs[3] = 0.;
   /* init_type */
   msh.init_type = 4;
-  int init_only = 1; // Initialize only, do not solve
+  int init_only = 0; // Initialize only, do not solve
 
   /* af_type */
   int n = 10; // cst - bernstein polynomial order
   msh.af_prmtrs = malloc(sizeof(double)*((n+2)*2 + 1));
-  msh.af_type = 3;
+  msh.af_type = 2;
   /* af_prmtrs (bi_air) */
   // msh.af_prmtrs[0] = 0.1;
   /* af_prmtrs (naca4) */
-  // msh.af_prmtrs[0] = 8.;
-  // msh.af_prmtrs[1] = 4.;
-  // msh.af_prmtrs[2] = 12.;
+  msh.af_prmtrs[0] = 8.;
+  msh.af_prmtrs[1] = 4.;
+  msh.af_prmtrs[2] = 12.;
   /* af_prmtrs (cst) */
-  msh.af_prmtrs[0] = n;
-  cst_prmtrs(1,msh.af_prmtrs);
+  // msh.af_prmtrs[0] = n;
+  // cst_prmtrs(1,msh.af_prmtrs);
 
   // P & Q control functions
   control_prmtrs c_prmtrs;

@@ -478,7 +478,7 @@ void initialize_mesh(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
       init_type3(m,n,x,y,msh);
       break;
 
-    case 4: // parabolic generator
+    case 4:
       parabolic_mesh(m,n,x,y,msh);
       break;
 
@@ -595,10 +595,10 @@ void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
   // Symmetric 
   if(m==0. && p==0.){
     for(int i=0;i<n;i++){
-        xu[i] = x[i];
-        yu[i] = thcknss[i];
-        xl[i] = x[i];
-        yl[i] = -thcknss[i];
+      xu[i] = x[i];
+      yu[i] = thcknss[i];
+      xl[i] = x[i];
+      yl[i] = -thcknss[i];
     }
   }
   // Asymmetric
@@ -608,28 +608,28 @@ void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
     double *theta = malloc(sizeof(double)*n);
 
     for(int i=0;i<n;i++){
-        if(x[i] >= 0. && x[i] <= p)
-            crvtr[i] = m/pow(p,2.)*(2.*p*x[i] - pow(x[i],2.));
+      if(x[i] >= 0. && x[i] <= p)
+        crvtr[i] = m/pow(p,2.)*(2.*p*x[i] - pow(x[i],2.));
 
-        else if(x[i] >= p && x[i] <= 1)
-            crvtr[i] = m/pow(1.-p,2.)*((1. - 2.*p) + 2.*p*x[i] - pow(x[i],2.));
+      else if(x[i] >= p && x[i] <= 1)
+        crvtr[i] = m/pow(1.-p,2.)*((1. - 2.*p) + 2.*p*x[i] - pow(x[i],2.));
     }
 
     for(int i=0;i<n;i++){
-        if(x[i] >= 0. && x[i] <= p)
-            slope[i] = 2.*m/pow(p,2.)*(p - x[i]);
+      if(x[i] >= 0. && x[i] <= p)
+        slope[i] = 2.*m/pow(p,2.)*(p - x[i]);
 
-        else if(x[i] >= p && x[i] <= 1.)
-            slope[i] = 2.*m/pow(1.-p,2.)*(p - x[i]);
+      else if(x[i] >= p && x[i] <= 1.)
+        slope[i] = 2.*m/pow(1.-p,2.)*(p - x[i]);
 
-        theta[i] = atan(slope[i]);
+      theta[i] = atan(slope[i]);
     }
 
     for(int i=0;i<n;i++){
-        xu[i] = x[i] - thcknss[i]*sin(theta[i]);
-        yu[i] = crvtr[i] + thcknss[i]*cos(theta[i]);
-        xl[i] = x[i] + thcknss[i]*sin(theta[i]);
-        yl[i] = crvtr[i] - thcknss[i]*cos(theta[i]);
+      xu[i] = x[i] - thcknss[i]*sin(theta[i]);
+      yu[i] = crvtr[i] + thcknss[i]*cos(theta[i]);
+      xl[i] = x[i] + thcknss[i]*sin(theta[i]);
+      yl[i] = crvtr[i] - thcknss[i]*cos(theta[i]);
     }
 
     free(crvtr);
@@ -696,27 +696,14 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   sprintf(filename_save_y,"%s_y_iter_",config->casename);
   find_str_end(filename_save_x,&str_end_idx);
 
-  puts(filename_log_x);
-  puts(filename_log_y);
-  puts(filename_save_x);
-  puts(filename_save_y);
-
   for(iter;iter<=config->max_iter;iter++){
     calc_A(m,n,A,x,y);
     calc_B(m,n,B,x,y);
     calc_C(m,n,C,x,y);
     calc_D(m,n,D,x,y);
 
-    // print_2d_array_to_file(m,n,A,"mat_A.dat",1);
-    // print_2d_array_to_file(m,n,B,"mat_B.dat",1);
-    // print_2d_array_to_file(m,n,C,"mat_C.dat",1);
-    // print_2d_array_to_file(m,n,D,"mat_D.dat",1);
-
     // Calculate residual operators
     L_phi_eom(m,n,L_phi_x,L_phi_y,x,y,A,B,C,D,c_prmtrs);
-
-    // print_2d_array_to_file(m,n,L_phi_x,"mat_L_phi_x.dat",1);
-    // print_2d_array_to_file(m,n,L_phi_y,"mat_L_phi_y.dat",1);
 
     res_x = 0.;
     res_y = 0.;
@@ -774,9 +761,6 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
       fy[j][n-1] = fy[j][0];
     }
 
-    // print_2d_array_to_file(m,n,fx,"mat_fx.dat",1);
-    // print_2d_array_to_file(m,n,fy,"mat_fy.dat",1);
-
     // Solve for the deltas - step 2 (eta)
     for(int i=0;i<n-1;i++){
       // an[0] = -C[1][i];
@@ -812,9 +796,6 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
       }
     }
 
-    // print_2d_array_to_file(m,n,Delta_x,"mat_Delta_x.dat",1);
-    // print_2d_array_to_file(m,n,Delta_y,"mat_Delta_y.dat",1);
-
     // Calculate new x and y
     for(int j=1;j<m-1;j++){
       for(int i=0;i<n-1;i++){
@@ -842,6 +823,7 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
     iter--; // To get the correct iteration number
     sprintf(buffer,"L");
     save_results_qtimes(m,n,x,&iter,config,buffer,filename_save_x,&str_end_idx);
+    sprintf(buffer,"L");
     save_results_qtimes(m,n,y,&iter,config,buffer,filename_save_y,&str_end_idx);
   }
 
@@ -873,7 +855,9 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   free(filename_save_y);
   free(buffer);
   free(filename_log_x);
+  free(filename_log_y);
   fclose(file_log_x);
+  fclose(file_log_y);
 }
 
 /*
@@ -963,7 +947,7 @@ void solve_slor_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
       break;
     }
 
-    // Rest of the domain
+    // Calculate deltas
     for(int j=1;j<m-1;j++){
       for(int i=0;i<n-1;i++){
         ak[i] = A[j][i];
@@ -1033,7 +1017,9 @@ void solve_slor_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   free(filename_save_y);
   free(buffer);
   free(filename_log_x);
+  free(filename_log_y);
   fclose(file_log_x);
+  fclose(file_log_y)
 }
 
 // /*

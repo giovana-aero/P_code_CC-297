@@ -18,8 +18,8 @@ end
 
 figure(1),clf
 f_plot_mesh(1,address,casename,initial)
-% figure(2),clf
-% f_plot_mesh(2,address,'',result)
+figure(2),clf
+f_plot_mesh(2,address,'',result)
 
 % mesh_x = dlmread([address,casename,'_initial_x.dat']);
 % mesh_y = dlmread([address,casename,'_initial_y.dat']);
