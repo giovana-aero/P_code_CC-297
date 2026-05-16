@@ -13,7 +13,7 @@ for i = 1:2
     result{i} = {iter_list_x(end).name,iter_list_y(end).name};
   else
     result{i} = {sprintf("%s_x_iter_%010d.dat",casename,iter),...
-              sprintf("%s_y_iter_%010d.dat",casename,iter)};
+                 sprintf("%s_y_iter_%010d.dat",casename,iter)};
   end
 end
 

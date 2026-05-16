@@ -99,9 +99,9 @@ double control_P(control_prmtrs *ctrl,int ksi,int eta){
 
   for(int m=0;m<ctrl->M;m++)
     sum_m += ctrl->bm[m]*sgn(ksi - ctrl->ksi_m[m])*
-                         exp(-ctrl->dm[m]*pow(
+                         exp(-ctrl->dm[m]*sqrt(
                          pow((double) (ksi - ctrl->ksi_m[m]),2.) + 
-                         pow((double) (eta - ctrl->eta_m[m]),2.),.5));
+                         pow((double) (eta - ctrl->eta_m[m]),2.)));
 
   return -sum_l - sum_m;
 }
@@ -118,9 +118,9 @@ double control_Q(control_prmtrs *ctrl,int ksi,int eta){
 
   for(int m=0;m<ctrl->M;m++)
     sum_m += ctrl->bm[m]*sgn(eta - ctrl->eta_m[m])*
-                         exp(-ctrl->dm[m]*pow(
+                         exp(-ctrl->dm[m]*sqrt(
                          pow((double) (ksi - ctrl->ksi_m[m]),2.) + 
-                         pow((double) (eta - ctrl->eta_m[m]),2.),.5));
+                         pow((double) (eta - ctrl->eta_m[m]),2.)));
 
   return -sum_l - sum_m;
 }
@@ -296,6 +296,11 @@ void evaluate_delta_form_eom(sim_prmtrs *config,msh_prmtrs *msh,
       case 2:
         puts("ADI, elliptical O mesh");
         solve_adi_2d_rectangular_eom(msh->JMAX,msh->IMAX,x,y,config,c_prmtrs);
+        break;
+      
+      case 3:
+        puts("AF2, elliptical O mesh");
+        solve_af2_2d_rectangular_eom(msh->JMAX,msh->IMAX,x,y,config,c_prmtrs);
         break;
         
       default:
@@ -517,7 +522,7 @@ void L_phi_eom(int m,int n,double L_phi_x[m][n],double L_phi_y[m][n],
                     
     L_phi_y[j][0] =A[j][0]*uniform_scheme_der2_o2_central_prdc_ksi(m,n,y,j,1) - 
                    2.*B[j][0]*uniform_scheme_der2_o2_central_prdc_ksi(m,n,y,j,3)
-                   +C[j][0]*uniform_scheme_der2_o2_central(m,n,y,0,j,2);
+                   +C[j][0]*uniform_scheme_der2_o2_central(m,n,y,0,j,2) +
                     D[j][0]*(P*uniform_scheme_der1_o2_central_prdc_ksi(m,n,y,j)
                            + Q*uniform_scheme_der1_o2_central(m,n,y,0,j,2));
 
@@ -553,6 +558,21 @@ void linspace(double *x,double xi,double xf,int n){
   for(int i=1;i<n;i++)
     x[i] = x[i-1] + step;
 }
+
+/*
+- gigiaero, 07/05/2026, 2112 hours
+*/
+void malloc_c_prmtrs(control_prmtrs *c_prmtrs){
+  c_prmtrs->al = malloc(sizeof(double)*c_prmtrs->L);
+  c_prmtrs->bm = malloc(sizeof(double)*c_prmtrs->M);
+  c_prmtrs->cl = malloc(sizeof(double)*c_prmtrs->L);
+  c_prmtrs->dm = malloc(sizeof(double)*c_prmtrs->M);
+  c_prmtrs->ksi_l = malloc(sizeof(int)*c_prmtrs->L);
+  c_prmtrs->ksi_m = malloc(sizeof(int)*c_prmtrs->M);
+  c_prmtrs->eta_l = malloc(sizeof(int)*c_prmtrs->L);
+  c_prmtrs->eta_m = malloc(sizeof(int)*c_prmtrs->M);
+}
+
 
 /*
 - gigiaero, 24/04/2026, 2241 hours
@@ -861,6 +881,218 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
 }
 
 /*
+- gigiaero, 16/05/2026, 1223 hours
+*/
+void solve_af2_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
+                                  sim_prmtrs *config,control_prmtrs *c_prmtrs){
+  // Solver variables
+  double (*L_phi_x)[n] = calloc(m,sizeof *L_phi_x);
+  double (*L_phi_y)[n] = calloc(m,sizeof *L_phi_y);
+  double (*Delta_x)[n] = calloc(m,sizeof *Delta_x);
+  double (*Delta_y)[n] = calloc(m,sizeof *Delta_y);
+  double (*A)[n] = calloc(m,sizeof *A);
+  double (*B)[n] = calloc(m,sizeof *B);
+  double (*C)[n] = calloc(m,sizeof *C);
+  double (*D)[n] = calloc(m,sizeof *D);
+  double (*fx)[n] = calloc(m,sizeof *fx);
+  double (*fy)[n] = calloc(m,sizeof *fy);
+  double *ak = malloc(sizeof(double)*(n-1));
+  double *bk = malloc(sizeof(double)*(n-1));
+  double *ck = malloc(sizeof(double)*(n-1));
+  double *fkx = malloc(sizeof(double)*(n-1));
+  double *fky = malloc(sizeof(double)*(n-1));
+  double *ukx = malloc(sizeof(double)*(n-1));
+  double *uky = malloc(sizeof(double)*(n-1));
+  double *an = malloc(sizeof(double)*(m-3));
+  double *bn = malloc(sizeof(double)*(m-2));
+  double *cn = malloc(sizeof(double)*(m-3));
+  double *fnx = malloc(sizeof(double)*(m-2));
+  double *fny = malloc(sizeof(double)*(m-2));
+  double *unx = malloc(sizeof(double)*(m-2));
+  double *uny = malloc(sizeof(double)*(m-2));
+  double omega = config->w;
+  double alpha = config->alpha;
+  int iter = 1;
+  // Save files
+  char *filename_save_x = malloc(sizeof(char)*200);
+  char *filename_save_y = malloc(sizeof(char)*200);
+  char *buffer = malloc(sizeof(char)*200);
+  int str_end_idx;
+  // Residuals
+  char *filename_log_x = malloc(sizeof(char)*200);
+  char *filename_log_y = malloc(sizeof(char)*200);
+  double res_x,res_y;
+  FILE *file_log_x;
+  FILE *file_log_y;
+
+  // Configure log files
+  sprintf(filename_log_x,"%s_x.log",config->casename);
+  file_log_x = fopen(filename_log_x,"w");
+  sprintf(filename_log_y,"%s_y.log",config->casename);
+  file_log_y = fopen(filename_log_y,"w");
+
+  // Prepare string to save simulation data  
+  sprintf(filename_save_x,"%s_x_iter_",config->casename);
+  sprintf(filename_save_y,"%s_y_iter_",config->casename);
+  find_str_end(filename_save_x,&str_end_idx);
+
+  for(iter;iter<=config->max_iter;iter++){
+    calc_A(m,n,A,x,y);
+    calc_B(m,n,B,x,y);
+    calc_C(m,n,C,x,y);
+    calc_D(m,n,D,x,y);
+
+    // Calculate residual operators
+    L_phi_eom(m,n,L_phi_x,L_phi_y,x,y,A,B,C,D,c_prmtrs);
+
+    res_x = 0.;
+    res_y = 0.;
+    for(int j=1;j<m-1;j++){
+      for(int i=0;i<n-1;i++){
+        if(fabs(L_phi_x[j][i]) > res_x)
+          res_x = fabs(L_phi_x[j][i]);
+
+        if(fabs(L_phi_y[j][i]) > res_y)
+          res_y = fabs(L_phi_y[j][i]);
+      }
+    }
+
+    printf("AF2 Iteration %010d | Res x %.6e | Res y %.6e\n",iter,res_x,res_y);
+
+    fprintf(file_log_x,"%.6e\n",res_x);
+    fprintf(file_log_y,"%.6e\n",res_y);
+
+    // Test for convergence
+    if(res_x <= config->eps && res_y <= config->eps && iter != 0){
+      puts("<< Convergence! >>");
+      iter++;
+      break;
+    }
+
+    if(res_x >= div_ref || res_y >= div_ref){
+      puts("- Divergence");
+      iter++;
+      break;
+    }
+
+    // Solve for the deltas - step 1 (eta)
+    for(int i=0;i<n-1;i++){
+      bn[0] = alpha + C[1][i];
+      cn[0] = -C[1][i];
+
+      fnx[0] = alpha*omega*L_phi_x[1][i];
+      fny[0] = alpha*omega*L_phi_y[1][i];
+      
+      for(int j=2;j<m-2;j++){
+        an[j-2] = 0.;
+        bn[j-1] = alpha + C[j][i];
+        cn[j-1] = -C[j][i];
+
+        fnx[j-1] = alpha*omega*L_phi_x[j][i];
+        fny[j-1] = alpha*omega*L_phi_y[j][i];
+      }
+
+      an[m-4] = 0.;
+      bn[m-3] = alpha + C[m-2][i];
+
+      fnx[m-3] = alpha*omega*L_phi_x[m-2][i];// + C[m-2][i]*fx[m-1][i];
+      fny[m-3] = alpha*omega*L_phi_y[m-2][i];
+
+      tridiagonal_matrix_solver(m-2,an,bn,cn,fnx,unx);
+      tridiagonal_matrix_solver(m-2,an,bn,cn,fny,uny);
+      
+      for(int j=1;j<m-1;j++){
+        fx[j][i] = unx[j-1];
+        fy[j][i] = uny[j-1];
+      }
+    }
+
+    // Solve for the deltas - step 2 (ksi)
+    for(int j=1;j<m-1;j++){
+      for(int i=0;i<n-1;i++){
+        ak[i] = -A[j][i];
+        bk[i] = 1. + 2.*A[j][i];
+        ck[i] = -A[j][i];
+
+        fkx[i] = fx[j][i] + Delta_x[j-1][i];
+        fky[i] = fy[j][i] + Delta_y[j-1][i];
+      }
+
+      tridiagonal_pmatrix_solver(n-1,ak,bk,ck,fkx,ukx);
+      tridiagonal_pmatrix_solver(n-1,ak,bk,ck,fky,uky);
+
+      for(int i=0;i<n-1;i++){
+        Delta_x[j][i] = ukx[i];
+        Delta_y[j][i] = uky[i];
+      }
+    }
+
+    // Calculate new x and y
+    for(int j=1;j<m-1;j++){
+      for(int i=0;i<n-1;i++){
+        x[j][i] += Delta_x[j][i];
+        y[j][i] += Delta_y[j][i];
+      }
+    }
+
+    // Reapply periodicity boundary condition
+    for(int j=1;j<m-1;j++){
+      x[j][n-1] = x[j][0];
+      y[j][n-1] = y[j][0];
+    }
+
+    if(!config->save_last_only){
+      save_results_qtimes(m,n,x,&iter,config,buffer,filename_save_x,
+                          &str_end_idx);
+      save_results_qtimes(m,n,y,&iter,config,buffer,filename_save_y,
+                          &str_end_idx);
+    }
+  }
+
+  // Save last iteration if it wasn't saved
+  if(iter%config->qtimes != 0 || config->save_last_only){
+    iter--; // To get the correct iteration number
+    sprintf(buffer,"L");
+    save_results_qtimes(m,n,x,&iter,config,buffer,filename_save_x,&str_end_idx);
+    sprintf(buffer,"L");
+    save_results_qtimes(m,n,y,&iter,config,buffer,filename_save_y,&str_end_idx);
+  }
+
+  free(L_phi_x);
+  free(L_phi_y);
+  free(Delta_x);
+  free(Delta_y);
+  free(A);
+  free(B);
+  free(C);
+  free(D);
+  free(fx);
+  free(fy);
+  free(ak);
+  free(bk);
+  free(ck);
+  free(ukx);
+  free(uky);
+  free(fkx);
+  free(fky);
+  free(an);
+  free(bn);
+  free(cn);
+  free(unx);
+  free(uny);
+  free(fnx);
+  free(fny);
+  free(filename_save_x);
+  free(filename_save_y);
+  free(buffer);
+  free(filename_log_x);
+  free(filename_log_y);
+  fclose(file_log_x);
+  fclose(file_log_y);
+                                    
+}
+
+/*
 line systems (which, apparently, actually works)
 - gigiaero, 10/05/2026
 */
@@ -1019,7 +1251,7 @@ void solve_slor_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   free(filename_log_x);
   free(filename_log_y);
   fclose(file_log_x);
-  fclose(file_log_y)
+  fclose(file_log_y);
 }
 
 // /*

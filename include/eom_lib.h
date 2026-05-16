@@ -66,10 +66,13 @@ void L_phi_eom(int m,int n,double L_phi_x[m][n],double L_phi_y[m][n],
                double B[m][n],double C[m][n],double D[m][n],
                control_prmtrs *c_prmtrs);
 void linspace(double *x,double xi,double xf,int n);
+void malloc_c_prmtrs(control_prmtrs *c_prmtrs);
 double max_thickness(int m,int n,double y[m][n]);
 void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
            double *prmtrs);
 void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
+                                  sim_prmtrs *config,control_prmtrs *c_prmtrs);
+void solve_af2_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
                                   sim_prmtrs *config,control_prmtrs *c_prmtrs);
 void solve_slor_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
                                    sim_prmtrs *config,control_prmtrs *c_prmtrs);
