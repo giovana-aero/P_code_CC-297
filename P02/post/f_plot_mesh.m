@@ -4,6 +4,8 @@ if nargin == 4
   linestyle = '-';
 end
 
+cmap = slanCM('bupu');
+
 % mesh_x = readmatrix([address,casename,'_initial_x.msh'],'filetype','delimitedtext');
 % mesh_x = readmatrix([address,casename,'_initial_y.msh'],'filetype','delimitedtext');
 
@@ -20,7 +22,7 @@ end
 
 for i = 1:size(mesh_x,2)-1
 % for i = [1,2,size(mesh_x,2)-1,size(mesh_x,2)-2]
-  plot(mesh_x(:,i),mesh_y(:,i),['m',linestyle])
+  plot(mesh_x(:,i),mesh_y(:,i),'color',cmap(150,:),'linestyle',linestyle)
 end
 
 % xlim([-.1,1.1])

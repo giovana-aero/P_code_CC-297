@@ -10,7 +10,12 @@ Defined in the context of laplace2d
 typedef struct s_parameters{
   int Ntype;
   double r;
-  double alpha;
+  double alpha_seq; // Set to true or false (1 or 0)
+  /* If alpha_seq=0, alpha is the single value. If alpha_seq=1,
+  alpha is the first value in the sequence */
+  double alpha; 
+  double alpha_H; // Last value in the alpha sequence if alpha_seq=1
+  int M; // Used in the sequence of alphas
   double w;
   long int max_iter;
   int qtimes;

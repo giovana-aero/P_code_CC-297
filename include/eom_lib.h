@@ -38,6 +38,7 @@ typedef struct mesh_parameters{
   int init_type;
 }msh_prmtrs;
 
+void alpha_sequence(double *alpha,int *k,int iter,sim_prmtrs *config);
 void calc_A(int m,int n,double A[m][n],double x[m][n],double y[m][n]);
 void calc_B(int m,int n,double B[m][n],double x[m][n],double y[m][n]);
 void calc_C(int m,int n,double C[m][n],double x[m][n],double y[m][n]);

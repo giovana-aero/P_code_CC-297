@@ -12,6 +12,29 @@
 #define pi 3.1415926535897932384626433
 
 /*
+- gigiaero, 19/05/2026, 0951 hours
+*/
+void alpha_sequence(double *alpha,int *k,int iter,sim_prmtrs *config){
+  if(config->alpha_seq){
+    *alpha = config->alpha_H*pow(config->alpha/config->alpha_H,
+             ((double)((*k)-1))/((double)(config->M-1)));
+
+    (*k)++;
+
+    if(*k > config->M)
+      *k = 1;
+  }
+  else{
+    if(iter == 1)
+      *alpha = config->alpha;
+  }
+}
+
+void alpha_sequence_aH(){
+  
+}
+
+/*
 - gigiaero, 27/04/2026, 1310 hours
 */
 void calc_A(int m,int n,double A[m][n],double x[m][n],double y[m][n]){
@@ -214,6 +237,18 @@ void cst_prmtrs(int af,double *prmtrs){
       strcat(filename,"whitcomb_cst_prmtrs.dat");
       break;
     
+    case 2: 
+      strcat(filename,"fx61-163_cst_prmtrs.dat");
+      break;
+    
+    case 3:
+      strcat(filename,"naca64A005.92_cst_prmtrs.dat");
+      break;
+    
+    case 4:
+      strcat(filename,"s1223_cst_prmtrs.dat");
+      break;
+
     default:
       puts("cst_prmtrs: invalid airfoil")  ;
       exit(108);
@@ -691,7 +726,8 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   double *unx = malloc(sizeof(double)*(m-2));
   double *uny = malloc(sizeof(double)*(m-2));
   double omega = config->w;
-  double alpha = config->alpha;
+  double alpha;
+  int k = 1;
   int iter = 1;
   // Save files
   char *filename_save_x = malloc(sizeof(char)*200);
@@ -717,6 +753,8 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   find_str_end(filename_save_x,&str_end_idx);
 
   for(iter;iter<=config->max_iter;iter++){
+    alpha_sequence(&alpha,&k,iter,config);
+
     calc_A(m,n,A,x,y);
     calc_B(m,n,B,x,y);
     calc_C(m,n,C,x,y);
