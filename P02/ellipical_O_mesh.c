@@ -4,6 +4,7 @@
 // #include"../include/1d_arrays.h"
 // #include"../include/2d_arrays.h"
 #include"../include/bi_air_lib.h"
+#include"../include/ecm_lib.h"
 #include"../include/eom_lib.h"
 #include"../include/mesh.h"
 
@@ -31,9 +32,10 @@ int main(){
   msh.end_prmtrs = malloc(sizeof(double)*4);
   /* IMAX */
   msh.IMAX = 93;
-  // msh.IMAX = 53;
+  // msh.IMAX = 21;
   /* JMAX */
-  msh.JMAX = 15;
+  // msh.JMAX = 15;
+  msh.JMAX = 40;
   /* c */
   msh.c = 1.;
   /* end_prmtrs */
@@ -43,7 +45,7 @@ int main(){
   msh.end_prmtrs[3] = 0.;
   /* init_type */
   msh.init_type = 2;
-  int init_only = 0; // Initialize only, do not solve
+  int init_only = 1; // Initialize only, do not solve
 
   /* af_type */
   int n = 10; // cst - bernstein polynomial order
@@ -77,7 +79,8 @@ int main(){
   // Solve
   config.casename = malloc(sizeof(char)*200);
   sprintf(config.casename,"%s",output_file);
-  evaluate_delta_form_eom(&config,&msh,&c_prmtrs,init_only);
+  // evaluate_delta_form_eom(&config,&msh,&c_prmtrs,init_only);
+  evaluate_delta_form_ecm(&config,&msh,&c_prmtrs,init_only);
   
   free(msh.af_prmtrs);
   free(msh.end_prmtrs);

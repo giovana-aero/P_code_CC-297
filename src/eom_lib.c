@@ -305,9 +305,9 @@ void ellipse(double *x,double *y,double *prmtrs,int n,int invert_th){
   double *th = malloc(sizeof(double)*n);
 
   if(invert_th)
-    linspace(th,2*pi,0.,n);
+    linspace(th,2.*pi,0.,n);
   else
-    linspace(th,0.,2*pi,n);
+    linspace(th,0.,2.*pi,n);
 
   for(int i=0;i<n;i++){
     x[i] = prmtrs[2] + prmtrs[0]*cos(th[i]);
@@ -470,12 +470,16 @@ void init_type2(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
 
 /*
 - gigiaero, 24/04/2026, 2204 hours
+
+in the i loop, the bound was changed from msh->IMAX to n to accomodate the ecm
+solution
+- gigiaero, 20/05/2026, 1412 hours
 */
 void init_type3(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
   double *vx = malloc(sizeof(double)*msh->JMAX);
   double *vy = malloc(sizeof(double)*msh->JMAX);
 
-  for(int i=0;i<msh->IMAX;i++){
+  for(int i=0;i<n;i++){
     cosspace(vx,x[0][i],x[msh->JMAX-1][i],msh->JMAX,1);
     cosspace(vy,y[0][i],y[msh->JMAX-1][i],msh->JMAX,1);
     
@@ -489,10 +493,10 @@ void init_type3(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
   free(vy);
 }
 
-// parabolic mesh
-void init_type4(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
+// // parabolic mesh
+// void init_type4(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
   
-}
+// }
 
 /*
 - gigiaero, 24/04/2026, 2204 hours

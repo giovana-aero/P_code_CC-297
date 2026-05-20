@@ -6,9 +6,10 @@ casename = 'eom';
 save_fig = 0;
 base_size = 800;
 fontsize = base_size*12/500;
-xlims = [-1,2];
-% xlims = [];
-ylims = [-1,1];
+% xlims = [-1,2];
+xlims = [];
+% ylims = [-1,1];
+ylims = [];
 
 iter = -1;
 
