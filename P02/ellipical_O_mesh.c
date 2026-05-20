@@ -45,7 +45,7 @@ int main(){
   msh.end_prmtrs[3] = 0.;
   /* init_type */
   msh.init_type = 2;
-  int init_only = 1; // Initialize only, do not solve
+  int init_only = 0; // Initialize only, do not solve
 
   /* af_type */
   int n = 10; // cst - bernstein polynomial order

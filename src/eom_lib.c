@@ -644,6 +644,7 @@ double min_physical_spacing(int m,int n,double x[m][n],double y[m][n]){
       deltayx = fabs(y[j][i+1] - y[j][i]);
       deltayy = fabs(y[j+1][i] - y[j][i]);
 
+      /* limpar isto quando eu estiver certa que está tudo em ordem */
       // disp(deltaxx);
       // disp(deltaxy);
       // disp(deltayx);

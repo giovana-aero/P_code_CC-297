@@ -20,7 +20,7 @@ for j = 1:size(mesh_x,1)
   plot(mesh_x(j,:),mesh_y(j,:),['k',linestyle],'linewidth',1.5)
 end
 
-for i = 1:size(mesh_x,2)-1
+for i = 1:size(mesh_x,2)
 % for i = [1,2,size(mesh_x,2)-1,size(mesh_x,2)-2]
   plot(mesh_x(:,i),mesh_y(:,i),'color',cmap(150,:),'linestyle',linestyle,'linewidth',1.5)
 end
