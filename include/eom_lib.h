@@ -39,6 +39,8 @@ typedef struct mesh_parameters{
 }msh_prmtrs;
 
 void alpha_sequence(double *alpha,int *k,int iter,sim_prmtrs *config);
+void alpha_sequence_aH(int m,int n,double x[m][n],double y[m][n],
+                       sim_prmtrs *config,int *k);
 void calc_A(int m,int n,double A[m][n],double x[m][n],double y[m][n]);
 void calc_B(int m,int n,double B[m][n],double x[m][n],double y[m][n]);
 void calc_C(int m,int n,double C[m][n],double x[m][n],double y[m][n]);
@@ -68,6 +70,7 @@ void L_phi_eom(int m,int n,double L_phi_x[m][n],double L_phi_y[m][n],
                control_prmtrs *c_prmtrs);
 void linspace(double *x,double xi,double xf,int n);
 void malloc_c_prmtrs(control_prmtrs *c_prmtrs);
+double min_physical_spacing(int m,int n,double x[m][n],double y[m][n]);
 double max_thickness(int m,int n,double y[m][n]);
 void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
            double *prmtrs);

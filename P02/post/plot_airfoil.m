@@ -4,16 +4,16 @@ address = '../reverse_cst/';
 
 addpath(address);
 
-filename = 'bi_air_10.txt';
+% filename = 'bi_air_10.txt';
 % filename = 'naca0010.txt';
 % filename = 'naca2412.txt';
 % filename = 'whitcomb.txt';
 % filename = 'fx61-163.txt';
 % filename = 'naca64A005.92.txt';
-% filename = 's1223.txt';
+filename = 's1223.txt';
 
 fontsize = 12;
-base_size = 1000;
+base_size = 500;
 
 save_figs = 1;
 
@@ -31,7 +31,7 @@ xlim(xlims)
 ylim(ylims)
 xylabel_latex('x','y')
 
-fig_height = base_size*ylims/xlims;
+fig_height = base_size*diff(ylims)/diff(xlims);
 fig_width = base_size;
 pba = [fig_width,fig_height]/fig_width;
 pos = [fig_width,fig_height];

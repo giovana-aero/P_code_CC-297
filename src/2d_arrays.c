@@ -36,6 +36,21 @@ void fill_2d_array(int m,int n,double A[m][n]){
 }
 
 /*
+- gigiaero, 20/05/2026, 0842 hours
+*/
+double max_2d_array(int m,int n,double A[m][n]){
+  double k = 0.;
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++){
+      if(A[j][i] > k)
+        k = A[j][i];
+    }
+  }
+
+  return k;
+}
+
+/*
 - gigiaero, 10/03/2026, 1345 hours
 */
 void ones_2d_array(int m,int n,double A[m][n]){

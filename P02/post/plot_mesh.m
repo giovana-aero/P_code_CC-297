@@ -3,6 +3,13 @@ clc,clear
 address = '../results/';
 casename = 'eom';
 
+save_fig = 0;
+base_size = 800;
+fontsize = base_size*12/500;
+xlims = [-1,2];
+% xlims = [];
+ylims = [-1,1];
+
 iter = -1;
 
 initial = {'_x_initial.dat','_y_initial.dat'};
@@ -18,11 +25,24 @@ end
 
 figure(1),clf
 f_plot_mesh(1,address,casename,initial)
-% xlim([-.1,1.1])
+if ~isempty(xlims),xlim(xlims),end
 figure(2),clf
 f_plot_mesh(2,address,'',result)
-% xlim([-.1,1.1])
+if ~isempty(xlims),xlim(xlims),end
 
 % mesh_x = dlmread([address,casename,'_initial_x.dat']);
 % mesh_y = dlmread([address,casename,'_initial_y.dat']);
 
+if save_fig
+  fig_height = base_size*ylims/xlims;
+  fig_width = base_size;
+  pba = [fig_width,fig_height]/fig_width;
+  pos = [fig_width,fig_height];
+  
+  figure(1)
+  set_rndrr_painters()
+  set_fontsize_position(fontsize,pos,pba)
+  xylabel_latex('x','y')
+  save_fig_eps('mesh_initial.eps');
+
+end

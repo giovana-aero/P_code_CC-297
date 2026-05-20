@@ -14,9 +14,10 @@ int main(){
   config.w = 2.;
   config.r = 1.6;
   config.alpha_seq = 0;
-  // config.alpha = .01;
-  config.alpha = 1.;
+  config.alpha = .01;
+  // config.alpha = 1.;
   // config.alpha_H = 2;
+  config.set_alpha_H = 1;
   config.M = 5;
   config.max_iter = 100000;
   config.qtimes = 25000;
@@ -41,23 +42,23 @@ int main(){
   msh.end_prmtrs[2] = msh.c*.5;
   msh.end_prmtrs[3] = 0.;
   /* init_type */
-  msh.init_type = 3;
-  int init_only = 1; // Initialize only, do not solve
+  msh.init_type = 2;
+  int init_only = 0; // Initialize only, do not solve
 
   /* af_type */
   int n = 10; // cst - bernstein polynomial order
   msh.af_prmtrs = malloc(sizeof(double)*((n+2)*2 + 1));
-  msh.af_type = 1;
+  msh.af_type = 3;
   /* af_prmtrs (bi_air) */
-  msh.af_prmtrs[0] = 0.1;
+  // msh.af_prmtrs[0] = 0.1;
   /* af_prmtrs (naca4) */
-  // msh.af_prmtrs[0] = 0.;
-  // msh.af_prmtrs[1] = 0.;
-  // msh.af_prmtrs[2] = 10.;
+  // msh.af_prmtrs[0] = 5.;
+  // msh.af_prmtrs[1] = 4.;
+  // msh.af_prmtrs[2] = 12.;
   /* af_prmtrs (cst) */
-  // msh.af_prmtrs[0] = n;
-  // int cst_foil = 4;
-  // cst_prmtrs(cst_foil,msh.af_prmtrs);
+  msh.af_prmtrs[0] = n;
+  int cst_foil = 1;
+  cst_prmtrs(cst_foil,msh.af_prmtrs);
 
   // P & Q control functions
   control_prmtrs c_prmtrs;

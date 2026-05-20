@@ -30,8 +30,25 @@ void alpha_sequence(double *alpha,int *k,int iter,sim_prmtrs *config){
   }
 }
 
-void alpha_sequence_aH(){
-  
+/*
+- gigiaero, 20/05/2026, 0853 hours
+*/
+void alpha_sequence_aH(int m,int n,double x[m][n],double y[m][n],
+                       sim_prmtrs *config,int *k){
+  double max_x,max_y;
+
+  if((*k) != config->M && config->set_alpha_H != 0 && config->alpha_seq){
+    switch(config->set_alpha_H){
+      case 1:
+        config->alpha_H = min_physical_spacing(m,n,x,y);
+        config->alpha_H = 4./config->alpha_H/config->alpha_H;
+        break;
+      
+      default:
+        puts("alpha_sequence_aH: invalid set_alpha_seq");
+        exit(11);
+    }
+  }
 }
 
 /*
@@ -608,6 +625,89 @@ void malloc_c_prmtrs(control_prmtrs *c_prmtrs){
   c_prmtrs->eta_m = malloc(sizeof(int)*c_prmtrs->M);
 }
 
+/*
+- gigiaero, 20/05/2026, 0930 hours
+*/
+double min_physical_spacing(int m,int n,double x[m][n],double y[m][n]){
+  // double kxx=0.,kxy=0.,kyx=0.,kyy=0.;
+  double min=1e10;
+  double deltaxy,deltaxx,deltayx,deltayy;
+
+  for(int j=0;j<m-1;j++){
+    for(int i=0;i<n-1;i++){
+      deltaxx = fabs(x[j][i+1] - x[j][i]);
+      deltaxy = fabs(x[j+1][i] - x[j][i]);
+      deltayx = fabs(y[j][i+1] - y[j][i]);
+      deltayy = fabs(y[j+1][i] - y[j][i]);
+
+      // disp(deltaxx);
+      // disp(deltaxy);
+      // disp(deltayx);
+      // disp(deltayy);
+
+      if(deltaxx > deltaxy)
+        deltaxx = deltaxy;
+
+      if(deltayy > deltayx)
+        deltayy = deltayx;
+
+      if(min > deltaxx)
+        min = deltaxx;
+      
+      if(min > deltayy)
+        min = deltayy;
+      
+      // disp(min);
+      // putchar('\n');
+      // min = (deltaxx > deltayy) ? deltaxx : deltayy;
+    }
+  }
+
+  // puts("-------------------------------"); putchar('\n');
+
+  for(int j=0;j<m;j++){
+    deltaxx = fabs(x[j][n-1] - x[j][n-2]);
+    // deltaxy = x[j+1][i] - x[j][i];
+    deltayx = fabs(y[j][n-1] - y[j][n-2]);
+    // deltayy = y[j+1][i] - y[j][i];
+
+    // disp(deltaxx);
+    // disp(deltayx);
+
+    if(min > deltaxy)
+      min = deltaxy;
+
+    if(min > deltayx)
+      min = deltayx;
+
+    // min = (deltaxx > deltayx) ? deltaxx : deltayx; 
+    // disp(min);
+    // putchar('\n');
+  }
+
+  // puts("-------------------------------"); putchar('\n');
+
+  for(int i=0;i<n;i++){
+    // deltaxx = x[j][i+1] - x[j][i];
+    deltaxy = fabs(x[m-1][i] - x[m-2][i]);
+    // deltayx = y[j][i+1] - y[j][i];
+    deltayy = fabs(y[m-1][i] - y[m-2][i]);
+
+    // disp(deltaxy);
+    // disp(deltayy);
+
+    if(min > deltaxy)
+      min = deltaxy;
+
+    if(min > deltayx)
+      min = deltayx;
+
+    // min = (deltaxy > deltayy) ? deltaxy : deltayy;
+    // disp(min); putchar('\n');
+  }
+
+  return min;
+}
 
 /*
 - gigiaero, 24/04/2026, 2241 hours
@@ -753,6 +853,7 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   find_str_end(filename_save_x,&str_end_idx);
 
   for(iter;iter<=config->max_iter;iter++){
+    alpha_sequence_aH(m,n,x,y,config,&k);
     alpha_sequence(&alpha,&k,iter,config);
 
     calc_A(m,n,A,x,y);

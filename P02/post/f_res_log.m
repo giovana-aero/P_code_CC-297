@@ -4,7 +4,8 @@ function f_res_log(xy,address_list,casename,colors,linestyles,lgds,ref_val,fonts
 hold on,grid on
 for i = 1:length(address_list)
   % res =readmatrix([address_list{i},casename,'_',xy,'.log'],'filetype','delimitedtext');
-  res =dlmread([address_list{i},casename,'_',xy,'.log']);
+  res = dlmread([address_list{i},casename,'_',xy,'.log']);
+  disp([address_list{i},casename,'_',xy,'.log'])
 
   plot(0:(length(res)-1),res,'color',colors{i},'linestyle',linestyles{i},...
           'displayname',lgds{i},'linewidth',lnwdth)

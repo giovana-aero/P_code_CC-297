@@ -15,6 +15,10 @@ typedef struct s_parameters{
   alpha is the first value in the sequence */
   double alpha; 
   double alpha_H; // Last value in the alpha sequence if alpha_seq=1
+  /*  If equal to 0, alpha_H must be defined by the user. If equal to 1, alpha_H
+  is calculated according to optimum ADI settings
+  */
+  int set_alpha_H; 
   int M; // Used in the sequence of alphas
   double w;
   long int max_iter;
