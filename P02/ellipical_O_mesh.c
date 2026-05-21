@@ -13,6 +13,7 @@ int main(){
   sim_prmtrs config;
   config.Ntype = 2;
   config.w = 2.;
+  // config.w = 1.;
   config.r = 1.6;
   config.alpha_seq = 0;
   config.alpha = .01;
@@ -20,8 +21,8 @@ int main(){
   // config.alpha_H = 2;
   config.set_alpha_H = 1;
   config.M = 5;
-  config.max_iter = 100000;
-  config.qtimes = 25000;
+  config.max_iter = 28000;
+  config.qtimes = 1;
   config.save_i_c = 1;
   config.save_last_only = 1;
   config.eps = 1.e-6; // Convergence criterion
@@ -34,8 +35,8 @@ int main(){
   msh.IMAX = 93;
   // msh.IMAX = 21;
   /* JMAX */
-  // msh.JMAX = 15;
-  msh.JMAX = 40;
+  msh.JMAX = 15;
+  // msh.JMAX = 7;
   /* c */
   msh.c = 1.;
   /* end_prmtrs */
@@ -44,23 +45,23 @@ int main(){
   msh.end_prmtrs[2] = msh.c*.5;
   msh.end_prmtrs[3] = 0.;
   /* init_type */
-  msh.init_type = 2;
+  msh.init_type = 4;
   int init_only = 0; // Initialize only, do not solve
 
   /* af_type */
   int n = 10; // cst - bernstein polynomial order
   msh.af_prmtrs = malloc(sizeof(double)*((n+2)*2 + 1));
-  msh.af_type = 3;
+  msh.af_type = 1;
   /* af_prmtrs (bi_air) */
-  // msh.af_prmtrs[0] = 0.1;
+  msh.af_prmtrs[0] = 0.1;
   /* af_prmtrs (naca4) */
   // msh.af_prmtrs[0] = 5.;
   // msh.af_prmtrs[1] = 4.;
   // msh.af_prmtrs[2] = 12.;
   /* af_prmtrs (cst) */
-  msh.af_prmtrs[0] = n;
-  int cst_foil = 1;
-  cst_prmtrs(cst_foil,msh.af_prmtrs);
+  // msh.af_prmtrs[0] = n;
+  // int cst_foil = 1;
+  // cst_prmtrs(cst_foil,msh.af_prmtrs);
 
   // P & Q control functions
   control_prmtrs c_prmtrs;
