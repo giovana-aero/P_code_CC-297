@@ -449,12 +449,15 @@ void init_type1(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
 
 /*
 - gigiaero, 24/04/2026, 2204 hours
+
+changed i loop as done for init_type3
+- gigiaero, 21/05/2026, 1458 hours
 */
 void init_type2(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
   double *vx = malloc(sizeof(double)*msh->JMAX);
   double *vy = malloc(sizeof(double)*msh->JMAX);
 
-  for(int i=0;i<msh->IMAX;i++){
+  for(int i=0;i<n;i++){
     linspace(vx,x[0][i],x[msh->JMAX-1][i],msh->JMAX);
     linspace(vy,y[0][i],y[msh->JMAX-1][i],msh->JMAX);
     

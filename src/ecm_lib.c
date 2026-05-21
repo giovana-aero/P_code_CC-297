@@ -5,12 +5,15 @@
 #include"../include/num_methods.h"
 #include"../include/ecm_lib.h"
 #include"../include/eom_lib.h"
+#include"../include/pom_lib.h"
 #include"../include/strings.h"
 
 #define div_ref 1e100
 #define pi 3.1415926535897932384626433
 
-
+/*
+- gigiaero, 20/05/2026, 1457 hours
+*/
 void calc_A_ecm(int m,int n,double A[m][n],double x[m][n],double y[m][n],
                 int TE){
   for(int i=1;i<TE-1;i++)
@@ -61,6 +64,26 @@ void calc_C_ecm(int m,int n,double C[m][n],double x[m][n],double y[m][n],
 }
 
 /*
+- gigiaero, 21/05/2026, 1552 hours
+*/
+void calc_D_ecm(int m,int n,double D[m][n],double x[m][n],double y[m][n],
+                int TE){
+  for(int i=1;i<TE-1;i++)
+    D[0][i] = pow(uniform_scheme_der1_o2_central(m,n,x,i,0,1)*
+                  uniform_scheme_der1_o2_central_ecm(m,n,y,i) - 
+                  uniform_scheme_der1_o2_central_ecm(m,n,x,i)*
+                  uniform_scheme_der1_o2_central(m,n,y,i,0,1),2.);
+
+  for(int j=1;j<m-1;j++){
+    for(int i=1;i<n-1;i++)
+      D[j][i] = pow(uniform_scheme_der1_o2_central(m,n,x,i,j,1)*
+                    uniform_scheme_der1_o2_central(m,n,y,i,j,2) - 
+                    uniform_scheme_der1_o2_central(m,n,x,i,j,2)*
+                    uniform_scheme_der1_o2_central(m,n,y,i,j,1),2.);
+  }
+}
+
+/*
 - gigiaero, 20/05/2026, 1438 hours
 */
 void evaluate_delta_form_ecm(sim_prmtrs *config,msh_prmtrs *msh,
@@ -85,7 +108,7 @@ void evaluate_delta_form_ecm(sim_prmtrs *config,msh_prmtrs *msh,
 
   if(!init_only){
     puts("ADI, elliptical C mesh");
-    solve_adi_2d_rectangular_ecm(m,n,x,y,config,msh->JMAX+1);
+    solve_adi_2d_rectangular_ecm(m,n,x,y,config,c_prmtrs,msh->JMAX+1);
   }
 
   free(x);
@@ -157,7 +180,15 @@ void initialize_mesh_ecm(int m,int n,double x[m][n],double y[m][n],
     y[m-1][k] = tmp_y[i];
   }
 
-  cosspace(tmp_x_wake,msh->end_prmtrs[2],msh->c+msh->end_prmtrs[0],m+1,1);
+  // cosspace(tmp_x_wake,msh->end_prmtrs[2],msh->c+msh->end_prmtrs[0],m+1,1);
+  linspace(tmp_x_wake,msh->end_prmtrs[2],msh->c+msh->end_prmtrs[0],m+1);
+  // exspace(tmp_x_wake,.35,m+1);
+  // for(int i=0;i<m+1;i++){
+  //   tmp_x_wake[i] /= tmp_x_wake[m];
+  //   tmp_x_wake[i] *= msh->end_prmtrs[0];
+  //   tmp_x_wake[i] += msh->c;
+  // }
+  
   
   for(int i=0,k1=m,k2=msh->IMAX+m;i<m;i++,k1--,k2++){
     x[0][i] = tmp_x_wake[k1];
@@ -170,7 +201,8 @@ void initialize_mesh_ecm(int m,int n,double x[m][n],double y[m][n],
     y[m-1][k2] = msh->end_prmtrs[0];
   }
 
-  init_type3(m,n,x,y,msh);
+  init_type2(m,n,x,y,msh);
+  // init_type3(m,n,x,y,msh);
 
   free(x_axis);
   free(tmp_x);
@@ -183,41 +215,53 @@ void initialize_mesh_ecm(int m,int n,double x[m][n],double y[m][n],
 */
 void L_phi_ecm(int m,int n,double L_phi_x[m][n],double L_phi_y[m][n],
                double x[m][n],double y[m][n],double A[m][n],
-               double B[m][n],double C[m][n],int TE){
+               double B[m][n],double C[m][n],double D[m][n],
+               control_prmtrs *c_prmtrs,int TE){
+  double P,Q;
+
   for(int i=1;i<TE-1;i++){
+    P = control_P(c_prmtrs,i,0);
+    Q = control_Q(c_prmtrs,i,0);
+
     L_phi_x[0][i] = A[0][i]*uniform_scheme_der2_o2_central(m,n,x,i,0,1) - 
                     2.*B[0][i]*uniform_scheme_der2_o2_central_ecm(m,n,x,i,3) + 
-                    C[0][i]*uniform_scheme_der2_o2_central_ecm(m,n,x,i,2);
-    // disp(A[0][i]);
-    // disp(B[0][i]);
-    // disp(C[0][i]);
-    // disp(uniform_scheme_der2_o2_central(m,n,x,i,0,1));
-    // disp(uniform_scheme_der2_o2_central_ecm(m,n,x,i,3));
-    // disp(uniform_scheme_der2_o2_central_ecm(m,n,x,i,2));
+                    C[0][i]*uniform_scheme_der2_o2_central_ecm(m,n,x,i,2) + 
+                    D[0][i]*(P*uniform_scheme_der1_o2_central(m,n,x,i,0,1) +
+                             Q*uniform_scheme_der1_o2_central_ecm(m,n,x,i));
+    
     L_phi_y[0][i] = A[0][i]*uniform_scheme_der2_o2_central(m,n,y,i,0,1) - 
                     2.*B[0][i]*uniform_scheme_der2_o2_central_ecm(m,n,y,i,3) + 
-                    C[0][i]*uniform_scheme_der2_o2_central_ecm(m,n,y,i,2);  
+                    C[0][i]*uniform_scheme_der2_o2_central_ecm(m,n,y,i,2) +
+                    D[0][i]*(P*uniform_scheme_der1_o2_central(m,n,y,i,0,1) +
+                             Q*uniform_scheme_der1_o2_central_ecm(m,n,y,i));
   }
 
   for(int j=1;j<m-1;j++){
     for(int i=1;i<n-1;i++){
+      P = control_P(c_prmtrs,0,j);
+      Q = control_Q(c_prmtrs,0,j);
+
       L_phi_x[j][i] = A[j][i]*uniform_scheme_der2_o2_central(m,n,x,i,j,1) - 
                        2.*B[j][i]*uniform_scheme_der2_o2_central(m,n,x,i,j,3) + 
-                       C[j][i]*uniform_scheme_der2_o2_central(m,n,x,i,j,2);
-                      //  D[j][i]*(P*uniform_scheme_der1_o2_central(m,n,x,i,j,1) +
-                      //           Q*uniform_scheme_der1_o2_central(m,n,x,i,j,2));
+                       C[j][i]*uniform_scheme_der2_o2_central(m,n,x,i,j,2) + 
+                       D[j][i]*(P*uniform_scheme_der1_o2_central(m,n,x,i,j,1) +
+                                Q*uniform_scheme_der1_o2_central(m,n,x,i,j,2));
                        
       L_phi_y[j][i] = A[j][i]*uniform_scheme_der2_o2_central(m,n,y,i,j,1) - 
                        2.*B[j][i]*uniform_scheme_der2_o2_central(m,n,y,i,j,3) + 
-                       C[j][i]*uniform_scheme_der2_o2_central(m,n,y,i,j,2);
-                      //  D[j][i]*(P*uniform_scheme_der1_o2_central(m,n,y,i,j,1) +
-                      //           Q*uniform_scheme_der1_o2_central(m,n,y,i,j,2));
+                       C[j][i]*uniform_scheme_der2_o2_central(m,n,y,i,j,2) +
+                       D[j][i]*(P*uniform_scheme_der1_o2_central(m,n,y,i,j,1) +
+                                Q*uniform_scheme_der1_o2_central(m,n,y,i,j,2));
     }
   }
 }
 
+/*
+- gigiaero, 21/05/2026, 1448 hours
+*/
 void solve_adi_2d_rectangular_ecm(int m,int n,double x[m][n],double y[m][n],
-                                  sim_prmtrs *config,int TE){
+                                  sim_prmtrs *config,
+                                  control_prmtrs *c_prmtrs,int TE){
   // Solver variables
   int m_wake = (2*m-1);
   double (*L_phi_x)[n] = calloc(m,sizeof *L_phi_x);
@@ -227,7 +271,7 @@ void solve_adi_2d_rectangular_ecm(int m,int n,double x[m][n],double y[m][n],
   double (*A)[n] = calloc(m,sizeof *A);
   double (*B)[n] = calloc(m,sizeof *B);
   double (*C)[n] = calloc(m,sizeof *C);
-  // double (*D)[n] = calloc(m,sizeof *D);
+  double (*D)[n] = calloc(m,sizeof *D);
   double (*fx)[n] = calloc(m,sizeof *fx);
   double (*fy)[n] = calloc(m,sizeof *fy);
   double *ak = malloc(sizeof(double)*(n-3));
@@ -275,12 +319,13 @@ void solve_adi_2d_rectangular_ecm(int m,int n,double x[m][n],double y[m][n],
     calc_A_ecm(m,n,A,x,y,TE);
     calc_B_ecm(m,n,B,x,y,TE);
     calc_C_ecm(m,n,C,x,y,TE);
+    calc_D_ecm(m,n,D,x,y,TE);
 
     // print_2d_array_to_file(m,n,A,"./mat_A.dat",1);
     // print_2d_array_to_file(m,n,B,"./mat_B.dat",1);
     // print_2d_array_to_file(m,n,C,"./mat_C.dat",1);
 
-    L_phi_ecm(m,n,L_phi_x,L_phi_y,x,y,A,B,C,TE);
+    L_phi_ecm(m,n,L_phi_x,L_phi_y,x,y,A,B,C,D,c_prmtrs,TE);
 
     // print_2d_array_to_file(m,n,L_phi_x,"./mat_L_phi_x.dat",1);
     // print_2d_array_to_file(m,n,L_phi_y,"./mat_L_phi_y.dat",1);
@@ -498,7 +543,7 @@ void solve_adi_2d_rectangular_ecm(int m,int n,double x[m][n],double y[m][n],
     }
 
     // Calculate new x and y
-    for(int i=1;i<TE;i++){
+    for(int i=1;i<TE-1;i++){
       x[0][i] += Delta_x[0][i];
       y[0][i] += Delta_y[0][i];
     }
@@ -522,7 +567,7 @@ void solve_adi_2d_rectangular_ecm(int m,int n,double x[m][n],double y[m][n],
     // exit(1);
 
     // Reapply "periodicity" boundary condition
-    for(int i1=1,i2=n-2;i1<TE;i1++,i2--){
+    for(int i1=1,i2=n-2;i1<TE-1;i1++,i2--){
       x[0][i2] = x[0][i1];
       y[0][i2] = y[0][i1];
     }
@@ -551,7 +596,7 @@ void solve_adi_2d_rectangular_ecm(int m,int n,double x[m][n],double y[m][n],
   free(A);
   free(B);
   free(C);
-  // free(D);
+  free(D);
   free(fx);
   free(fy);
   free(ak);

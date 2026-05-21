@@ -36,7 +36,7 @@ int main(){
   // msh.IMAX = 21;
   /* JMAX */
   msh.JMAX = 15;
-  // msh.JMAX = 7;
+  // msh.JMAX = 40;
   /* c */
   msh.c = 1.;
   /* end_prmtrs */
@@ -51,37 +51,37 @@ int main(){
   /* af_type */
   int n = 10; // cst - bernstein polynomial order
   msh.af_prmtrs = malloc(sizeof(double)*((n+2)*2 + 1));
-  msh.af_type = 1;
+  msh.af_type = 3;
   /* af_prmtrs (bi_air) */
-  msh.af_prmtrs[0] = 0.1;
+  // msh.af_prmtrs[0] = 0.1;
   /* af_prmtrs (naca4) */
   // msh.af_prmtrs[0] = 5.;
   // msh.af_prmtrs[1] = 4.;
   // msh.af_prmtrs[2] = 12.;
   /* af_prmtrs (cst) */
-  // msh.af_prmtrs[0] = n;
-  // int cst_foil = 1;
-  // cst_prmtrs(cst_foil,msh.af_prmtrs);
+  msh.af_prmtrs[0] = n;
+  int cst_foil = 1;
+  cst_prmtrs(cst_foil,msh.af_prmtrs);
 
   // P & Q control functions
   control_prmtrs c_prmtrs;
-  c_prmtrs.L = 2;
+  c_prmtrs.L = 1;
   c_prmtrs.M = 1;
   malloc_c_prmtrs(&c_prmtrs);
-  c_prmtrs.al[0] = 0; c_prmtrs.al[1] = c_prmtrs.al[0];
+  c_prmtrs.al[0] = 0;
   c_prmtrs.bm[0] = 0;
-  c_prmtrs.cl[0] = 4; c_prmtrs.cl[1] = c_prmtrs.cl[0]; 
+  c_prmtrs.cl[0] = 1;
   c_prmtrs.dm[0] = 1;
-  c_prmtrs.ksi_l[0] = 20; c_prmtrs.ksi_l[1] = 93 - c_prmtrs.ksi_l[0] - 1;
-  c_prmtrs.eta_l[0] = 0; c_prmtrs.eta_l[1] = 0;
+  c_prmtrs.ksi_l[0] = 0;
+  c_prmtrs.eta_l[0] = 0;
   c_prmtrs.ksi_m[0] = 0;
   c_prmtrs.eta_m[0] = 0;
 
   // Solve
   config.casename = malloc(sizeof(char)*200);
   sprintf(config.casename,"%s",output_file);
-  // evaluate_delta_form_eom(&config,&msh,&c_prmtrs,init_only);
-  evaluate_delta_form_ecm(&config,&msh,&c_prmtrs,init_only);
+  evaluate_delta_form_eom(&config,&msh,&c_prmtrs,init_only);
+  // evaluate_delta_form_ecm(&config,&msh,&c_prmtrs,init_only);
   
   free(msh.af_prmtrs);
   free(msh.end_prmtrs);
