@@ -1,4 +1,4 @@
-function f_res_log(xy,address_list,casename,colors,linestyles,lgds,ref_val,fontsize,lnwdth,pos,pba,xlims,ylims,save_figs)
+function f_res_log(xy,address_list,casename,colors,linestyles,lgds,ref_val,fontsize,lnwdth,pos,pba,xlims,ylims,save_figs,filename)
 
 % figure(1),clf,grid on,hold on
 hold on,grid on

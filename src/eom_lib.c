@@ -9,7 +9,7 @@
 #include"../include/strings.h"
 
 #define div_ref 1e100
-#define pi 3.1415926535897932384626433
+#define pi 3.14159265358979323846261003
 
 /*
 - gigiaero, 19/05/2026, 0951 hours
@@ -39,11 +39,15 @@ void alpha_sequence_aH(int m,int n,double x[m][n],double y[m][n],
 
   if((*k) != config->M && config->set_alpha_H != 0 && config->alpha_seq){
     switch(config->set_alpha_H){
-      case 1:
+      case 1: // ADI
         config->alpha_H = min_physical_spacing(m,n,x,y);
         config->alpha_H = 4./config->alpha_H/config->alpha_H;
         break;
       
+      case 2: // AF2
+        config->alpha_H = 1./min_physical_spacing(m,n,x,y);
+        break;
+
       default:
         puts("alpha_sequence_aH: invalid set_alpha_seq");
         exit(11);
@@ -354,6 +358,12 @@ void evaluate_delta_form_eom(sim_prmtrs *config,msh_prmtrs *msh,
         puts("AF2, elliptical O mesh");
         solve_af2_2d_rectangular_eom(msh->JMAX,msh->IMAX,x,y,config,c_prmtrs);
         break;
+
+      case 4:
+        puts("ADI, elliptical O mesh, nonperiodic");
+        solve_adi_2d_rectangular_eom_np(msh->JMAX,msh->IMAX,x,y,config,
+                                        c_prmtrs);
+        break;
         
       default:
         puts("evaluate_delta_form_eom: Invalid Ntype");
@@ -653,16 +663,16 @@ double min_physical_spacing(int m,int n,double x[m][n],double y[m][n]){
       // disp(deltayx);
       // disp(deltayy);
 
-      if(deltaxx > deltaxy)
+      if(deltaxx > deltaxy && deltaxy != 0)
         deltaxx = deltaxy;
 
-      if(deltayy > deltayx)
+      if(deltayy > deltayx && deltayx != 0)
         deltayy = deltayx;
 
-      if(min > deltaxx)
+      if(min > deltaxx && deltaxx != 0)
         min = deltaxx;
       
-      if(min > deltayy)
+      if(min > deltayy && deltayy != 0)
         min = deltayy;
       
       // disp(min);
@@ -682,10 +692,10 @@ double min_physical_spacing(int m,int n,double x[m][n],double y[m][n]){
     // disp(deltaxx);
     // disp(deltayx);
 
-    if(min > deltaxy)
+    if(min > deltaxy && deltaxy != 0)
       min = deltaxy;
 
-    if(min > deltayx)
+    if(min > deltayx && deltayx != 0)
       min = deltayx;
 
     // min = (deltaxx > deltayx) ? deltaxx : deltayx; 
@@ -747,7 +757,7 @@ void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
   double a0 = 0.2969;
   double a1 = -0.1260;
   double a2 = -0.3516;
-  double a3 = 0.2843;
+  double a3 = 0.28100;
   // double a4 = -0.1015; // open trailing edge
   double a4 = -0.1036;
 
@@ -801,6 +811,55 @@ void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
   }
 	
   free(thcknss);
+}
+
+/*
+- gigiaero, 22/05/2026, 1101
+*/
+void set_control_prmtrs(int c_type,control_prmtrs *c_prmtrs,msh_prmtrs *msh){
+  switch(c_type){
+    case 0: // deactivated
+      c_prmtrs->L = 1;
+      c_prmtrs->M = 1;
+      malloc_c_prmtrs(c_prmtrs);
+      c_prmtrs->al[0] = 0;
+      c_prmtrs->bm[0] = 0;
+      c_prmtrs->cl[0] = 1;
+      c_prmtrs->dm[0] = 1;
+      c_prmtrs->ksi_l[0] = 0;
+      c_prmtrs->eta_l[0] = 0;
+      c_prmtrs->ksi_m[0] = 0;
+      c_prmtrs->eta_m[0] = 0;
+      break;
+    
+    case 50: // ecm: refine wake near trailing edge
+      c_prmtrs->L = 1;
+      c_prmtrs->M = 6;
+      malloc_c_prmtrs(c_prmtrs);
+      c_prmtrs->al[0] = 0;
+      c_prmtrs->bm[0] = 160; c_prmtrs->bm[1] = 160; 
+      c_prmtrs->bm[2] = 160; c_prmtrs->bm[3] = 160;
+      c_prmtrs->bm[4] = 160; c_prmtrs->bm[5] = 160;
+      c_prmtrs->cl[0] = .8;
+      c_prmtrs->dm[0] = .5; c_prmtrs->dm[1] = .5;
+      c_prmtrs->dm[2] = .5; c_prmtrs->dm[3] = .5;
+      c_prmtrs->dm[4] = .5; c_prmtrs->dm[5] = .5;
+      c_prmtrs->ksi_l[0] = 0;
+      c_prmtrs->eta_l[0] = 0;
+      c_prmtrs->ksi_m[0] = msh->JMAX; 
+      c_prmtrs->ksi_m[1] = msh->IMAX - msh->JMAX;
+      c_prmtrs->ksi_m[2] = msh->JMAX-1; 
+      c_prmtrs->ksi_m[3] = msh->IMAX - msh->JMAX+1;
+      c_prmtrs->ksi_m[4] = msh->JMAX-2; 
+      c_prmtrs->ksi_m[5] = msh->IMAX - msh->JMAX+2;
+      c_prmtrs->eta_m[0] = 0; c_prmtrs->eta_m[1] = 0;
+      break;
+    
+
+    default:
+      puts("set_control_prmtrs: invalid c_type");
+      exit(118);
+  }
 }
 
 /*
@@ -1028,6 +1087,243 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
 }
 
 /*
+- gigiaero, 24/05/2026, 1739 hours
+*/
+void solve_adi_2d_rectangular_eom_np(int m,int n,double x[m][n],double y[m][n],
+                                     sim_prmtrs *config,
+                                     control_prmtrs *c_prmtrs){
+  // Solver variables
+  double (*L_phi_x)[n] = calloc(m,sizeof *L_phi_x);
+  double (*L_phi_y)[n] = calloc(m,sizeof *L_phi_y);
+  double (*Delta_x)[n] = calloc(m,sizeof *Delta_x);
+  double (*Delta_y)[n] = calloc(m,sizeof *Delta_y);
+  double (*A)[n] = calloc(m,sizeof *A);
+  double (*B)[n] = calloc(m,sizeof *B);
+  double (*C)[n] = calloc(m,sizeof *C);
+  double (*D)[n] = calloc(m,sizeof *D);
+  double (*fx)[n] = calloc(m,sizeof *fx);
+  double (*fy)[n] = calloc(m,sizeof *fy);
+  double *ak = malloc(sizeof(double)*(n-1));
+  double *bk = malloc(sizeof(double)*(n-1));
+  double *ck = malloc(sizeof(double)*(n-1));
+  double *fkx = malloc(sizeof(double)*(n-1));
+  double *fky = malloc(sizeof(double)*(n-1));
+  double *ukx = malloc(sizeof(double)*(n-1));
+  double *uky = malloc(sizeof(double)*(n-1));
+  double *an = malloc(sizeof(double)*(m-3));
+  double *bn = malloc(sizeof(double)*(m-2));
+  double *cn = malloc(sizeof(double)*(m-3));
+  double *fnx = malloc(sizeof(double)*(m-2));
+  double *fny = malloc(sizeof(double)*(m-2));
+  double *unx = malloc(sizeof(double)*(m-2));
+  double *uny = malloc(sizeof(double)*(m-2));
+  double omega = config->w;
+  double alpha;
+  int k = 1;
+  int iter = 1;
+  // Save files
+  char *filename_save_x = malloc(sizeof(char)*200);
+  char *filename_save_y = malloc(sizeof(char)*200);
+  char *buffer = malloc(sizeof(char)*200);
+  int str_end_idx;
+  // Residuals
+  char *filename_log_x = malloc(sizeof(char)*200);
+  char *filename_log_y = malloc(sizeof(char)*200);
+  double res_x,res_y;
+  FILE *file_log_x;
+  FILE *file_log_y;
+
+  // Configure log files
+  sprintf(filename_log_x,"%s_x.log",config->casename);
+  file_log_x = fopen(filename_log_x,"w");
+  sprintf(filename_log_y,"%s_y.log",config->casename);
+  file_log_y = fopen(filename_log_y,"w");
+
+  // Prepare string to save simulation data  
+  sprintf(filename_save_x,"%s_x_iter_",config->casename);
+  sprintf(filename_save_y,"%s_y_iter_",config->casename);
+  find_str_end(filename_save_x,&str_end_idx);
+
+  for(iter;iter<=config->max_iter;iter++){
+    alpha_sequence_aH(m,n,x,y,config,&k);
+    alpha_sequence(&alpha,&k,iter,config);
+
+    calc_A(m,n,A,x,y);
+    calc_B(m,n,B,x,y);
+    calc_C(m,n,C,x,y);
+    calc_D(m,n,D,x,y);
+
+    // Calculate residual operators
+    L_phi_eom(m,n,L_phi_x,L_phi_y,x,y,A,B,C,D,c_prmtrs);
+
+    res_x = 0.;
+    res_y = 0.;
+    for(int j=1;j<m-1;j++){
+      for(int i=1;i<n-1;i++){
+        if(fabs(L_phi_x[j][i]) > res_x)
+          res_x = fabs(L_phi_x[j][i]);
+
+        if(fabs(L_phi_y[j][i]) > res_y)
+          res_y = fabs(L_phi_y[j][i]);
+      }
+    }
+
+    printf("ADI Iteration %010d | Res x %.6e | Res y %.6e\n",iter,res_x,res_y);
+
+    fprintf(file_log_x,"%.6e\n",res_x);
+    fprintf(file_log_y,"%.6e\n",res_y);
+
+    // Test for convergence
+    if(res_x <= config->eps && res_y <= config->eps && iter != 0){
+      puts("<< Convergence! >>");
+      iter++;
+      break;
+    }
+
+    if(res_x >= div_ref || res_y >= div_ref){
+      puts("- Divergence");
+      iter++;
+      break;
+    }
+
+    // Solve for the deltas - step 1 (ksi)
+    for(int j=1;j<m-1;j++){
+      bk[0] = alpha + 2.*A[j][1];
+      ck[0] = -A[j][1];
+
+      fkx[0] = omega*alpha*L_phi_x[j][1];
+      fky[0] = omega*alpha*L_phi_y[j][1];
+
+      for(int i=2;i<n-2;i++){
+        ak[i-2] = -A[j][i];
+        bk[i-1] = alpha + 2.*A[j][i];
+        ck[i-1] = -A[j][i];
+
+        fkx[i-1] = omega*alpha*L_phi_x[j][i];
+        fky[i-1] = omega*alpha*L_phi_y[j][i];
+      }
+
+      ak[n-4] = -A[j][n-2];
+      bk[n-3] = alpha + 2.*A[j][n-2];
+
+      fkx[n-3] = omega*alpha*L_phi_x[j][n-2];
+      fky[n-3] = omega*alpha*L_phi_y[j][n-2];
+
+      tridiagonal_matrix_solver(n-2,ak,bk,ck,fkx,ukx);
+      tridiagonal_matrix_solver(n-2,ak,bk,ck,fky,uky);
+
+      for(int i=1;i<n-1;i++){
+        fx[j][i] = ukx[i-1];
+        fy[j][i] = uky[i-1];
+      }
+    }
+
+    // // Reapply periodicity boundary condition (for f) [confirmar se isto realmente é necessário]
+    // for(int j=1;j<m-1;j++){
+    //   fx[j][n-1] = fx[j][0];
+    //   fy[j][n-1] = fy[j][0];
+    // }
+
+    // Solve for the deltas - step 2 (eta)
+    for(int i=1;i<n-1;i++){
+      // an[0] = -C[1][i];
+      bn[0] = alpha + 2.*C[1][i];
+      cn[0] = -C[1][i];
+
+      fnx[0] = fx[1][i];// + C[1][i]*x[0][i];
+      fny[0] = fy[1][i];// + C[1][i]*y[0][i];
+      
+      for(int j=2;j<m-2;j++){
+        an[j-2] = -C[j][i];
+        bn[j-1] = alpha + 2.*C[j][i];
+        cn[j-1] = -C[j][i];
+
+        fnx[j-1] = fx[j][i];
+        fny[j-1] = fy[j][i];
+        // printf("%i\n",j);
+      }
+
+      an[m-4] = -C[m-2][i];
+      bn[m-3] = alpha + 2.*C[m-2][i];
+      // cn[m-4] = -C[m-2][i];
+
+      fnx[m-3] = fx[m-2][i];// + C[m-2][i]*x[m-1][i];
+      fny[m-3] = fy[m-2][i];// + C[m-2][i]*y[m-1][i];
+
+      tridiagonal_matrix_solver(m-2,an,bn,cn,fnx,unx);
+      tridiagonal_matrix_solver(m-2,an,bn,cn,fny,uny);
+
+      for(int j=1;j<m-1;j++){
+        Delta_x[j][i] = unx[j-1];
+        Delta_y[j][i] = uny[j-1];
+      }
+    }
+
+    // Calculate new x and y
+    for(int j=1;j<m-1;j++){
+      for(int i=1;i<n-1;i++){
+        x[j][i] += Delta_x[j][i];
+        y[j][i] += Delta_y[j][i];
+      }
+    }
+
+    // // Reapply periodicity boundary condition
+    // for(int j=1;j<m-1;j++){
+    //   x[j][n-1] = x[j][0];
+    //   y[j][n-1] = y[j][0];
+    // }
+
+    if(!config->save_last_only){
+      save_results_qtimes(m,n,x,&iter,config,buffer,filename_save_x,
+                          &str_end_idx);
+      save_results_qtimes(m,n,y,&iter,config,buffer,filename_save_y,
+                          &str_end_idx);
+    }
+  }
+
+  // Save last iteration if it wasn't saved
+  if(iter%config->qtimes != 0 || config->save_last_only){
+    iter--; // To get the correct iteration number
+    sprintf(buffer,"L");
+    save_results_qtimes(m,n,x,&iter,config,buffer,filename_save_x,&str_end_idx);
+    sprintf(buffer,"L");
+    save_results_qtimes(m,n,y,&iter,config,buffer,filename_save_y,&str_end_idx);
+  }
+
+  free(L_phi_x);
+  free(L_phi_y);
+  free(Delta_x);
+  free(Delta_y);
+  free(A);
+  free(B);
+  free(C);
+  free(D);
+  free(fx);
+  free(fy);
+  free(ak);
+  free(bk);
+  free(ck);
+  free(ukx);
+  free(uky);
+  free(fkx);
+  free(fky);
+  free(an);
+  free(bn);
+  free(cn);
+  free(unx);
+  free(uny);
+  free(fnx);
+  free(fny);
+  free(filename_save_x);
+  free(filename_save_y);
+  free(buffer);
+  free(filename_log_x);
+  free(filename_log_y);
+  fclose(file_log_x);
+  fclose(file_log_y);
+}
+
+/*
 - gigiaero, 16/05/2026, 1223 hours
 */
 void solve_af2_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
@@ -1058,7 +1354,8 @@ void solve_af2_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   double *unx = malloc(sizeof(double)*(m-2));
   double *uny = malloc(sizeof(double)*(m-2));
   double omega = config->w;
-  double alpha = config->alpha;
+  double alpha;
+  int k = 1;
   int iter = 1;
   // Save files
   char *filename_save_x = malloc(sizeof(char)*200);
@@ -1084,6 +1381,9 @@ void solve_af2_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   find_str_end(filename_save_x,&str_end_idx);
 
   for(iter;iter<=config->max_iter;iter++){
+    alpha_sequence_aH(m,n,x,y,config,&k);
+    alpha_sequence(&alpha,&k,iter,config);
+    
     calc_A(m,n,A,x,y);
     calc_B(m,n,B,x,y);
     calc_C(m,n,C,x,y);
@@ -1236,7 +1536,6 @@ void solve_af2_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   free(filename_log_y);
   fclose(file_log_x);
   fclose(file_log_y);
-                                    
 }
 
 /*

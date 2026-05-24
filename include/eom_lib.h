@@ -74,8 +74,12 @@ double min_physical_spacing(int m,int n,double x[m][n],double y[m][n]);
 double max_thickness(int m,int n,double y[m][n]);
 void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
            double *prmtrs);
+void set_control_prmtrs(int c_type,control_prmtrs *c_prmtrs,msh_prmtrs *msh);
 void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
                                   sim_prmtrs *config,control_prmtrs *c_prmtrs);
+void solve_adi_2d_rectangular_eom_np(int m,int n,double x[m][n],double y[m][n],
+                                     sim_prmtrs *config,
+                                     control_prmtrs *c_prmtrs);
 void solve_af2_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
                                   sim_prmtrs *config,control_prmtrs *c_prmtrs);
 void solve_slor_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],

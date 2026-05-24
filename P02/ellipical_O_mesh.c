@@ -13,16 +13,14 @@ int main(){
   sim_prmtrs config;
   config.Ntype = 2;
   config.w = 2.;
-  // config.w = 1.;
-  config.r = 1.6;
+  config.r = 1.;
   config.alpha_seq = 0;
-  config.alpha = .01;
-  // config.alpha = 1.;
-  // config.alpha_H = 2;
-  config.set_alpha_H = 1;
+  config.alpha = 1e-3;
+  config.alpha_H = 1e-1;
+  config.set_alpha_H = 0;
   config.M = 5;
-  config.max_iter = 28000;
-  config.qtimes = 1;
+  config.max_iter = 500000;
+  config.qtimes = 72605;
   config.save_i_c = 1;
   config.save_last_only = 1;
   config.eps = 1.e-6; // Convergence criterion
@@ -33,10 +31,9 @@ int main(){
   msh.end_prmtrs = malloc(sizeof(double)*4);
   /* IMAX */
   msh.IMAX = 93;
-  // msh.IMAX = 21;
   /* JMAX */
-  msh.JMAX = 15;
-  // msh.JMAX = 40;
+  // msh.JMAX = 15;
+  msh.JMAX = 15*2;
   /* c */
   msh.c = 1.;
   /* end_prmtrs */
@@ -45,8 +42,9 @@ int main(){
   msh.end_prmtrs[2] = msh.c*.5;
   msh.end_prmtrs[3] = 0.;
   /* init_type */
-  msh.init_type = 4;
+  msh.init_type = 2;
   int init_only = 0; // Initialize only, do not solve
+  int mesh_type = 2; // 1: eom; 2: ecm
 
   /* af_type */
   int n = 10; // cst - bernstein polynomial order
@@ -55,33 +53,35 @@ int main(){
   /* af_prmtrs (bi_air) */
   // msh.af_prmtrs[0] = 0.1;
   /* af_prmtrs (naca4) */
-  // msh.af_prmtrs[0] = 5.;
+  // msh.af_prmtrs[0] = 2.;
   // msh.af_prmtrs[1] = 4.;
   // msh.af_prmtrs[2] = 12.;
   /* af_prmtrs (cst) */
   msh.af_prmtrs[0] = n;
-  int cst_foil = 1;
+  int cst_foil = 3;
   cst_prmtrs(cst_foil,msh.af_prmtrs);
 
   // P & Q control functions
   control_prmtrs c_prmtrs;
-  c_prmtrs.L = 1;
-  c_prmtrs.M = 1;
-  malloc_c_prmtrs(&c_prmtrs);
-  c_prmtrs.al[0] = 0;
-  c_prmtrs.bm[0] = 0;
-  c_prmtrs.cl[0] = 1;
-  c_prmtrs.dm[0] = 1;
-  c_prmtrs.ksi_l[0] = 0;
-  c_prmtrs.eta_l[0] = 0;
-  c_prmtrs.ksi_m[0] = 0;
-  c_prmtrs.eta_m[0] = 0;
+  int control_type = 50;
+  set_control_prmtrs(control_type,&c_prmtrs,&msh);
 
   // Solve
   config.casename = malloc(sizeof(char)*200);
   sprintf(config.casename,"%s",output_file);
-  evaluate_delta_form_eom(&config,&msh,&c_prmtrs,init_only);
-  // evaluate_delta_form_ecm(&config,&msh,&c_prmtrs,init_only);
+  switch(mesh_type){
+    case 1:
+      evaluate_delta_form_eom(&config,&msh,&c_prmtrs,init_only);
+      break;
+    
+    case 2:
+      evaluate_delta_form_ecm(&config,&msh,&c_prmtrs,init_only);
+      break;
+    
+    default:
+      puts("invalid mesh_type");
+      return(1);
+  }
   
   free(msh.af_prmtrs);
   free(msh.end_prmtrs);

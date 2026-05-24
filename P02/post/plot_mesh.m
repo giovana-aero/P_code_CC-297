@@ -3,13 +3,22 @@ clc,clear
 address = '../results/';
 casename = 'eom';
 
-save_fig = 0;
+save_fig = 1;
 base_size = 800;
-fontsize = base_size*12/500;
+% fontsize = base_size*12/500;
+fontsize = 22;
 % xlims = [-1,2];
-xlims = [];
 % ylims = [-1,1];
+xlims = [];
 ylims = [];
+% xlims = [-.2  1.2]; 
+% ylims = [-1,1]*.4;
+% xlims = [-.5,4]; % elp prb comparison
+% ylims = [-1,1];
+% xlims = [-.5,7]; % dirichlet \xi conditions
+% ylims = [-1.5,1.5];
+% xlims = [-.5,2.5]; % ecm
+% ylims = [-1,1];
 
 iter = -1;
 
@@ -35,7 +44,8 @@ if ~isempty(xlims),xlim(xlims),end
 % mesh_y = dlmread([address,casename,'_initial_y.dat']);
 
 if save_fig
-  fig_height = base_size*ylims/xlims;
+  % fig_height = base_size*diff(ylims)/diff(xlims);
+  fig_height = base_size;
   fig_width = base_size;
   pba = [fig_width,fig_height]/fig_width;
   pos = [fig_width,fig_height];
@@ -46,4 +56,9 @@ if save_fig
   xylabel_latex('x','y')
   save_fig_eps('mesh_initial.eps');
 
+  figure(2)
+  set_rndrr_painters()
+  set_fontsize_position(fontsize,pos,pba)
+  xylabel_latex('x','y')
+  save_fig_eps('mesh_final.eps');
 end

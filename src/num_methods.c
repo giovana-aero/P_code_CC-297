@@ -226,7 +226,6 @@ void save_results_qtimes(int m,int n,double phi[m][n],int *iter,
   }
 }
 
-
 /*
 // Scheme: second derivative, second order, central
 // - gigiaero, 13/03/2026, 2315 hours

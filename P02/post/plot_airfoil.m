@@ -32,6 +32,7 @@ ylim(ylims)
 xylabel_latex('x','y')
 
 fig_height = base_size*diff(ylims)/diff(xlims);
+% fig_height = base_size;
 fig_width = base_size;
 pba = [fig_width,fig_height]/fig_width;
 pos = [fig_width,fig_height];

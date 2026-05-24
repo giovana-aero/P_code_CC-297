@@ -17,12 +17,12 @@ mesh_y = dlmread([address,casename,filename{2}]);
 figure(fignum),hold on
 for j = 1:size(mesh_x,1)
 % for j = 1
-  plot(mesh_x(j,:),mesh_y(j,:),['k',linestyle],'linewidth',1.2)
+  plot(mesh_x(j,:),mesh_y(j,:),['k',linestyle],'linewidth',.8)
 end
 
 for i = 1:size(mesh_x,2)
 % for i = [1,2,size(mesh_x,2)-1,size(mesh_x,2)-2]
-  plot(mesh_x(:,i),mesh_y(:,i),'color',cmap(150,:),'linestyle',linestyle,'linewidth',1.2)
+  plot(mesh_x(:,i),mesh_y(:,i),'color',cmap(150,:),'linestyle',linestyle,'linewidth',.8)
 end
 
 % xlim([-.1,1.1])
