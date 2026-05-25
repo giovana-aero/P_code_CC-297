@@ -8,26 +8,40 @@ Defined in the context of laplace2d
 - gigiaero, 20/03/2026, 0059 hours
 */
 typedef struct s_parameters{
+  /*
+  P01
+  1-PJ
+  2-GS
+  3-SOR
+  4-LGS
+  5-SLOR
+  
+  P02
+  1-SLOR
+  2-ADI
+  3-AF2
+  4-ADI non-periodic
+  */
   int Ntype;
   double r;
   double alpha_seq; // Set to true or false (1 or 0)
   /* If alpha_seq=0, alpha is the single value. If alpha_seq=1,
-  alpha is the first value in the sequence */
+  alpha is the low value in the sequence */
   double alpha; 
-  double alpha_H; // Last value in the alpha sequence if alpha_seq=1
+  double alpha_H; // High value in the alpha sequence if alpha_seq=1
   /*  0 -> user defined
       1 -> ADI
       2 -> AF2
   */
   int set_alpha_H; 
   int M; // Used in the sequence of alphas
-  double w;
+  double w; // AKA omega
   long int max_iter;
-  int qtimes;
-  int save_i_c; // Save initial condition
-  int save_last_only;
-  double eps;
-  char *casename;
+  int qtimes; // Number of iterations until a flow state is saved
+  int save_i_c; // Save initial condition (1 or 0)
+  int save_last_only; // Do not save intermediate flow states (1 or 0)
+  double eps; // Convergence criterion
+  char *casename; // Note: destination directory must exist beforehand
 }sim_prmtrs;
 
 double factorial(int n);

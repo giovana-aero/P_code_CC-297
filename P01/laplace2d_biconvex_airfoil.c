@@ -1,4 +1,3 @@
-#include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -6,9 +5,6 @@
 #include"../include/2d_arrays.h"
 #include"../include/b_conditions.h"
 #include"../include/bi_air_lib.h"
-#include"../include/mesh.h"
-#include"../include/num_methods.h"
-#include"../include/strings.h"
 
 int main(){
 
@@ -22,12 +18,12 @@ int main(){
   config.qtimes = 1;
   config.save_i_c = 1;
   config.save_last_only = 0;
-  config.eps = 1.e-6; // Convergence criterion
+  config.eps = 1.e-6;
   char output_file[] = "results/bi_air";
 
   // Mesh
   bi_air_phys_mesh b_a_mesh;
-  int mtype = 1;
+  int mtype = 1; // Changes mesh refinement (see set_mesh_prmtrs)
   set_mesh_prmtrs(mtype,&b_a_mesh);
   int chord_l = b_a_mesh.ITE - b_a_mesh.ILE + 1;
 
@@ -76,7 +72,8 @@ int main(){
   b_c[counter].position = b_a_mesh.JMAX - 1;
   b_c[counter].range[0] = 1;
   b_c[counter].range[1] = b_a_mesh.IMAX - 2;
-  b_c[counter].val = malloc(sizeof(double)*(b_c[counter].range[1] - b_c[counter].range[0] + 1));
+  b_c[counter].val = malloc(sizeof(double)*
+                           (b_c[counter].range[1] - b_c[counter].range[0] + 1));
   bi_air_dirichlet_vals_free(x,&b_c[counter],b_a_mesh.uinf);
   counter++;
     // // Up (test)
@@ -109,7 +106,7 @@ int main(){
 
   // Solve
   config.casename = malloc(sizeof(char)*200);
-  fprintf(config.casename,"%s",output_file);
+  sprintf(config.casename,"%s",output_file);
   evaluate_delta_form_bi_air(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,x,y,&config,
                              &b_a_mesh);
   // evaluate_delta_form(b_a_mesh.JMAX,b_a_mesh.IMAX,phi,x,y,&config,num_b_c_r,NULL);
@@ -131,7 +128,6 @@ int main(){
   print_2d_array_to_file(b_a_mesh.JMAX,b_a_mesh.IMAX,cp,save_files,0);
   sprintf(save_files,"%s_cp_chord.dat",config.casename);
   print_1d_array_to_file(chord_l,cp_chord,save_files);
-
 
   for(int i=0;i<num_b_c;i++)
     free(b_c[i].val);

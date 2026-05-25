@@ -20,8 +20,7 @@ typedef struct mesh_parameters{
   int IMAX; // number of points (circunference)
   int JMAX; // number of points (normal)
   double c; // chord length
-  /* 1-biconvex, 2-naca4, 3-cst */
-  int af_type; 
+  int af_type; // 1-biconvex, 2-naca4, 3-cst
   /*
   1-[t]
   2-[m,p,t]
@@ -30,7 +29,7 @@ typedef struct mesh_parameters{
   double *af_prmtrs;
   double *end_prmtrs; // parameters of the last ellipse [rx,ry,dx,dy]
   /*
-  1-uniform (ie, always ellipses)
+  1-uniform (interpolated ellipses)
   2-linspace
   3-cosspace_half
   4-parabolic

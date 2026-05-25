@@ -20,7 +20,7 @@ int main(){
   config.qtimes = 72605;
   config.save_i_c = 1;
   config.save_last_only = 1;
-  config.eps = 1.e-6; // Convergence criterion
+  config.eps = 1.e-6;
   char output_file[] = "results/eom";
 
   // Mesh parameters
@@ -39,27 +39,27 @@ int main(){
   msh.end_prmtrs[3] = 0.;
   /* init_type */
   msh.init_type = 4;
-  int init_only = 0; // Initialize only, do not solve
-  int mesh_type = 1; // 1: eom; 2: ecm
+  int init_only = 0; // Initialize only, do not solve (1 or 0)
+  int mesh_type = 1; // 1: eom; 2: ecm (ADI only)
 
   /* af_type */
   int n = 10; // cst - bernstein polynomial order
   msh.af_prmtrs = malloc(sizeof(double)*((n+2)*2 + 1));
-  msh.af_type = 3;
+  msh.af_type = 1;
   /* af_prmtrs (bi_air) */
-  // msh.af_prmtrs[0] = 0.1;
+  msh.af_prmtrs[0] = 0.1;
   /* af_prmtrs (naca4) */
   // msh.af_prmtrs[0] = 2.;
   // msh.af_prmtrs[1] = 4.;
   // msh.af_prmtrs[2] = 12.;
   /* af_prmtrs (cst) */
-  msh.af_prmtrs[0] = n;
-  int cst_foil = 4;
-  cst_prmtrs(cst_foil,msh.af_prmtrs);
+  // msh.af_prmtrs[0] = n;
+  // int cst_foil = 4; // see cst_prmtrs for list of airfoils
+  // cst_prmtrs(cst_foil,msh.af_prmtrs);
 
   // P & Q control functions
   control_prmtrs c_prmtrs;
-  int control_type = 0;
+  int control_type = 0; // see set_control_prmtrs for list of configurations
   set_control_prmtrs(control_type,&c_prmtrs,&msh);
 
   // Solve
@@ -76,7 +76,7 @@ int main(){
     
     default:
       puts("invalid mesh_type");
-      return(1);
+      return 1;
   }
   
   free(msh.af_prmtrs);

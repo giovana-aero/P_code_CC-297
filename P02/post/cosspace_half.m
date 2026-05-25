@@ -1,6 +1,6 @@
 function x = cosspace_half(startP,endP,N)
     
-% Vers�o modificada da fun��o cosspace. Gera apenas metade da distribui��o.
+% Versão modificada da função cosspace. Gera apenas metade da distribuição.
 
 
 x = zeros(1,N); x(N) = endP;

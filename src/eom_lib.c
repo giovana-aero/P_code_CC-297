@@ -254,19 +254,19 @@ void cst_prmtrs(int af,double *prmtrs){
   FILE *input;
   
   switch(af){
-    case 1: // whitcomb supercritical, n = 10
+    case 1: // n = 10
       strcat(filename,"whitcomb_cst_prmtrs.dat");
       break;
     
-    case 2: 
+    case 2: // n = 10
       strcat(filename,"fx61-163_cst_prmtrs.dat");
       break;
     
-    case 3:
+    case 3: // n = 10
       strcat(filename,"naca64A005.92_cst_prmtrs.dat");
       break;
     
-    case 4:
+    case 4: // n = 10
       strcat(filename,"s1223_cst_prmtrs.dat");
       break;
 
