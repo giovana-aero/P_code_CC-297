@@ -3,14 +3,14 @@ clc,clear
 address = '../results/';
 casename = 'eom';
 
-save_fig = 1;
+save_fig = 0;
 base_size = 800;
 % fontsize = base_size*12/500;
 fontsize = 22;
-% xlims = [-1,2];
-% ylims = [-1,1];
-xlims = [];
-ylims = [];
+xlims = [-1,2];
+ylims = [-1,1];
+% xlims = [];
+% ylims = [];
 % xlims = [-.2  1.2]; 
 % ylims = [-1,1]*.4;
 % xlims = [-.5,4]; % elp prb comparison

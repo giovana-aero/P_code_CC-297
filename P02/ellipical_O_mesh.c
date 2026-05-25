@@ -1,8 +1,5 @@
-// #include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
-// #include"../include/1d_arrays.h"
-// #include"../include/2d_arrays.h"
 #include"../include/bi_air_lib.h"
 #include"../include/ecm_lib.h"
 #include"../include/eom_lib.h"
@@ -14,8 +11,8 @@ int main(){
   config.Ntype = 2;
   config.w = 2.;
   config.r = 1.;
-  config.alpha_seq = 0;
-  config.alpha = 1e-3;
+  config.alpha_seq = 1;
+  config.alpha = 1e-4;
   config.alpha_H = 1e-1;
   config.set_alpha_H = 0;
   config.M = 5;
@@ -32,8 +29,7 @@ int main(){
   /* IMAX */
   msh.IMAX = 93;
   /* JMAX */
-  // msh.JMAX = 15;
-  msh.JMAX = 15*2;
+  msh.JMAX = 15;
   /* c */
   msh.c = 1.;
   /* end_prmtrs */
@@ -42,9 +38,9 @@ int main(){
   msh.end_prmtrs[2] = msh.c*.5;
   msh.end_prmtrs[3] = 0.;
   /* init_type */
-  msh.init_type = 2;
+  msh.init_type = 4;
   int init_only = 0; // Initialize only, do not solve
-  int mesh_type = 2; // 1: eom; 2: ecm
+  int mesh_type = 1; // 1: eom; 2: ecm
 
   /* af_type */
   int n = 10; // cst - bernstein polynomial order
@@ -58,12 +54,12 @@ int main(){
   // msh.af_prmtrs[2] = 12.;
   /* af_prmtrs (cst) */
   msh.af_prmtrs[0] = n;
-  int cst_foil = 3;
+  int cst_foil = 4;
   cst_prmtrs(cst_foil,msh.af_prmtrs);
 
   // P & Q control functions
   control_prmtrs c_prmtrs;
-  int control_type = 50;
+  int control_type = 0;
   set_control_prmtrs(control_type,&c_prmtrs,&msh);
 
   // Solve
@@ -94,9 +90,6 @@ int main(){
   free(c_prmtrs.ksi_m);
   free(c_prmtrs.eta_l);
   free(c_prmtrs.eta_m);
-
-  // free(x_tmp);
-  // free(y_tmp);
 
   return 0;
 }

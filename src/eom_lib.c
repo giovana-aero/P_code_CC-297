@@ -831,6 +831,131 @@ void set_control_prmtrs(int c_type,control_prmtrs *c_prmtrs,msh_prmtrs *msh){
       c_prmtrs->ksi_m[0] = 0;
       c_prmtrs->eta_m[0] = 0;
       break;
+
+    /*
+    group near the airfoil and the wake
+    whitcomb airfoil
+    config.alpha_seq = 1;
+    config.alpha = 1e-2;
+    config.alpha_H = 1e3;
+    config.set_alpha_H = 0;
+    config.M = 10;
+    */
+    case 1: 
+      c_prmtrs->L = 2;
+      c_prmtrs->M = 1;
+      malloc_c_prmtrs(c_prmtrs);
+      c_prmtrs->al[0] = 20; c_prmtrs->al[1] = c_prmtrs->al[0];
+      c_prmtrs->bm[0] = 0;
+      c_prmtrs->cl[0] = .5; c_prmtrs->cl[1] = c_prmtrs->cl[0];
+      c_prmtrs->dm[0] = 1;
+      c_prmtrs->ksi_l[0] = 0; c_prmtrs->ksi_l[1] = msh->IMAX-1;
+      c_prmtrs->eta_l[0] = 0; c_prmtrs->eta_l[1] = 0;
+      c_prmtrs->ksi_m[0] = 0;
+      c_prmtrs->eta_m[0] = 0;
+      break;
+    
+    /*
+    refine leading edge
+    */
+    case 2:
+      c_prmtrs->L = 1;
+      c_prmtrs->M = 1;
+      malloc_c_prmtrs(c_prmtrs);
+      c_prmtrs->al[0] = 0;
+      c_prmtrs->bm[0] = 1000;
+      c_prmtrs->cl[0] = 1;
+      c_prmtrs->dm[0] = .7;
+      c_prmtrs->ksi_l[0] = 0;
+      c_prmtrs->eta_l[0] = 0;
+      c_prmtrs->ksi_m[0] = (msh->IMAX-1)/2;
+      c_prmtrs->eta_m[0] = 0;
+      break;
+
+    /*
+    refine trailing edge
+    */
+    case 3:
+      c_prmtrs->L = 1;
+      c_prmtrs->M = 2;
+      malloc_c_prmtrs(c_prmtrs);
+      c_prmtrs->al[0] = 0;
+      c_prmtrs->bm[0] = 1000; c_prmtrs->bm[1] = c_prmtrs->bm[0];
+      c_prmtrs->cl[0] = 1;
+      c_prmtrs->dm[0] = .7; c_prmtrs->dm[1] = c_prmtrs->dm[0];
+      c_prmtrs->ksi_l[0] = 0;
+      c_prmtrs->eta_l[0] = 0;
+      c_prmtrs->ksi_m[0] = 0; c_prmtrs->ksi_m[1] = msh->IMAX-1;
+      c_prmtrs->eta_m[0] = 0; c_prmtrs->eta_m[1] = c_prmtrs->eta_m[0]; 
+      break;
+
+    /*
+    refine shockwave region and close to the airfoil
+    */
+    case 4:
+      c_prmtrs->L = 2;
+      c_prmtrs->M = 1;
+      malloc_c_prmtrs(c_prmtrs);
+      c_prmtrs->al[0] = 15; c_prmtrs->al[1] = c_prmtrs->al[0];
+      c_prmtrs->bm[0] = 0;
+      c_prmtrs->cl[0] = 1; c_prmtrs->cl[1] = c_prmtrs->cl[0]; 
+      c_prmtrs->dm[0] = 1;
+      c_prmtrs->ksi_l[0] = 20; c_prmtrs->ksi_l[1] = 93 - c_prmtrs->ksi_l[0] - 1;
+      c_prmtrs->eta_l[0] = 0; c_prmtrs->eta_l[1] = 0;
+      c_prmtrs->ksi_m[0] = 0;
+      c_prmtrs->eta_m[0] = 0;
+      break;
+
+    /*
+    refine underside near trailing edge (imax = 93)
+    */
+    case 5:
+      c_prmtrs->L = 1;
+      c_prmtrs->M = 1;
+      malloc_c_prmtrs(c_prmtrs);
+      c_prmtrs->al[0] = 0; 
+      c_prmtrs->bm[0] = 200;
+      c_prmtrs->cl[0] = 1; 
+      c_prmtrs->dm[0] = .8;
+      c_prmtrs->ksi_l[0] = 0; 
+      c_prmtrs->eta_l[0] = 0; 
+      c_prmtrs->ksi_m[0] = 12;
+      c_prmtrs->eta_m[0] = 0;
+      break;
+
+    /*
+    do everything at the same time (imax=93)
+    */
+    case 6:
+      c_prmtrs->L = 4;
+      c_prmtrs->M = 4;
+      malloc_c_prmtrs(c_prmtrs);
+      // refine near airfoil surface and wake
+      c_prmtrs->al[0] = 15; c_prmtrs->al[1] = c_prmtrs->al[0];
+      c_prmtrs->cl[0] = .8; c_prmtrs->cl[1] = c_prmtrs->cl[0];
+      c_prmtrs->ksi_l[0] = 0; c_prmtrs->ksi_l[1] = msh->IMAX-1;
+      c_prmtrs->eta_l[0] = 0; c_prmtrs->eta_l[1] = 0;
+      // refine leading edge
+      c_prmtrs->bm[0] = 1000;
+      c_prmtrs->dm[0] = .7;
+      c_prmtrs->ksi_m[0] = (msh->IMAX-1)/2;
+      c_prmtrs->eta_m[0] = 0;
+      // refine trailing edge
+      c_prmtrs->bm[1] = 1000; c_prmtrs->bm[2] = c_prmtrs->bm[1];
+      c_prmtrs->dm[1] = .7; c_prmtrs->dm[2] = c_prmtrs->dm[1];
+      c_prmtrs->ksi_m[1] = 0; c_prmtrs->ksi_m[2] = msh->IMAX-1;
+      c_prmtrs->eta_m[1] = 0; c_prmtrs->eta_m[2] = c_prmtrs->eta_m[1]; 
+      // refine shockwave regions and close to the airfoil
+      c_prmtrs->al[2] = 15; c_prmtrs->al[3] = c_prmtrs->al[2];
+      c_prmtrs->cl[2] = 1; c_prmtrs->cl[3] = c_prmtrs->cl[2]; 
+      c_prmtrs->ksi_l[2] = 20; c_prmtrs->ksi_l[3] = 93 - c_prmtrs->ksi_l[2] - 1;
+      c_prmtrs->eta_l[2] = 0; c_prmtrs->eta_l[3] = 0;
+      // refine underside near trailing edge
+      c_prmtrs->bm[0] = 200;
+      c_prmtrs->dm[0] = .8;
+      c_prmtrs->ksi_m[0] = 12;
+      c_prmtrs->eta_m[0] = 0;
+      break;
     
     case 50: // ecm: refine wake near trailing edge
       c_prmtrs->L = 1;
@@ -852,7 +977,12 @@ void set_control_prmtrs(int c_type,control_prmtrs *c_prmtrs,msh_prmtrs *msh){
       c_prmtrs->ksi_m[3] = msh->IMAX - msh->JMAX+1;
       c_prmtrs->ksi_m[4] = msh->JMAX-2; 
       c_prmtrs->ksi_m[5] = msh->IMAX - msh->JMAX+2;
-      c_prmtrs->eta_m[0] = 0; c_prmtrs->eta_m[1] = 0;
+      c_prmtrs->eta_m[0] = 0; 
+      c_prmtrs->eta_m[1] = 0;
+      c_prmtrs->eta_m[2] = 0;
+      c_prmtrs->eta_m[3] = 0;
+      c_prmtrs->eta_m[4] = 0;
+      c_prmtrs->eta_m[5] = 0;
       break;
     
 
