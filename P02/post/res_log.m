@@ -3,7 +3,7 @@ clc,clear
 
 casename = 'eom';
 ref_val = 1e-6;
-save_figs = 1;
+save_figs = 0;
 cmap = slanCM('bupu');
 
 % % w - slor

@@ -1,44 +1,36 @@
 clc,clear
+addpath('../../P02/post')
 
 address = '../results/';
-casename = 'eom';
+casename = 'fullp_mesh';
 
 save_fig = 0;
 base_size = 800;
-% fontsize = base_size*12/500;
 fontsize = 22;
-xlims = [-1,2];
-ylims = [-1,1];
-% xlims = [];
-% ylims = [];
-% xlims = [-.2  1.2]; 
-% ylims = [-1,1]*.4;
-% xlims = [-.5,4]; % elp prb comparison
+% xlims = [-1,2];
 % ylims = [-1,1];
-% xlims = [-.5,7]; % dirichlet \xi conditions
-% ylims = [-1.5,1.5];
-% xlims = [-.5,2.5]; % ecm
-% ylims = [-1,1];
+xlims = [];
+ylims = [];
 
 iter = -1;
 
 initial = {'_x_initial.dat','_y_initial.dat'};
 
-% if iter < 0
-%   iter_list_x = dir([address,casename,'_x_iter_*']);
-%   iter_list_y = dir([address,casename,'_y_iter_*']);
-%   result = {iter_list_x(end).name,iter_list_y(end).name};
-% else
-%   result = {sprintf("%s_x_iter_%010d.dat",casename,iter),...
-%             sprintf("%s_y_iter_%010d.dat",casename,iter)};
-% end
+if iter < 0
+  iter_list_x = dir([address,casename,'_x_iter_*']);
+  iter_list_y = dir([address,casename,'_y_iter_*']);
+  result = {iter_list_x(end).name,iter_list_y(end).name};
+else
+  result = {sprintf("%s_x_iter_%010d.dat",casename,iter),...
+            sprintf("%s_y_iter_%010d.dat",casename,iter)};
+end
 
 figure(1),clf
 f_plot_mesh(1,address,casename,initial)
 if ~isempty(xlims),xlim(xlims),end
-% figure(2),clf
-% f_plot_mesh(2,address,'',result)
-% if ~isempty(xlims),xlim(xlims),end
+figure(2),clf
+f_plot_mesh(2,address,'',result)
+if ~isempty(xlims),xlim(xlims),end
 
 % mesh_x = dlmread([address,casename,'_initial_x.dat']);
 % mesh_y = dlmread([address,casename,'_initial_y.dat']);

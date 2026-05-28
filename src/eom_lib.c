@@ -250,7 +250,7 @@ void cst_prmtrs(int af,double *prmtrs){
   double *v_ex = malloc(sizeof(double)*(n+2));
   double *v_in = malloc(sizeof(double)*(n+2));
   char *filename = malloc(sizeof(char)*100);
-  sprintf(filename,"./reverse_cst/");
+  sprintf(filename,"../P02/reverse_cst/");
   FILE *input;
   
   switch(af){
@@ -757,7 +757,7 @@ void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
   double a0 = 0.2969;
   double a1 = -0.1260;
   double a2 = -0.3516;
-  double a3 = 0.28100;
+  double a3 = 0.2843;
   // double a4 = -0.1015; // open trailing edge
   double a4 = -0.1036;
 

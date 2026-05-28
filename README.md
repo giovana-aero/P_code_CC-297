@@ -8,7 +8,7 @@ Folder structure:
 - src: source code of the libraries.
 - include: header files of the libraries.
 
-To compile a given case, compile the main script along with the source, such as:
+Explanations regarding the variables are available in the `include` files. To compile a given case, compile the main script along with the source, such as:
 
 `$ gcc biconvex_airfoil.c ../src/* -lm    # from inside the P01 folder`
 
