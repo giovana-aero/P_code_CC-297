@@ -1,13 +1,23 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include"../include/2d_arrays.h"
 #include"../include/eom_lib.h"
 #include"../include/mesh.h"
 
-int main(){
-  int mesh_only = 1; // solve mesh only, do not solve flow (1 or 0)
-  int load_mesh = 0; // load from file (1 or 0)
+// nome padrão dos arquivos de malha: fullp_mesh_x.dat e fullp_mesh_y.dat
+// init_only = 1 -> renomear a malha inicial pro nome padrão
+// init_only = 0 -> renomear a malha final pro nome padrão
 
+// A FAZER: funções que salvam em arquivos de texto os parâmetros da malha e da 
+// solução
+
+int main(){
   /* MESH ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  int mesh_only = 1; // resolve mesh only, do not solve flow (1 or 0)
+  int load_mesh = 1; // load mesh from file (1 or 0)
+  char filename_msh_x[] = "../P02/results_unmod/eom_x_iter_0000009781.dat";
+  char filename_msh_y[] = "../P02/results_unmod/eom_y_iter_0000009781.dat";
+
   // Solution configurations
   sim_prmtrs config_msh;
   config_msh.Ntype = 2;
@@ -19,9 +29,6 @@ int main(){
   config_msh.set_alpha_H = 0;
   config_msh.M = 5;
   config_msh.max_iter = 500000;
-  config_msh.qtimes = 72605;
-  config_msh.save_i_c = 1;
-  config_msh.save_last_only = 1;
   config_msh.eps = 1.e-6;
   char output_file_msh[] = "results/fullp_mesh";
 
@@ -42,7 +49,6 @@ int main(){
   /* init_type */
   msh.init_type = 4;
   int init_only = 0; // Initialize only, do not solve elliptical mesh (1 or 0)
-  // int mesh_type = 1; // 1: eom; 2: ecm (ADI only)
 
   /* af_type */
   int n = 10; // cst - bernstein polynomial order
@@ -81,32 +87,27 @@ int main(){
   // char output_file_msh[] = "results/mesh";
 
   /* MESH (solution) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  double (*x)[msh.IMAX] = calloc(msh.JMAX,sizeof *x);
+  double (*y)[msh.IMAX] = calloc(msh.JMAX,sizeof *y);
+  config_msh.casename = malloc(sizeof(char)*200);
   if(load_mesh){
-
+    read_2d_array_from_file(msh.JMAX,msh.IMAX,x,filename_msh_x);
+    read_2d_array_from_file(msh.JMAX,msh.IMAX,y,filename_msh_y);
   }
   else{
     set_control_prmtrs(control_type,&c_prmtrs,&msh);
-    config_msh.casename = malloc(sizeof(char)*200);
     sprintf(config_msh.casename,"%s",output_file_msh);
-    // switch(mesh_type){
-    //   case 1:
-    evaluate_delta_form_eom(&config_msh,&msh,&c_prmtrs,init_only);
-    //     break;
-      
-    //   case 2:
-    //     evaluate_delta_form_ecm(&config,&msh,&c_prmtrs,init_only);
-    //     break;
-      
-    //   default:
-    //     puts("invalid mesh_type");
-    //     return 1;
-    // }
+    evaluate_delta_form_eom_fp(msh.JMAX,msh.IMAX,x,y,&config_msh,&msh,&c_prmtrs,
+                               init_only);
   }
 
   /* FLOW (solution) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   if(!mesh_only){
 
   }
+
+  print_2d_array_to_file(msh.JMAX,msh.IMAX,x,"./results/test_x.dat",0);
+  print_2d_array_to_file(msh.JMAX,msh.IMAX,y,"./results/test_y.dat",0);
 
   free(msh.af_prmtrs);
   free(msh.end_prmtrs);
@@ -119,6 +120,8 @@ int main(){
   free(c_prmtrs.ksi_m);
   free(c_prmtrs.eta_l);
   free(c_prmtrs.eta_m);
+  free(x);
+  free(y);
 
   return 0;
 }

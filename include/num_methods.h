@@ -37,7 +37,7 @@ typedef struct s_parameters{
   int M; // Used in the sequence of alphas
   double w; // AKA omega
   long int max_iter;
-  int qtimes; // Number of iterations until a flow state is saved
+  long int qtimes; // Number of iterations until a flow state is saved
   int save_i_c; // Save initial condition (1 or 0)
   int save_last_only; // Do not save intermediate flow states (1 or 0)
   double eps; // Convergence criterion

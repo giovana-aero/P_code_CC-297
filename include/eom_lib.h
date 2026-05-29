@@ -53,6 +53,9 @@ void cst_prmtrs(int af,double *prmtrs);
 void ellipse(double *x,double *y,double *prmtrs,int n,int invert_th);
 void evaluate_delta_form_eom(sim_prmtrs *config,msh_prmtrs *msh,
                              control_prmtrs *c_prmtrs,int init_only);
+void evaluate_delta_form_eom_fp(int m,int n,double x[m][n],double y[m][n],
+                                sim_prmtrs *config,msh_prmtrs *msh,
+                                control_prmtrs *c_prmtrs,int init_only);
 void init_af_bi_air(double *x,double *y,double *x_axis,int chord_n,
                     msh_prmtrs *msh);
 void init_af_cst(double *x,double *y,double *x_axis,int chord_n,

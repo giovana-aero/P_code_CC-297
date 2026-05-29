@@ -110,6 +110,32 @@ void print_2d_array_to_file(int m,int n,double A[m][n],char *filename,
 }
 
 /*
+- gigiaero, 28/05/2026, 2030 hours
+*/
+void read_2d_array_from_file(int m,int n,double A[m][n],char* filename){
+  FILE *input;
+
+  int i = 0,j = 0;
+
+  input = fopen(filename,"r");
+  puts(filename);
+
+  while(1){
+    if(fscanf(input,"%lf",&A[j][i]) == EOF)
+      break;
+
+    i++;
+    
+    if(i == n){
+      i = 0;
+      j++;
+    }
+  }
+
+  fclose(input);
+}
+
+/*
 - gigiaero, 10/03/2026, 1346 hours
 */
 void zeros_2d_array(int m,int n,double A[m][n]){

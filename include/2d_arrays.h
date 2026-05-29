@@ -9,6 +9,7 @@ void ones_2d_array(int m,int n,double A[m][n]);
 void print_2d_array(int m,int n,double A[m][n]);
 void print_2d_array_to_file(int m,int n,double A[m][n],char *filename,
                             int invert_y);
+void read_2d_array_from_file(int m,int n,double A[m][n],char* filename);
 void zeros_2d_array(int m,int n,double A[m][n]);
 
 #endif

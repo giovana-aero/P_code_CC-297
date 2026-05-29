@@ -376,6 +376,56 @@ void evaluate_delta_form_eom(sim_prmtrs *config,msh_prmtrs *msh,
 }
 
 /*
+for usage in the full potential code
+- gigiaero, 28/05/2026, 2057 hours
+*/
+void evaluate_delta_form_eom_fp(int m,int n,double x[m][n],double y[m][n],
+                                sim_prmtrs *config,msh_prmtrs *msh,
+                                control_prmtrs *c_prmtrs,int init_only){
+  initialize_mesh(msh->JMAX,msh->IMAX,x,y,msh);
+
+  if(init_only){
+    char *filename = malloc(sizeof(char)*200);
+    sprintf(filename,"%s%s",config->casename,"_x_initial.dat");
+    print_2d_array_to_file(msh->JMAX,msh->IMAX,x,filename,0);
+    sprintf(filename,"%s%s",config->casename,"_y_initial.dat");
+    print_2d_array_to_file(msh->JMAX,msh->IMAX,y,filename,0);
+    free(filename);
+  }
+  else{
+    config->save_last_only = 1;
+    config->qtimes = 9999999999;
+    
+    switch(config->Ntype){
+      case 1:
+        puts("SLOR, elliptical O mesh");
+        solve_slor_2d_rectangular_eom(msh->JMAX,msh->IMAX,x,y,config,c_prmtrs);
+        break;
+      
+      case 2:
+        puts("ADI, elliptical O mesh");
+        solve_adi_2d_rectangular_eom(msh->JMAX,msh->IMAX,x,y,config,c_prmtrs);
+        break;
+      
+      case 3:
+        puts("AF2, elliptical O mesh");
+        solve_af2_2d_rectangular_eom(msh->JMAX,msh->IMAX,x,y,config,c_prmtrs);
+        break;
+
+      case 4:
+        puts("ADI, elliptical O mesh, nonperiodic");
+        solve_adi_2d_rectangular_eom_np(msh->JMAX,msh->IMAX,x,y,config,
+                                        c_prmtrs);
+        break;
+        
+      default:
+        puts("evaluate_delta_form_eom: Invalid Ntype");
+        exit(32);
+    }
+  }
+}
+
+/*
 - gigiaero, 24/04/2026, 2231 hours
 */
 void init_af_bi_air(double *x,double *y,double *x_axis,int chord_n,
