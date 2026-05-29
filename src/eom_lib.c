@@ -244,16 +244,19 @@ void cst_airfoil(int n_pts,double *x,double *yu,double *yl,double *prmtrs,
 
 /*
 - gigiaero, 25/04/2026, 1134 hours
+
+function inputs updated
+- gigiaero, 29/05/2026, 1336 hours
 */
-void cst_prmtrs(int af,double *prmtrs){
-  int n = prmtrs[0];
+void cst_prmtrs(msh_prmtrs *msh){
+  int n = (int) msh->af_prmtrs[0];
   double *v_ex = malloc(sizeof(double)*(n+2));
   double *v_in = malloc(sizeof(double)*(n+2));
   char *filename = malloc(sizeof(char)*100);
   sprintf(filename,"../P02/reverse_cst/");
   FILE *input;
   
-  switch(af){
+  switch(msh->cst_foil){
     case 1: // n = 10
       strcat(filename,"whitcomb_cst_prmtrs.dat");
       break;
@@ -288,11 +291,9 @@ void cst_prmtrs(int af,double *prmtrs){
   }
 
   for(int i=0;i<n+2;i++){
-    prmtrs[i+1] = v_ex[i];
-    prmtrs[i+1+n+2] = v_in[i];
+    msh->af_prmtrs[i+1] = v_ex[i];
+    msh->af_prmtrs[i+1+n+2] = v_in[i];
   }
-
-  // print_1d_array((n+2)*2 + 1,prmtrs);
 
   free(v_ex);
   free(v_in);
@@ -328,6 +329,9 @@ void evaluate_delta_form_eom(sim_prmtrs *config,msh_prmtrs *msh,
                              control_prmtrs *c_prmtrs,int init_only){
   double (*x)[msh->IMAX] = calloc(msh->JMAX,sizeof *x);
   double (*y)[msh->IMAX] = calloc(msh->JMAX,sizeof *y);
+
+  save_prmtrs_sim(config);
+  save_prmtrs_msh(config->casename,msh);
 
   initialize_mesh(msh->JMAX,msh->IMAX,x,y,msh);
 
@@ -375,55 +379,55 @@ void evaluate_delta_form_eom(sim_prmtrs *config,msh_prmtrs *msh,
   free(y);
 }
 
-/*
-for usage in the full potential code
-- gigiaero, 28/05/2026, 2057 hours
-*/
-void evaluate_delta_form_eom_fp(int m,int n,double x[m][n],double y[m][n],
-                                sim_prmtrs *config,msh_prmtrs *msh,
-                                control_prmtrs *c_prmtrs,int init_only){
-  initialize_mesh(msh->JMAX,msh->IMAX,x,y,msh);
+// /*
+// for usage in the full potential code
+// - gigiaero, 28/05/2026, 2057 hours
+// */
+// void evaluate_delta_form_eom_fp(int m,int n,double x[m][n],double y[m][n],
+//                                 sim_prmtrs *config,msh_prmtrs *msh,
+//                                 control_prmtrs *c_prmtrs,int init_only){
+//   initialize_mesh(msh->JMAX,msh->IMAX,x,y,msh);
 
-  if(init_only){
-    char *filename = malloc(sizeof(char)*200);
-    sprintf(filename,"%s%s",config->casename,"_x_initial.dat");
-    print_2d_array_to_file(msh->JMAX,msh->IMAX,x,filename,0);
-    sprintf(filename,"%s%s",config->casename,"_y_initial.dat");
-    print_2d_array_to_file(msh->JMAX,msh->IMAX,y,filename,0);
-    free(filename);
-  }
-  else{
-    config->save_last_only = 1;
-    config->qtimes = 9999999999;
-    
-    switch(config->Ntype){
-      case 1:
-        puts("SLOR, elliptical O mesh");
-        solve_slor_2d_rectangular_eom(msh->JMAX,msh->IMAX,x,y,config,c_prmtrs);
-        break;
-      
-      case 2:
-        puts("ADI, elliptical O mesh");
-        solve_adi_2d_rectangular_eom(msh->JMAX,msh->IMAX,x,y,config,c_prmtrs);
-        break;
-      
-      case 3:
-        puts("AF2, elliptical O mesh");
-        solve_af2_2d_rectangular_eom(msh->JMAX,msh->IMAX,x,y,config,c_prmtrs);
-        break;
+//   if(init_only){
+//     char *filename = malloc(sizeof(char)*200);
+//     sprintf(filename,"%s%s",config->casename,"_x_initial.dat");
+//     print_2d_array_to_file(msh->JMAX,msh->IMAX,x,filename,0);
+//     sprintf(filename,"%s%s",config->casename,"_y_initial.dat");
+//     print_2d_array_to_file(msh->JMAX,msh->IMAX,y,filename,0);
+//     free(filename);
+//   }
+//   else{
+//     config->save_last_only = 1;
+//     config->qtimes = 9999999999;
 
-      case 4:
-        puts("ADI, elliptical O mesh, nonperiodic");
-        solve_adi_2d_rectangular_eom_np(msh->JMAX,msh->IMAX,x,y,config,
-                                        c_prmtrs);
-        break;
+//     switch(config->Ntype){
+//       case 1:
+//         puts("SLOR, elliptical O mesh");
+//         solve_slor_2d_rectangular_eom(msh->JMAX,msh->IMAX,x,y,config,c_prmtrs);
+//         break;
+      
+//       case 2:
+//         puts("ADI, elliptical O mesh");
+//         solve_adi_2d_rectangular_eom(msh->JMAX,msh->IMAX,x,y,config,c_prmtrs);
+//         break;
+      
+//       case 3:
+//         puts("AF2, elliptical O mesh");
+//         solve_af2_2d_rectangular_eom(msh->JMAX,msh->IMAX,x,y,config,c_prmtrs);
+//         break;
+
+//       case 4:
+//         puts("ADI, elliptical O mesh, nonperiodic");
+//         solve_adi_2d_rectangular_eom_np(msh->JMAX,msh->IMAX,x,y,config,
+//                                         c_prmtrs);
+//         break;
         
-      default:
-        puts("evaluate_delta_form_eom: Invalid Ntype");
-        exit(32);
-    }
-  }
-}
+//       default:
+//         puts("evaluate_delta_form_eom: Invalid Ntype");
+//         exit(32);
+//     }
+//   }
+// }
 
 /*
 - gigiaero, 24/04/2026, 2231 hours
@@ -861,6 +865,58 @@ void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
   }
 	
   free(thcknss);
+}
+
+/*
+- gigiaero, 29/05/2026, 1342 hours
+*/
+void save_prmtrs_msh(char* casename,msh_prmtrs *msh){
+  char *filename = malloc(sizeof(char)*200);
+  FILE *output;
+
+  sprintf(filename,"%s_prmtrs_msh.dat",casename);
+
+  output = fopen(filename,"w");
+
+  fprintf(output,"/* IMAX */\n");
+  fprintf(output,"msh.IMAX = %d\n",msh->IMAX);
+  fprintf(output,"/* JMAX */\n");
+  fprintf(output,"msh.JMAX = %d\n",msh->JMAX);
+  fprintf(output,"/* c */\n");
+  fprintf(output,"msh.c = %f\n",msh->c);
+  fprintf(output,"/* end_prmtrs */\n");
+  fprintf(output,"msh.end_prmtrs[0] = %f\n",msh->end_prmtrs[0]);
+  fprintf(output,"msh.end_prmtrs[1] = %f\n",msh->end_prmtrs[1]);
+  fprintf(output,"msh.end_prmtrs[2] = %f\n",msh->end_prmtrs[2]);
+  fprintf(output,"msh.end_prmtrs[3] = %f\n",msh->end_prmtrs[3]);
+  fprintf(output,"/* init_type */\n");
+  fprintf(output,"msh.init_type = %d\n",msh->init_type);
+  fprintf(output,"/* af_type */\n");
+  fprintf(output,"msh.af_type = %d\n",msh->af_type);
+  if(msh->af_type == 1){
+    fprintf(output,"/* af_prmtrs (bi_air) */\n");
+    fprintf(output,"msh.af_prmtrs[0] = %f\n",msh->af_prmtrs[0]);
+  }
+  else if(msh->af_type == 2){
+    fprintf(output,"/* af_prmtrs (naca4) */\n");
+    fprintf(output,"msh.af_prmtrs[0] = %f\n",msh->af_prmtrs[0]);
+    fprintf(output,"msh.af_prmtrs[1] = %f\n",msh->af_prmtrs[1]);
+    fprintf(output,"msh.af_prmtrs[2] = %f\n",msh->af_prmtrs[2]);
+  }
+  else if(msh->af_type == 3){
+    fprintf(output,"/* af_prmtrs (cst) */\n");
+    fprintf(output,"int n = %d\n",(int) msh->af_prmtrs[0]);
+    fprintf(output,"int cst_foil = %d\n",msh->cst_foil);
+  }
+  else{
+    puts("save_prmtrs_msh: invalid af_type");
+    fclose(output);
+    free(filename);
+    exit(108);
+  }
+  
+  fclose(output);
+  free(filename);
 }
 
 /*

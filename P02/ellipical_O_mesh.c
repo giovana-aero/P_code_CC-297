@@ -38,8 +38,8 @@ int main(){
   msh.end_prmtrs[2] = msh.c*.5;
   msh.end_prmtrs[3] = 0.;
   /* init_type */
-  msh.init_type = 4;
-  int init_only = 1; // Initialize only, do not solve elliptical mesh (1 or 0)
+  msh.init_type = 3;
+  int init_only = 0; // Initialize only, do not solve elliptical mesh (1 or 0)
   int mesh_type = 1; // 1: eom; 2: ecm (ADI only)
 
   /* af_type */
@@ -52,10 +52,10 @@ int main(){
   msh.af_prmtrs[0] = 2.;
   msh.af_prmtrs[1] = 4.;
   msh.af_prmtrs[2] = 10.;
-  /* af_prmtrs (cst) */
-  // msh.af_prmtrs[0] = n;
-  // int cst_foil = 3; // see cst_prmtrs for list of airfoils
-  // cst_prmtrs(cst_foil,msh.af_prmtrs);
+  // /* af_prmtrs (cst) */
+  // msh.af_prmtrs[0] = (double) n;
+  // msh.cst_foil = 3; 
+  // cst_prmtrs(&msh);
 
   // P & Q control functions
   control_prmtrs c_prmtrs;

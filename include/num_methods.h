@@ -24,7 +24,7 @@ typedef struct s_parameters{
   */
   int Ntype;
   double r;
-  double alpha_seq; // Set to true or false (1 or 0)
+  int alpha_seq; // Set to true or false (1 or 0)
   /* If alpha_seq=0, alpha is the single value. If alpha_seq=1,
   alpha is the low value in the sequence */
   double alpha; 
@@ -57,11 +57,10 @@ void evaluate_delta_form(int m,int n,double phi[m][n],double *x,double *y,
                          sim_prmtrs *config,int num_b_c_r,
                          b_conditions_2d *b_c_r);
 void N_p_jacobi(double *N,double *x,double *y,int i,int j);
+void save_prmtrs_sim(sim_prmtrs *s_p);
 void save_results_qtimes(int m,int n,double phi[m][n],int *iter,
                          sim_prmtrs *s_p,char *buffer,char *filename_save,
                          int *str_end_idx);
-double uniform_scheme_der1_o1_forward(int m,int n,double phi[m][n],int i,int j,
-                                      int axis);
 double scheme_der1_o2_backward(double *f,int m,int n,double phi[m][n],
                                double *xy,int i,int j,int axis);
 double scheme_der1_o2_central(double *f,int m,int n,double phi[m][n],double *xy,
@@ -94,6 +93,8 @@ void tridiagonal_matrix_solver(int n,double *a,double *b,double *c,double *f,
 void tridiagonal_pmatrix_solver(int n,double *a,double *b,double *c,double *f,
                                 double *u);
 double uniform_scheme_der1_o2_central(int m,int n,double phi[m][n],int i,int j,
+                                      int axis);
+double uniform_scheme_der1_o1_forward(int m,int n,double phi[m][n],int i,int j,
                                       int axis);
 double uniform_scheme_der2_o2_central(int m,int n,double phi[m][n],int i,int j,
                                       int axis);

@@ -21,6 +21,7 @@ typedef struct mesh_parameters{
   int JMAX; // number of points (normal)
   double c; // chord length
   int af_type; // 1-biconvex, 2-naca4, 3-cst
+  int cst_foil; // see cst_prmtrs for list of airfoils
   /*
   1-[t]
   2-[m,p,t]
@@ -49,13 +50,13 @@ double control_Q(control_prmtrs *c,int ksi,int eta);
 void cosspace(double *x,double xi,double xf,int n,int half);
 void cst_airfoil(int n_pts,double *x,double *yu,double *yl,double *prmtrs,
                  double c);
-void cst_prmtrs(int af,double *prmtrs);
+void cst_prmtrs(msh_prmtrs *msh);
 void ellipse(double *x,double *y,double *prmtrs,int n,int invert_th);
 void evaluate_delta_form_eom(sim_prmtrs *config,msh_prmtrs *msh,
                              control_prmtrs *c_prmtrs,int init_only);
-void evaluate_delta_form_eom_fp(int m,int n,double x[m][n],double y[m][n],
-                                sim_prmtrs *config,msh_prmtrs *msh,
-                                control_prmtrs *c_prmtrs,int init_only);
+// void evaluate_delta_form_eom_fp(int m,int n,double x[m][n],double y[m][n],
+//                                 sim_prmtrs *config,msh_prmtrs *msh,
+//                                 control_prmtrs *c_prmtrs,int init_only);
 void init_af_bi_air(double *x,double *y,double *x_axis,int chord_n,
                     msh_prmtrs *msh);
 void init_af_cst(double *x,double *y,double *x_axis,int chord_n,
@@ -76,6 +77,7 @@ double min_physical_spacing(int m,int n,double x[m][n],double y[m][n]);
 double max_thickness(int m,int n,double y[m][n]);
 void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
            double *prmtrs);
+void save_prmtrs_msh(char *casename,msh_prmtrs *msh);
 void set_control_prmtrs(int c_type,control_prmtrs *c_prmtrs,msh_prmtrs *msh);
 void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
                                   sim_prmtrs *config,control_prmtrs *c_prmtrs);

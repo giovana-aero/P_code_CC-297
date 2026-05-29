@@ -1,20 +1,21 @@
-// #include<stdlib.h>
-// #include"../include/num_methods.h"
-// #include"../include/eom_lib.h"
+#include<stdlib.h>
+#include"../include/2d_arrays.h"
+#include"../include/num_methods.h"
 
-// // void evaluate_delta_form_fullp(sim_prmtrs *config_msh,msh_prmtrs *msh,
-// //                             control_prmtrs *c_prmtrs,int init_only){
-// //   // double (*x)[msh->IMAX] = calloc(msh->JMAX,sizeof *x);
-// //   // double (*y)[msh->IMAX] = calloc(msh->JMAX,sizeof *y);
+void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,char *fname_msh_x,
+                               char *fname_msh_y){
+  double (*x)[n] = calloc(m,sizeof *x);
+  double (*y)[n] = calloc(m,sizeof *y);
 
-// //   config_msh.save_last_only = 1;
+  read_2d_array_from_file(m,n,x,fname_msh_x);
+  read_2d_array_from_file(m,n,y,fname_msh_y);
 
-// //   if(init_only == 1){
-// //     config_msh.save_i_c == 1
-// //   }
+  
 
 
-// // }
+  free(x);
+  free(y);
+}
 
 // void mesh_config(int c_type,control_prmtrs c_prmtrs,msh_prmtrs msh){
 //   if(load_mesh){

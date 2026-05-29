@@ -204,6 +204,35 @@ void N_p_jacobi(double *N,double *x,double *y,int i,int j){
 }
 
 /*
+- gigiaero, 29/05/2026, 1406 hours
+*/
+void save_prmtrs_sim(sim_prmtrs *s_p){
+  char *filename = malloc(sizeof(char)*200);
+  FILE *output;
+
+  sprintf(filename,"%s_prmtrs_sim.dat",s_p->casename);
+
+  output = fopen(filename,"w");
+
+  fprintf(output,"config.Ntype = %d\n",s_p->Ntype);
+  fprintf(output,"config.w = %f\n",s_p->w);
+  fprintf(output,"config.r = %f\n",s_p->r);
+  fprintf(output,"config.alpha_seq = %d\n",s_p->alpha_seq);
+  fprintf(output,"config.alpha = %e\n",s_p->alpha);
+  fprintf(output,"config.alpha_H = %e\n",s_p->alpha_H);
+  fprintf(output,"config.set_alpha_H = %d\n",s_p->set_alpha_H);
+  fprintf(output,"config.M = %d\n",s_p->M);
+  fprintf(output,"config.max_iter = %ld\n",s_p->max_iter);
+  fprintf(output,"config.qtimes = %ld\n",s_p->qtimes);
+  fprintf(output,"config.save_ic = %d\n",s_p->save_i_c);
+  fprintf(output,"config.save_last_only = %d\n",s_p->save_last_only);
+  fprintf(output,"config.eps = %e\n",s_p->eps);
+
+  fclose(output);
+  free(filename);
+}
+
+/*
 - gigiaero, 22/03/2026, 1121 hours
 
 in this order, the conditions on the internal "if" represent the normal 
@@ -1047,26 +1076,6 @@ void tridiagonal_pmatrix_solver(int n,double *a,double *b,double *c,double *f,
 }
 
 /*
-- gigiaero, 14/05/2026, 1604 hours
-*/
-double uniform_scheme_der1_o1_forward(int m,int n,double phi[m][n],int i,int j,
-                                      int axis){
-  switch(axis){
-    case 1: // Horizontal
-      return (phi[j][i+1] - phi[j][i]);
-      break;
-
-    case 2: // Vertical
-      return (phi[j+1][i] - phi[j][i]);
-      break;
-
-    default:
-      puts("uniform_scheme_der1_o1_forward: invalid axis");
-      exit(15);
-  }
-}
-
-/*
 - gigiaero, 27/04/2026, 1303 hours
 */
 double uniform_scheme_der1_o2_central(int m,int n,double phi[m][n],int i,int j,
@@ -1082,6 +1091,26 @@ double uniform_scheme_der1_o2_central(int m,int n,double phi[m][n],int i,int j,
 
     default:
       puts("uniform_scheme_der1_o2_central: invalid axis");
+      exit(15);
+  }
+}
+
+/*
+- gigiaero, 14/05/2026, 1604 hours
+*/
+double uniform_scheme_der1_o1_forward(int m,int n,double phi[m][n],int i,int j,
+                                      int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return (phi[j][i+1] - phi[j][i]);
+      break;
+
+    case 2: // Vertical
+      return (phi[j+1][i] - phi[j][i]);
+      break;
+
+    default:
+      puts("uniform_scheme_der1_o1_forward: invalid axis");
       exit(15);
   }
 }
