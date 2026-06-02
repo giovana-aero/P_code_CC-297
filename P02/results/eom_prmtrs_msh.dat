@@ -12,8 +12,6 @@ msh.end_prmtrs[3] = 0.000000
 /* init_type */
 msh.init_type = 3
 /* af_type */
-msh.af_type = 2
-/* af_prmtrs (naca4) */
-msh.af_prmtrs[0] = 2.000000
-msh.af_prmtrs[1] = 4.000000
-msh.af_prmtrs[2] = 10.000000
+msh.af_type = 1
+/* af_prmtrs (bi_air) */
+msh.af_prmtrs[0] = 0.100000

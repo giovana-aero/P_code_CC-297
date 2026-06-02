@@ -3,9 +3,20 @@
 #include<stdlib.h>
 #include"../include/2d_arrays.h"
 #include"../include/eom_lib.h"
+#include"../include/fullp_lib.h"
 #include"../include/num_methods.h"
 
 #define gamma 1.4
+
+void boundary_condition_freestream(){
+  // phi_inf = u_inf*x (simples assim)
+
+  // sobre o amortecimento artificial:
+  // contraU > 0 -> backward
+  // contraU < 0 -> forward
+
+  // calcular por exemplo no ponto i=0 e depois copiar pros demais?
+}
 
 /*
 - gigiaero, 29/05/2026, 1446 hours
@@ -69,47 +80,8 @@ double calc_contraU(double dphi_dksi,double dphi_deta,double A1_val,
 */
 double calc_contraV(double dphi_dksi,double dphi_deta,double A2_val,
                     double A3_val){
-  // switch(axis){ 
-  //   case 1: // i+1/2,j
   return A2_val*dphi_dksi + A3_val*dphi_deta;
-  //     break;
-
-  //   case 2: // i,j+1/2
-  //     return 
-  //     break;
-
-  //   default:
-  //     puts("calc_contraV: invalid axis");
-  //     exit(15);
-
-  // }
 }
-
-// /*
-// - gigiaero, 31/05/2026, 1119 hours
-// */
-// double calc_rho(double contraU,double contraV,double dphi_dksi,
-//                 double dphi_deta){
-//   return pow(1 - ((gamma - 1.)/(gamma + 1.))*(contraU*dphi_dksi + 
-//              contraV*dphi_deta),1./(gamma - 1.));
-// }
-// double calc_rho(double *contraU,double *contraV,int m,int n,double phi[m][n],
-//                 double A1[m][n],double A2[m][n],double A3[m][n],int i,int j){
-//   double dphi_dksi,dphi_deta;
-//   // double contraU,contraV;
-
-//   dphi_dksi = uniform_scheme_der1_o1_forward(m,n,phi,i,j,1);
-//   dphi_deta = (uniform_scheme_der1_o2_central(m,n,phi,i,j,2) + 
-//                 uniform_scheme_der1_o2_central(m,n,phi,i+1,j,2))*.5;
-
-//   *contraU = calc_contraU(dphi_dksi,dphi_deta,(A1[j][i+1] + A1[j][i])*.5,
-//                           (A2[j][i+1] + A2[j][i])*.5);
-//   *contraV = calc_contraV(dphi_dksi,dphi_deta,(A2[j][i+1] + A2[j][i])*.5,
-//                           (A3[j][i+1] + A3[j][i])*.5);
-
-//   return pow(1 - ((gamma - 1.)/(gamma + 1.))*((*contraU)*dphi_dksi + 
-//              (*contraV)*dphi_deta),1./(gamma - 1.));
-// }
 
 /*
 - gigiaero, 01/06/2026, 0956 hours
@@ -144,26 +116,30 @@ void calc_rho(int m,int n,double rho[m][n-1],double phi[m][n],double A1[m][n],
 /*
 - gigiaero, 29/05/2026, 1448 hours
 */
-void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,char *fname_msh_x,
+void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
+                               fullp_prmtrs *fp_prmtrs,char *fname_msh_x,
                                char *fname_msh_y){
   double (*x)[n] = calloc(m,sizeof *x);
   double (*y)[n] = calloc(m,sizeof *y);
   double (*phi)[n] = calloc(m,sizeof *phi);
 
+  save_prmtrs_sim(config);
+  // salvar aqui parâmetros específicos do fullp ----------
+
   read_2d_array_from_file(m,n,x,fname_msh_x);
   read_2d_array_from_file(m,n,y,fname_msh_y);
 
-  // condição
-  // inicial
-  // aqui
+  char *filename = malloc(sizeof(char)*200);
+  sprintf(filename,"%s%s",config->casename,"_x_mesh.dat");
+  print_2d_array_to_file(m,n,x,filename,0);
+  sprintf(filename,"%s%s",config->casename,"_y_mesh.dat");
+  print_2d_array_to_file(m,n,y,filename,0);
+
+  initialize_fullp(m,n,phi,x,y,fp_prmtrs);
 
   if(config->save_i_c){
-    char *filename = malloc(sizeof(char)*200);
-
     sprintf(filename,"%s_iter_%010d.dat",config->casename,0);
     print_2d_array_to_file(m,n,phi,filename,0);
-
-    free(filename);
   }
 
   switch(config->Ntype){
@@ -182,7 +158,7 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,char *fname_msh_x,
     case 3:
       // puts("fullp af2 pending");
       puts("AF2, full potential flow over airfoil");
-      solve_af2_2d_rectangular_fullp(m,n,phi,x,y,config);
+      // solve_af2_2d_rectangular_fullp(m,n,phi,x,y,config);
       break;
       
     default:
@@ -190,24 +166,90 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,char *fname_msh_x,
       exit(32);
   }
 
-  /*
-  calcular aqui: velocidades e densidades
-  */
+  double (*u)[n] = calloc(m,sizeof *u);
+  double (*v)[n] = calloc(m,sizeof *v);
+  double (*Ve)[n] = calloc(m,sizeof *Ve);
 
+  get_u_v_potential_fullp(m,n,phi,u,v,Ve);
 
+  sprintf(filename,"%s%s",config->casename,"_u.dat");
+  print_2d_array_to_file(m,n,u,filename,0);
+  sprintf(filename,"%s%s",config->casename,"_v.dat");
+  print_2d_array_to_file(m,n,v,filename,0);
+  sprintf(filename,"%s%s",config->casename,"_Ve.dat");
+  print_2d_array_to_file(m,n,Ve,filename,0);
 
-  // /* apagar depois */
-  // char *filename = malloc(sizeof(char)*200);
-  // sprintf(filename,"%s%s",config->casename,"_x_initial.dat");
-  // print_2d_array_to_file(m,n,x,filename,0);
-  // sprintf(filename,"%s%s",config->casename,"_y_initial.dat");
-  // print_2d_array_to_file(m,n,y,filename,0);
-  // free(filename);
-  // /* apagar depois */
+  
 
+  free(filename);
   free(x);
   free(y);
   free(phi);
+  free(u);
+  free(v);
+  free(Ve);
+}
+
+/*
+- gigiaero, 01/06/2026, 1555 hours
+*/
+double freestream_u(double Ma){
+  return sqrt((gamma + 1.)/(gamma - 1. + 2./Ma/Ma));
+}
+
+/*
+- gigiaero, 01/06/2026, 2204 hours
+*/
+void get_u_v_potential_fullp(int m,int n,double phi[m][n],double u[m][n],
+                             double v[m][n],double Ve[m][n]){
+  // Domain interior
+  for(int j=1;j<m-1;j++){
+    u[j][0] = uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j);
+    v[j][0] = uniform_scheme_der1_o2_central(m,n,phi,0,j,2);
+    
+    for(int i=1;i<n-1;i++){
+      u[j][i] = uniform_scheme_der1_o2_central(m,n,phi,i,j,1);
+      v[j][i] = uniform_scheme_der1_o2_central(m,n,phi,i,j,2);
+    }
+  }
+
+  // External boundary and airfoil surface
+  for(int i=1;i<n-1;i++){
+    u[0][i] = uniform_scheme_der1_o2_central(m,n,phi,i,0,1);
+    v[0][i] = uniform_scheme_der1_o2_forward(m,n,phi,i,0,2);
+    u[m-1][i] = uniform_scheme_der1_o2_central(m,n,phi,i,m-1,1);
+    v[m-1][i] = uniform_scheme_der1_o2_backward(m,n,phi,i,m-1,2);
+  }
+
+  // Corners
+  u[0][0] = uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,0);
+  v[0][0] = uniform_scheme_der1_o2_forward(m,n,phi,0,0,2);
+  u[m-1][0] = uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,m-1);
+  v[m-1][0] = uniform_scheme_der1_o2_backward(m,n,phi,0,m-1,2);
+
+  // Velocity resultant
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n-1;i++)
+      Ve[j][i] = sqrt(pow(u[j][i],2) + pow(v[j][i],2));
+
+    u[j][n-1] = u[j][0];
+    v[j][n-1] = v[j][0];
+    Ve[j][n-1] = Ve[j][0];
+  }
+}
+
+/*
+- gigiaero, 0/06/2026, 2057 hours
+*/
+void initialize_fullp(int m,int n,double phi[m][n],double x[m][n],double y[m][n],
+                      fullp_prmtrs *fp_prmtrs){
+  double Uinf = freestream_u(fp_prmtrs->Ma);
+
+  for(int j=1;j<m;j++){
+    for(int i=0;i<n;i++)
+      phi[j][i] = Uinf*cos(fp_prmtrs->alpha)*x[j][i] + 
+                  Uinf*sin(fp_prmtrs->alpha)*y[j][i];
+  }
 }
 
 /*
@@ -317,6 +359,19 @@ void L_phi_fullp(int m,int n,double L_phi[m][n],double phi[m][n],
       L_phi[j][i] = (term_ih - term_ihm1) + (term_jh - term_jhm1);
     }
   }
+
+  for(int i=1;i<n-1;i++){
+    term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,rho,C,i,0);
+    term_ihm1 = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,rho,C,i-1,0);
+
+    term_jh = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,i,0);
+    // term_jhm1 = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,i,-1); !!!!!
+
+    L_phi[0][i] = (term_ih - term_ihm1) + (term_jh - term_jhm1);
+  }
+
+  for(int j=0;j<m-1;j++)
+    L_phi[j][n-1] = L_phi[j][0];
 }
 
 /*
@@ -433,7 +488,9 @@ int rs_idx(double contraUV){
 }
 
 void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double x[m][n],
-                                    double y[m][n],sim_prmtrs *config){
+                                    double y[m][n],sim_prmtrs *config,
+                                    fullp_prmtrs *fp_prmtrs){
+  double (*L_phi)[n] = calloc(m,sizeof *L_phi);
   double (*J)[n] = calloc(m,sizeof *J);
   double (*A1)[n] = calloc(m,sizeof *A1);
   double (*A2)[n] = calloc(m,sizeof *A2);
@@ -444,14 +501,23 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double x[m][n],
 
   // a se pensar: calc_contraU e calc_contraV poderiam ser a mesma função
 
-  for(iter;iter<=config->max_iter;iter++){
-    calc_J(m,n,J,x,y);
-    calc_A_metrics(m,n,A1,A2,A3,x,y,J);                                        
-    calc_rho(m,n,rho,phi,A1,A2,A3);
+  calc_J(m,n,J,x,y);
+  calc_A_metrics(m,n,A1,A2,A3,x,y,J);
 
+  for(iter;iter<=config->max_iter;iter++){                                
+    calc_rho(m,n,rho,phi,A1,A2,A3);
+    L_phi_fullp(m,n,L_phi,phi,J,A1,A2,A3,rho,fp_prmtrs->C);
+
+    // calcular resíduos
+
+    // operador N
+    // sobre o amortecimento artificial:
+    // contraU > 0 -> backward
+    // contraU < 0 -> forward
+
+    // atualizar condições de contorno
 
     // forçar periodicidade aqui
-
   }
 
   free(J);

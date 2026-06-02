@@ -96,6 +96,10 @@ double uniform_scheme_der1_o2_central(int m,int n,double phi[m][n],int i,int j,
                                       int axis);
 double uniform_scheme_der1_o1_forward(int m,int n,double phi[m][n],int i,int j,
                                       int axis);
+double uniform_scheme_der1_o2_backward(int m,int n,double phi[m][n],int i,int j,
+                                       int axis);
+double uniform_scheme_der1_o2_forward(int m,int n,double phi[m][n],int i,int j,
+                                      int axis);
 double uniform_scheme_der2_o2_central(int m,int n,double phi[m][n],int i,int j,
                                       int axis);
 

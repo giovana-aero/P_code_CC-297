@@ -13,8 +13,8 @@
 
 int main(){
   /* MESH ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  char filename_msh_x[] = "../P02/results_unmod/eom_x_iter_0000009781.dat";
-  char filename_msh_y[] = "../P02/results_unmod/eom_y_iter_0000009781.dat";
+  char filename_msh_x[] = "../P02/results/eom_x_iter_0000000047.dat";
+  char filename_msh_y[] = "../P02/results/eom_y_iter_0000000047.dat";
   int m = 15;
   int n = 93;
 
@@ -35,10 +35,17 @@ int main(){
   config.eps = 1.e-6;
   char output_file[] = "results/fullp";
 
+  fullp_prmtrs fp_prmtrs;
+  fp_prmtrs.alpha = 0.;
+  fp_prmtrs.Ma = .7;
+  fp_prmtrs.C = 1.;
+  fp_prmtrs.lift = 0;
+
   /* FLOW (solution) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   config.casename = malloc(sizeof(char)*200);
   sprintf(config.casename,"%s",output_file);
-  evaluate_delta_form_fullp(m,n,&config,filename_msh_x,filename_msh_y);
+  evaluate_delta_form_fullp(m,n,&config,&fp_prmtrs,filename_msh_x,
+                            filename_msh_y);
 
   free(config.casename);
 

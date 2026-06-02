@@ -1116,6 +1116,46 @@ double uniform_scheme_der1_o1_forward(int m,int n,double phi[m][n],int i,int j,
 }
 
 /*
+- gigiaero, 01/06/2026, 2151 hours
+*/
+double uniform_scheme_der1_o2_backward(int m,int n,double phi[m][n],int i,int j,
+                                       int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return (3.*phi[j][i] - 4.*phi[j][i-1] + phi[j][i-2])*.5;
+      break;
+
+    case 2: // Vertical
+      return (3.*phi[j][i] - 4.*phi[j-1][i] + phi[j-2][i])*.5;
+      break;
+
+    default:
+      puts("uniform_scheme_der1_o2_backward: invalid axis");
+      exit(15);
+  }
+}
+
+/*
+- gigiaero, 01/06/2026, 2149 hours
+*/
+double uniform_scheme_der1_o2_forward(int m,int n,double phi[m][n],int i,int j,
+                                      int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return (-3.*phi[j][i] + 4.*phi[j][i+1] - phi[j][i+2])*.5;
+      break;
+
+    case 2: // Vertical
+      return (-3.*phi[j][i] + 4.*phi[j+1][i] - phi[j+2][i])*.5;
+      break;
+
+    default:
+      puts("uniform_scheme_der1_o2_forward: invalid axis");
+      exit(15);
+  }
+}
+
+/*
 - gigiaero, 27/04/2026, 1303 hours
 */
 double uniform_scheme_der2_o2_central(int m,int n,double phi[m][n],int i,int j,
