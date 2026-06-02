@@ -920,6 +920,15 @@ void save_prmtrs_msh(char* casename,msh_prmtrs *msh){
 }
 
 /*
+defined in the context of fullp
+- gigiaero, 02/06/2026, 0920 hours
+*/
+double scheme_der1_o2_central_prdc_ksi(int m,int n,double phi[m][n],
+                                       double x[m][n],int j){
+  return (phi[j][1] - phi[j][n-2])/(x[j][1] - x[j][n-2]);
+}
+
+/*
 - gigiaero, 22/05/2026, 1101
 */
 void set_control_prmtrs(int c_type,control_prmtrs *c_prmtrs,msh_prmtrs *msh){

@@ -79,6 +79,8 @@ void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
            double *prmtrs);
 void save_prmtrs_msh(char *casename,msh_prmtrs *msh);
 void set_control_prmtrs(int c_type,control_prmtrs *c_prmtrs,msh_prmtrs *msh);
+double scheme_der1_o2_central_prdc_ksi(int m,int n,double phi[m][n],
+                                       double x[m][n],int j);
 void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
                                   sim_prmtrs *config,control_prmtrs *c_prmtrs);
 void solve_adi_2d_rectangular_eom_np(int m,int n,double x[m][n],double y[m][n],

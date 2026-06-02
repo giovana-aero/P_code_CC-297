@@ -11,10 +11,6 @@
 
 #define div_ref 1e100
 
-// double binomials(){
-
-// }
-
 /*
 - gigiaero, 01/04/2026, 1633 hours
 */
@@ -272,8 +268,8 @@ Scheme: first derivative, second order, backward
 correction done: variable delta_x
 - gigiaero, 06/04/2026, 1355 hours
 */
-double scheme_der1_o2_backward(double *f,int m,int n,double phi[m][n],double *xy,
-                               int i,int j,int axis){
+void scheme_der1_o2_backward(double *f,int m,int n,double phi[m][n],double *xy,
+                             int i,int j,int axis){
   switch(axis){
     case 1: // Horizontal
       *f = (3.*phi[j][i] - 4.*phi[j][i-1] + phi[j][i-2])/
@@ -292,11 +288,34 @@ double scheme_der1_o2_backward(double *f,int m,int n,double phi[m][n],double *xy
 }
 
 /*
+defined in the context of fullp
+- gigiaero, 02/06/2026,0913 hours
+*/
+double scheme_der1_o2_backward_2dxy(int m,int n,double phi[m][n],
+                                    double xy[m][n],int i,int j,int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return (3.*phi[j][i] - 4.*phi[j][i-1] + phi[j][i-2])/
+             (3.*xy[j][i] - 4.*xy[j][i-1] + xy[j][i-2]);
+      break;
+
+    case 2: // Vertical
+      return (3.*phi[j][i] - 4.*phi[j-1][i] + phi[j-2][i])/
+             (3.*xy[j][i] - 4.*xy[j-1][i] + xy[j-2][i]);
+      break;
+
+    default:
+      puts("scheme_der1_o2_backward_2dxy: invalid axis");
+      exit(15);
+  }
+}
+
+/*
 Scheme: first derivative, second order, central
 - gigiaero, 25/03/2026, 1536 hours
 */
-double scheme_der1_o2_central(double *f,int m,int n,double phi[m][n],double *xy,
-                              int i,int j,int axis){
+void scheme_der1_o2_central(double *f,int m,int n,double phi[m][n],double *xy,
+                            int i,int j,int axis){
   switch(axis){
     case 1: // Horizontal
       *f = (phi[j][i+1] - phi[j][i-1])/(xy[i+1] - xy[i-1]);
@@ -313,14 +332,35 @@ double scheme_der1_o2_central(double *f,int m,int n,double phi[m][n],double *xy,
 }
 
 /*
+defined in the context of fullp
+- gigiaero, 02/06/2026, 0908 hours
+*/
+double scheme_der1_o2_central_2dxy(int m,int n,double phi[m][n],double xy[m][n],
+                                   int i,int j,int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return (phi[j][i+1] - phi[j][i-1])/(xy[j][i+1] - xy[j][i-1]);
+      break;
+
+    case 2: // Vertical
+      return (phi[j+1][i] - phi[j-1][i])/(xy[j+1][i] - xy[j-1][i]);
+      break;
+
+    default:
+      puts("scheme_der1_o2_central_2dxy: invalid axis");
+      exit(15);
+  }
+}
+
+/*
 Scheme: first derivative, second order, forward
 - gigiaero, 25/03/2026, 1536 hours
 
 correction done: variable delta_x
 - gigiaero, 06/04/2026, 1355 hours
 */
-double scheme_der1_o2_forward(double *f,int m,int n,double phi[m][n],
-                               double *xy,int i,int j,int axis){
+void scheme_der1_o2_forward(double *f,int m,int n,double phi[m][n],
+                            double *xy,int i,int j,int axis){
   switch(axis){
     case 1: // Horizontal
       *f = (-3.*phi[j][i] + 4.*phi[j][i+1] - phi[j][i+2])/
@@ -334,6 +374,25 @@ double scheme_der1_o2_forward(double *f,int m,int n,double phi[m][n],
     
     default:
       puts("scheme_der1_o2_forward: invalid axis");
+      exit(15);
+  }
+}
+
+double scheme_der1_o2_forward_2dxy(int m,int n,double phi[m][n],double xy[m][n],
+                                   int i,int j,int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return (-3.*phi[j][i] + 4.*phi[j][i+1] - phi[j][i+2])/
+             (-3.*xy[j][i] + 4.*xy[j][i+1] - xy[j][i+2]);
+      break;
+
+    case 2: // Vertical
+      return (-3.*phi[j][i] + 4.*phi[j+1][i] - phi[j+2][i])/
+             (-3.*xy[j][i] + 4.*xy[j+1][i] - xy[j+2][i]);
+      break;
+    
+    default:
+      puts("scheme_der1_o2_forward_2dxy: invalid axis");
       exit(15);
   }
 }

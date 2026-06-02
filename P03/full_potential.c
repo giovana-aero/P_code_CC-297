@@ -36,7 +36,7 @@ int main(){
   char output_file[] = "results/fullp";
 
   fullp_prmtrs fp_prmtrs;
-  fp_prmtrs.alpha = 0.;
+  fp_prmtrs.alpha = 5;
   fp_prmtrs.Ma = .7;
   fp_prmtrs.C = 1.;
   fp_prmtrs.lift = 0;
