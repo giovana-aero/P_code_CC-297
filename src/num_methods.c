@@ -46,6 +46,10 @@ int check_num_digits_int(int *num){
   return i;
 }
 
+/*
+used mostly for debugging 
+- gigiaero, 03/06/2026, 1052 hours (not actually the time i coded this)
+*/
 void disp(double x){
   printf("%e\n",x);
 }
@@ -1155,6 +1159,27 @@ double uniform_scheme_der1_o2_central(int m,int n,double phi[m][n],int i,int j,
 }
 
 /*
+- gigiaero, 03/06/2026, 1351 hours
+*/
+double uniform_scheme_der1_o1_backward(int m,int n,double phi[m][n],int i,int j,
+                                       int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return (phi[j][i] - phi[j][i-1]);
+      break;
+
+    case 2: // Vertical
+      return (phi[j][i] - phi[j][i-1]);
+      break;
+
+    default:
+      puts("uniform_scheme_der1_o1_backward: invalid axis");
+      exit(15);
+  }
+}
+
+
+/*
 - gigiaero, 14/05/2026, 1604 hours
 */
 double uniform_scheme_der1_o1_forward(int m,int n,double phi[m][n],int i,int j,
@@ -1210,6 +1235,50 @@ double uniform_scheme_der1_o2_forward(int m,int n,double phi[m][n],int i,int j,
 
     default:
       puts("uniform_scheme_der1_o2_forward: invalid axis");
+      exit(15);
+  }
+}
+
+/*
+- gigiaero, 03/06/2026, 1429 hours
+*/
+double uniform_scheme_der1_o3_backward(int m,int n,double phi[m][n],int i,int j,
+                                       int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return (11.*phi[j][i] - 18.*phi[j][i-1] + 9.*phi[j][i-2] - 
+              2.*phi[j][i-3])/6.;
+      break;
+
+    case 2: // Vertical
+      return (11.*phi[j][i] - 18.*phi[j-1][i] + 9.*phi[j-2][i] - 
+              2.*phi[j-3][i])/6.;
+      break;
+
+    default:
+      puts("uniform_scheme_der1_o3_backward: invalid axis");
+      exit(15);
+  }
+}
+
+/*
+- gigiaero, 03/06/2026, 1427 hours
+*/
+double uniform_scheme_der1_o3_forward(int m,int n,double phi[m][n],int i,int j,
+                                      int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return (-11.*phi[j][i] + 18.*phi[j][i+1] - 9.*phi[j][i+2] + 
+             2.*phi[j][i+3])/6.;
+      break;
+
+    case 2: // Vertical
+      return (-11.*phi[j][i] + 18.*phi[j+1][i] - 9.*phi[j+2][i] + 
+             2.*phi[j+3][i])/6.;
+      break;
+
+    default:
+      puts("uniform_scheme_der1_o3_forward: invalid axis");
       exit(15);
   }
 }

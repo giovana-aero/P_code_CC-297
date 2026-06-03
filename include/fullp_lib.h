@@ -26,10 +26,10 @@ double freestream_u(double Ma);
 void get_u_v_potential_fullp(int m,int n,double phi[m][n],double x[m][n],
                              double y[m][n],double J[m][n],double u[m][n],
                              double v[m][n],double Ve[m][n]);
-void initialize_fullp(int m,int n,double phi[m][n],double x[m][n],double y[m][n],
-                      fullp_prmtrs *fp_prmtrs);
+void initialize_fullp(int m,int n,double phi[m][n],double x[m][n],
+                      double y[m][n],fullp_prmtrs *fp_prmtrs);
 double L_phi_fullp_der_terms_ih(int m,int n,double phi[m][n],double J[m][n],
-                                double A1[m][n],double A2[m][n],
+                                double A1[m][n],double A2[m][n],double A3[m][n],
                                 double rho[m][n-1],double C,int i,int j);
 double L_phi_fullp_der_terms_jh(int m,int n,double phi[m][n],double J[m][n],
                                 double A2[m][n],double A3[m][n],
@@ -48,6 +48,10 @@ double nu_switch(int m,int n,double rho[m][n-1],double C,double contraUV,
 double rho_coeffs(int m,int n,double rho[m][n-1],double nu,int rs,int i,int j,
                   int axis);
 int rs_idx(double contraUV);
+void three_point_pol2_extrp(int m,int n,double A[m][n],double x[m][n],
+                            double y[m][n],int i,int end);
+void two_point_linear_extrp(int m,int n,double A[m][n],double x[m][n],
+                            double y[m][n],int i,int end);
 void solve_adi_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
                                     double A1[m][n],double A2[m][n],
                                     double A3[m][n],sim_prmtrs *config,

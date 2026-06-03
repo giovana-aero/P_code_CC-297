@@ -98,14 +98,20 @@ void tridiagonal_matrix_solver(int n,double *a,double *b,double *c,double *f,
                                double *u);
 void tridiagonal_pmatrix_solver(int n,double *a,double *b,double *c,double *f,
                                 double *u);
-double uniform_scheme_der1_o2_central(int m,int n,double phi[m][n],int i,int j,
-                                      int axis);
+double uniform_scheme_der1_o1_backward(int m,int n,double phi[m][n],int i,int j,
+                                       int axis);
 double uniform_scheme_der1_o1_forward(int m,int n,double phi[m][n],int i,int j,
                                       int axis);
 double uniform_scheme_der1_o2_backward(int m,int n,double phi[m][n],int i,int j,
                                        int axis);
+double uniform_scheme_der1_o2_central(int m,int n,double phi[m][n],int i,int j,
+                                      int axis);
 double uniform_scheme_der1_o2_forward(int m,int n,double phi[m][n],int i,int j,
                                       int axis);
+double uniform_scheme_der1_o3_backward(int m,int n,double phi[m][n],int i,int j,
+                                       int axis);
+double uniform_scheme_der1_o3_forward(int m,int n,double phi[m][n],int i,int j,
+                                        int axis);
 double uniform_scheme_der2_o2_central(int m,int n,double phi[m][n],int i,int j,
                                       int axis);
 

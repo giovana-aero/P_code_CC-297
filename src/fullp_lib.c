@@ -23,39 +23,54 @@ void boundary_condition_freestream(){
 /*
 - gigiaero, 29/05/2026, 1446 hours
 */
+// a se considerar: calcular nas bordas usando interpolação linear
 void calc_A_metrics(int m,int n,double A1[m][n],double A2[m][n],double A3[m][n],
                     double x[m][n],double y[m][n],double J[m][n]){
   double ksix,ksiy;
   double etax,etay;
 
   for(int j=1;j<m-1;j++){
-    // ksix = J[j][0]*uniform_scheme_der1_o2_central(m,n,y,0,j,2);
-    // ksiy = -J[j][0]*uniform_scheme_der1_o2_central(m,n,x,0,j,2);
-    // etax = -J[j][0]*uniform_scheme_der1_o2_central_prdc_ksi(m,n,y,j);
-    // etay = J[j][0]*uniform_scheme_der1_o2_central_prdc_ksi(m,n,x,j);
-    metric_terms(&ksix,&ksiy,&etax,&etay,m,n,J,x,y,0,j);
-
-    A1[j][0] = ksix*ksix + ksiy*ksiy;
-    A2[j][0] = ksix*etax + ksiy*etay;
-    A3[j][0] = etax*etax + etay*etay;
-
-    for(int i=1;i<n-1;i++){
-      // ksix = J[j][i]*uniform_scheme_der1_o2_central(m,n,y,i,j,2);
-      // ksiy = -J[j][i]*uniform_scheme_der1_o2_central(m,n,x,i,j,2);
-      // etax = -J[j][i]*uniform_scheme_der1_o2_central(m,n,y,i,j,1);
-      // etay = J[j][i]*uniform_scheme_der1_o2_central(m,n,x,i,j,1);
+    for(int i=0;i<n-1;i++){
       metric_terms(&ksix,&ksiy,&etax,&etay,m,n,J,x,y,i,j);
 
       A1[j][i] = ksix*ksix + ksiy*ksiy;
       A2[j][i] = ksix*etax + ksiy*etay;
       A3[j][i] = etax*etax + etay*etay;
     }
+    
+    A1[j][n-1] = A1[j][0];
+    A2[j][n-1] = A2[j][0];
+    A3[j][n-1] = A3[j][0];
   }
+
+  for(int i=0;i<n-1;i++){
+    // print_2d_array(m,n,A3);
+    three_point_pol2_extrp(m,n,A1,x,y,i,0);
+    three_point_pol2_extrp(m,n,A2,x,y,i,0);
+    three_point_pol2_extrp(m,n,A3,x,y,i,0);
+    three_point_pol2_extrp(m,n,A1,x,y,i,1);
+    three_point_pol2_extrp(m,n,A2,x,y,i,1);
+    three_point_pol2_extrp(m,n,A3,x,y,i,1);
+    // two_point_linear_extrp(m,n,A1,x,y,i,0);
+    // two_point_linear_extrp(m,n,A2,x,y,i,0);
+    // two_point_linear_extrp(m,n,A3,x,y,i,0);
+    // two_point_linear_extrp(m,n,A1,x,y,i,1);
+    // two_point_linear_extrp(m,n,A2,x,y,i,1);
+    // two_point_linear_extrp(m,n,A3,x,y,i,1);
+  }
+
+  A1[0][n-1] = A1[0][0];
+  A2[0][n-1] = A2[0][0];
+  A3[0][n-1] = A3[0][0];
+  A1[m-1][n-1] = A1[m-1][0];
+  A2[m-1][n-1] = A2[m-1][0];
+  A3[m-1][n-1] = A3[m-1][0];
 }
 
 /*
 - gigiaero, 29/05/2026, 1435 hours
 */
+// a se considerar: calcular nas bordas usando interpolação linear
 void calc_J(int m,int n,double J[m][n],double x[m][n],double y[m][n]){
   for(int j=1;j<m-1;j++){
     J[j][0] = 1./(uniform_scheme_der1_o2_central_prdc_ksi(m,n,x,j)*
@@ -69,6 +84,13 @@ void calc_J(int m,int n,double J[m][n],double x[m][n],double y[m][n]){
                     uniform_scheme_der1_o2_central(m,n,x,i,j,2)*
                     uniform_scheme_der1_o2_central(m,n,y,i,j,1));
   }
+
+  // for(int i=0;i<n-1;i++){
+  //   // two_point_linear_extrp(m,n,J,x,y,i,0);
+  //   // two_point_linear_extrp(m,n,J,x,y,i,1);
+  //   three_point_pol2_extrp(m,n,J,x,y,i,0);
+  //   three_point_pol2_extrp(m,n,J,x,y,i,1);
+  // }
 
   for(int i=1;i<n-1;i++){
     J[0][i] = 1./(uniform_scheme_der1_o2_central(m,n,x,i,0,1)*
@@ -117,27 +139,47 @@ void calc_rho(int m,int n,double rho[m][n-1],double phi[m][n],double A1[m][n],
               double A2[m][n],double A3[m][n]){
   double dphi_dksi,dphi_deta;
   double contraU,contraV;
-  double A2_mean;
+  double A1_mean,A2_mean,A3_mean;
 
-  for(int j=1;j<m-1;j++){
+  for(int j=0;j<m-1;j++){
+  // for(int j=0+af2_inv;j<m-1+af2_inv;j++){ // usar isto quando estiver trabalhando no af2
     for(int i=0;i<n-1;i++){
       dphi_dksi = uniform_scheme_der1_o1_forward(m,n,phi,i,j,1);
-      dphi_deta = (uniform_scheme_der1_o2_central(m,n,phi,i,j,2) + 
-                   uniform_scheme_der1_o2_central(m,n,phi,i+1,j,2))*.5;
 
+      A1_mean = (A1[j][i+1] + A1[j][i])*.5;
       A2_mean = (A2[j][i+1] + A2[j][i])*.5;
-      contraU = calc_contraU(dphi_dksi,dphi_deta,(A1[j][i+1] + A1[j][i])*.5,
-                             A2_mean);
-      contraV = calc_contraV(dphi_dksi,dphi_deta,A2_mean,
-                             (A3[j][i+1] + A3[j][i])*.5);
+      A3_mean = (A3[j][i+1] + A3[j][i])*.5;
+
+      if(j == 0)  // ADI
+        dphi_deta = -A2_mean*dphi_dksi/A3_mean;
+
+      // else if(j == m-1 && af2_inv) // vide comentários em L_phi_fullp_der_terms_ih
+
+      else
+        dphi_deta = (uniform_scheme_der1_o2_central(m,n,phi,i,j,2) + 
+                     uniform_scheme_der1_o2_central(m,n,phi,i+1,j,2))*.5;
+
+      contraU = calc_contraU(dphi_dksi,dphi_deta,A1_mean,A2_mean);
+      contraV = calc_contraV(dphi_dksi,dphi_deta,A2_mean,A3_mean);
 
       rho[j][i] = pow(1 - ((gamma - 1.)/(gamma + 1.))*(contraU*dphi_dksi + 
-                  contraV*dphi_deta),1./(gamma - 1.));
+                      contraV*dphi_deta),1./(gamma - 1.));
+      // disp(A1_mean);
+      // disp(A2_mean);
+      // disp(A3_mean);
+      // disp(contraU);
+      // disp(contraV);
+      // disp(dphi_dksi);
+      // disp(dphi_deta);
+      // // disp(contraU*dphi_dksi);
+      // // disp(contraV*dphi_deta);
+      // disp(contraU*dphi_dksi + contraV*dphi_deta);
+      // disp(1 - ((gamma - 1.)/(gamma + 1.))*(contraU*dphi_dksi + contraV*dphi_deta));
+      // disp(1./(gamma - 1.));
+      // disp(rho[j][i]);
+      // putchar('\n');
     }
   }
-
-  for(int j=0;j<m;j++)
-    rho[j][n-1] = rho[j][0];
 }
 
 /*
@@ -169,6 +211,11 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   calc_J(m,n,J,x,y);
   calc_A_metrics(m,n,A1,A2,A3,x,y,J);
 
+  print_2d_array_to_file(m,n,J,"mat_J.dat",0);
+  print_2d_array_to_file(m,n,A1,"mat_A1.dat",0);
+  print_2d_array_to_file(m,n,A2,"mat_A2.dat",0);
+  print_2d_array_to_file(m,n,A3,"mat_A3.dat",0);
+
   initialize_fullp(m,n,phi,x,y,fp_prmtrs);
 
   if(config->save_i_c){
@@ -184,14 +231,14 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
       break;
     
     case 2:
-      puts("fullp adi pending");
-      // puts("ADI, full potential flow over airfoil");
-      // solve_adi_2d_rectangular_fullp();
+      // puts("fullp adi pending");
+      puts("ADI, full potential flow over airfoil");
+      solve_adi_2d_rectangular_fullp(m,n,phi,J,A1,A2,A3,config,fp_prmtrs);
       break;
     
     case 3:
       // puts("fullp af2 pending");
-      puts("AF2, full potential flow over airfoil");
+      // puts("AF2, full potential flow over airfoil");
       // solve_af2_2d_rectangular_fullp(m,n,phi,x,y,config);
       break;
       
@@ -248,11 +295,6 @@ void get_u_v_potential_fullp(int m,int n,double phi[m][n],double x[m][n],
 
   // Domain interior
   for(int j=1;j<m-1;j++){
-    // ksix = J[j][0]*uniform_scheme_der1_o2_central(m,n,y,0,j,2);
-    // ksiy = -J[j][0]*uniform_scheme_der1_o2_central(m,n,x,0,j,2);
-    // etax = -J[j][0]*uniform_scheme_der1_o2_central_prdc_ksi(m,n,y,j);
-    // etay = J[j][0]*uniform_scheme_der1_o2_central_prdc_ksi(m,n,x,j);
-
     metric_terms(&ksix,&ksiy,&etax,&etay,m,n,J,x,y,0,j);
     u[j][0] = uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j)*ksix + 
               uniform_scheme_der1_o2_central(m,n,phi,0,j,2)*etax;
@@ -260,11 +302,6 @@ void get_u_v_potential_fullp(int m,int n,double phi[m][n],double x[m][n],
               uniform_scheme_der1_o2_central(m,n,phi,0,j,2)*etay;
     
     for(int i=1;i<n-1;i++){
-      // ksix = J[j][i]*uniform_scheme_der1_o2_central(m,n,y,i,j,2);
-      // ksiy = -J[j][i]*uniform_scheme_der1_o2_central(m,n,x,i,j,2);
-      // etax = -J[j][i]*uniform_scheme_der1_o2_central(m,n,y,i,j,1);
-      // etay = J[j][i]*uniform_scheme_der1_o2_central(m,n,x,i,j,1);
-
       metric_terms(&ksix,&ksiy,&etax,&etay,m,n,J,x,y,i,j);
       u[j][i] = uniform_scheme_der1_o2_central(m,n,phi,i,j,1)*ksix + 
                 uniform_scheme_der1_o2_central(m,n,phi,i,j,2)*etax;
@@ -301,60 +338,6 @@ void get_u_v_potential_fullp(int m,int n,double phi[m][n],double x[m][n],
   v[m-1][0] = uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,m-1)*ksiy + 
               uniform_scheme_der1_o2_backward(m,n,phi,0,m-1,2)*etay;
 
-  /* --- */
-
-  // // Domain interior
-  // for(int j=1;j<m-1;j++){
-  //   u[j][0] = scheme_der1_o2_central_prdc_ksi(m,n,phi,x,j);
-  //   v[j][0] = scheme_der1_o2_central_2dxy(m,n,phi,y,0,j,2);
-    
-  //   for(int i=1;i<n-1;i++){
-  //     u[j][i] = scheme_der1_o2_central_2dxy(m,n,phi,x,i,j,1);
-  //     v[j][i] = scheme_der1_o2_central_2dxy(m,n,phi,y,i,j,2);
-  //   }
-  // }
-
-  // // External boundary and airfoil surface
-  // for(int i=1;i<n-1;i++){
-  //   u[0][i] = scheme_der1_o2_central_2dxy(m,n,phi,x,i,0,1);
-  //   v[0][i] = scheme_der1_o2_forward_2dxy(m,n,phi,y,i,0,2);
-  //   u[m-1][i] = scheme_der1_o2_central_2dxy(m,n,phi,x,i,m-1,1);
-  //   v[m-1][i] = scheme_der1_o2_backward_2dxy(m,n,phi,y,i,m-1,2);
-  // }
-
-  // // Corners
-  // u[0][0] = scheme_der1_o2_central_prdc_ksi(m,n,phi,x,0);
-  // v[0][0] = scheme_der1_o2_forward_2dxy(m,n,phi,y,0,0,2);
-  // u[m-1][0] = scheme_der1_o2_central_prdc_ksi(m,n,phi,x,m-1);
-  // v[m-1][0] = scheme_der1_o2_backward_2dxy(m,n,phi,y,0,m-1,2);
-
-  /* --- */
-
-  // // Domain interior
-  // for(int j=1;j<m-1;j++){
-  //   u[j][0] = uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j);
-  //   v[j][0] = uniform_scheme_der1_o2_central(m,n,phi,0,j,2);
-    
-  //   for(int i=1;i<n-1;i++){
-  //     u[j][i] = uniform_scheme_der1_o2_central(m,n,phi,i,j,1);
-  //     v[j][i] = uniform_scheme_der1_o2_central(m,n,phi,i,j,2);
-  //   }
-  // }
-
-  // // External boundary and airfoil surface
-  // for(int i=1;i<n-1;i++){
-  //   u[0][i] = uniform_scheme_der1_o2_central(m,n,phi,i,0,1);
-  //   v[0][i] = uniform_scheme_der1_o2_forward(m,n,phi,i,0,2);
-  //   u[m-1][i] = uniform_scheme_der1_o2_central(m,n,phi,i,m-1,1);
-  //   v[m-1][i] = uniform_scheme_der1_o2_backward(m,n,phi,i,m-1,2);
-  // }
-
-  // // Corners
-  // u[0][0] = uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,0);
-  // v[0][0] = uniform_scheme_der1_o2_forward(m,n,phi,0,0,2);
-  // u[m-1][0] = uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,m-1);
-  // v[m-1][0] = uniform_scheme_der1_o2_backward(m,n,phi,0,m-1,2);
-
   // Velocity resultant
   for(int j=0;j<m;j++){
     for(int i=0;i<n-1;i++)
@@ -388,39 +371,64 @@ void initialize_fullp(int m,int n,double phi[m][n],double x[m][n],double y[m][n]
 - gigiaero, 01/06/2026,1314 hours
 */
 double L_phi_fullp_der_terms_ih(int m,int n,double phi[m][n],double J[m][n],
-                                double A1[m][n],double A2[m][n],
+                                double A1[m][n],double A2[m][n],double A3[m][n],
                                 double rho[m][n-1],double C,int i,int j){
   double dphi_dksi,dphi_deta;
   double contraU,rho_til,nu_x;
+  double A2_ih = (A2[j][i+1] + A2[j][i])*.5;
 
-  if(i == 0){
-    dphi_dksi = uniform_scheme_der1_o1_forward(m,n,phi,0,j,1);
-    dphi_deta = (uniform_scheme_der1_o2_central(m,n,phi,0,j,2) + 
-                 uniform_scheme_der1_o2_central(m,n,phi,1,j,2))*.5;
+  // if(i != 0 && j == 0){
+  //   dphi_dksi = uniform_scheme_der1_o1_forward(m,n,phi,0,j,1);
+  //   dphi_deta = 
 
-    contraU = calc_contraU(dphi_dksi,dphi_deta,(A1[j][1] + A1[j][0])*.5,
-                           (A2[j][1] + A2[j][0])*.5);
+  //   contraU = calc_contraU(dphi_dksi,dphi_deta,(A1[j][1] + A1[j][0])*.5,
+  //                          (A2[j][1] + A2[j][0])*.5);
 
-    nu_x = nu_switch(m,n,rho,C,contraU,0,j,1);
+  //   nu_x = nu_switch(m,n,rho,C,contraU,0,j,1);
 
-    rho_til = rho_coeffs(m,n,rho,nu_x,rs_idx(contraU),0,j,1);
+  //   rho_til = rho_coeffs(m,n,rho,nu_x,rs_idx(contraU),0,j,1);
 
-    return rho_til*contraU/((J[j][1] + J[j][0])*.5);
-  }
-  else{
-    dphi_dksi = uniform_scheme_der1_o1_forward(m,n,phi,i,j,1);
+  //   return rho_til*contraU/((J[j][1] + J[j][0])*.5);
+  // }
+
+  // if(i == 0){
+  //   dphi_dksi = uniform_scheme_der1_o1_forward(m,n,phi,i,j,1);
+  //   dphi_deta = (uniform_scheme_der1_o2_central(m,n,phi,i,j,2) + 
+  //                uniform_scheme_der1_o2_central(m,n,phi,i+1,j,2))*.5;
+
+  //   contraU = calc_contraU(dphi_dksi,dphi_deta,(A1[j][i+1] + A1[j][i])*.5,
+  //                          (A2[j][i+1] + A2[j][i])*.5);
+
+  //   nu_x = nu_switch(m,n,rho,C,contraU,i,j,1);
+
+  //   rho_til = rho_coeffs(m,n,rho,nu_x,rs_idx(contraU),i,j,1);
+
+  //   return rho_til*contraU/((J[j][i+1] + J[j][i])*.5);
+  // }
+  // else{
+  
+  dphi_dksi = uniform_scheme_der1_o1_forward(m,n,phi,i,j,1);
+
+  if(j == 0) // ADI
+    dphi_deta = -A2_ih*dphi_dksi/(A3[j][i+1] + A3[j][i])*2.;
+  
+  // else if(j == m-1 && af2_inv) // AF2
+  // onde af2_inv indica que as matrizes foram "invertidas" pra uso no af2. 
+  // a condição do if acima será então (j == 0 && !af2_inv)
+
+  else
     dphi_deta = (uniform_scheme_der1_o2_central(m,n,phi,i,j,2) + 
                  uniform_scheme_der1_o2_central(m,n,phi,i+1,j,2))*.5;
 
-    contraU = calc_contraU(dphi_dksi,dphi_deta,(A1[j][i+1] + A1[j][i])*.5,
-                           (A2[j][i+1] + A2[j][i])*.5);
+  contraU = calc_contraU(dphi_dksi,dphi_deta,(A1[j][i+1] + A1[j][i])*.5,
+                         A2_ih);
 
-    nu_x = nu_switch(m,n,rho,C,contraU,i,j,1);
+  nu_x = nu_switch(m,n,rho,C,contraU,i,j,1);
 
-    rho_til = rho_coeffs(m,n,rho,nu_x,rs_idx(contraU),i,j,1);
+  rho_til = rho_coeffs(m,n,rho,nu_x,rs_idx(contraU),i,j,1);
 
-    return rho_til*contraU/((J[j][i+1] + J[j][i])*.5);
-  }
+  return rho_til*contraU/((J[j][i+1] + J[j][i])*.5);
+  // }
 }
 
 /*
@@ -472,8 +480,8 @@ void L_phi_fullp(int m,int n,double L_phi[m][n],double phi[m][n],
   double term_jh,term_jhm1;
 
   for(int j=1;j<m-1;j++){
-    term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,rho,C,0,j);
-    term_ihm1 = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,rho,C,n-2,j);
+    term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,0,j);
+    term_ihm1 = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,n-2,j);
 
     term_jh = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,0,j);
     term_jhm1 = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,0,j-1);
@@ -482,7 +490,7 @@ void L_phi_fullp(int m,int n,double L_phi[m][n],double phi[m][n],
 
     for(int i=1;i<n-1;i++){
       term_ihm1 = term_ih;
-      term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,rho,C,i,j);
+      term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,i,j);
       // term_ihm1 = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,rho,C,i-1,j);
 
       term_jh = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,i,j);
@@ -492,12 +500,15 @@ void L_phi_fullp(int m,int n,double L_phi[m][n],double phi[m][n],
     }
   }
 
+  // superfície do aerofólio, i=0 aqui -----------------------
+
   for(int i=1;i<n-1;i++){
-    term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,rho,C,i,0);
-    term_ihm1 = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,rho,C,i-1,0);
+    term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,i,0);
+    term_ihm1 = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,i-1,0);
 
     term_jh = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,i,0);
     // term_jhm1 = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,i,-1); !!!!!
+    term_jhm1  = -term_jh;
 
     L_phi[0][i] = (term_ih - term_ihm1) + (term_jh - term_jhm1);
   }
@@ -546,81 +557,35 @@ void metric_terms(double *ksix,double *ksiy,double *etax,double *etay,int m,
   if(i == 0){
     dy_dksi = uniform_scheme_der1_o2_central_prdc_ksi(m,n,y,j);
     dx_dksi = uniform_scheme_der1_o2_central_prdc_ksi(m,n,x,j);
-    // *etax = -J[j][i]*uniform_scheme_der1_o2_central_prdc_ksi(m,n,y,j);
-    // *etay = J[j][i]*uniform_scheme_der1_o2_central_prdc_ksi(m,n,x,j);
   }
   else{
     dy_dksi = uniform_scheme_der1_o2_central(m,n,y,i,j,1);
     dx_dksi = uniform_scheme_der1_o2_central(m,n,x,i,j,1);
-    // *etax = -J[j][i]*uniform_scheme_der1_o2_central(m,n,y,i,j,1);
-    // *etay = J[j][i]*uniform_scheme_der1_o2_central(m,n,x,i,j,1);
   }
 
   if(j == 0){
     dy_deta = uniform_scheme_der1_o2_forward(m,n,y,i,j,2);
     dx_deta = uniform_scheme_der1_o2_forward(m,n,x,i,j,2);
-    // *ksix = J[j][i]*uniform_scheme_der1_o2_forward(m,n,y,i,j,2);
-    // *ksiy = -J[j][i]*uniform_scheme_der1_o2_forward(m,n,x,i,j,2);
   }
   else if(j == m-1){
     dy_deta = uniform_scheme_der1_o2_backward(m,n,y,i,j,2);
     dx_deta = uniform_scheme_der1_o2_backward(m,n,x,i,j,2);
-    // *ksix = J[j][i]*uniform_scheme_der1_o2_nackward(m,n,y,i,j,2);
-    // *ksiy = -J[j][i]*uniform_scheme_der1_o2_backward(m,n,x,i,j,2);
   }
   else{
     dy_deta = uniform_scheme_der1_o2_central(m,n,y,i,j,2);
     dx_deta = uniform_scheme_der1_o2_central(m,n,x,i,j,2);
-    // *ksix = J[j][i]*uniform_scheme_der1_o2_central(m,n,y,i,j,2);
-    // *ksiy = -J[j][i]*uniform_scheme_der1_o2_central(m,n,x,i,j,2);
   }
 
   *ksix = J[j][i]*dy_deta;
   *ksiy = -J[j][i]*dx_deta;
   *etax = -J[j][i]*dy_dksi;
   *etay = J[j][i]*dx_dksi;
-
-  // if(i == 0 && j != 0 && j != m-1){ // periodicity line
-  //   *ksix = J[j][i]*uniform_scheme_der1_o2_central(m,n,y,i,j,2);
-  //   *ksiy = -J[j][i]*uniform_scheme_der1_o2_central(m,n,x,i,j,2);
-  //   *etax = -J[j][i]*uniform_scheme_der1_o2_central_prdc_ksi(m,n,y,j);
-  //   *etay = J[j][i]*uniform_scheme_der1_o2_central_prdc_ksi(m,n,x,j);
-  // }
-  // else if(i != 0 && j == 0){ // lower edge
-  //   *ksix = J[j][i]*uniform_scheme_der1_o2_forward(m,n,y,i,j,2);
-  //   *ksiy = -J[j][i]*uniform_scheme_der1_o2_forward(m,n,x,i,j,2);
-  //   *etax = -J[j][i]*uniform_scheme_der1_o2_central(m,n,y,i,j,1);
-  //   *etay = J[j][i]*uniform_scheme_der1_o2_central(m,n,x,i,j,1);
-  // }
-  // else if(i != 0 && j == m-1){ // upper edge
-  //   *ksix = J[j][i]*uniform_scheme_der1_o2_backward(m,n,y,i,j,2);
-  //   *ksiy = -J[j][i]*uniform_scheme_der1_o2_backward(m,n,x,i,j,2);
-  //   *etax = -J[j][i]*uniform_scheme_der1_o2_central(m,n,y,i,j,1);
-  //   *etay = J[j][i]*uniform_scheme_der1_o2_central(m,n,x,i,j,1);
-  // }
-  // else if(i == 0 && j == 0){ // low left corner
-  //   *ksix = J[j][i]*uniform_scheme_der1_o2_forward(m,n,y,i,j,2);
-  //   *ksiy = -J[j][i]*uniform_scheme_der1_o2_forward(m,n,x,i,j,2);
-  //   *etax = -J[j][i]*uniform_scheme_der1_o2_central_prdc_ksi(m,n,y,j);
-  //   *etay = J[j][i]*uniform_scheme_der1_o2_central_prdc_ksi(m,n,x,j);
-  // }
-  // else if(i == 0 && j == m-1){ // high left corner
-  //   *ksix = J[j][i]*uniform_scheme_der1_o2_backward(m,n,y,i,j,2);
-  //   *ksiy = -J[j][i]*uniform_scheme_der1_o2_backward(m,n,x,i,j,2);
-  //   *etax = -J[j][i]*uniform_scheme_der1_o2_central_prdc_ksi(m,n,y,j);
-  //   *etay = J[j][i]*uniform_scheme_der1_o2_central_prdc_ksi(m,n,x,j);
-  // }
-  // else{ // domain interior
-  //   *ksix = J[j][i]*uniform_scheme_der1_o2_central(m,n,y,i,j,2);
-  //   *ksiy = -J[j][i]*uniform_scheme_der1_o2_central(m,n,x,i,j,2);
-  //   *etax = -J[j][i]*uniform_scheme_der1_o2_central(m,n,y,i,j,1);
-  //   *etay = J[j][i]*uniform_scheme_der1_o2_central(m,n,x,i,j,1);
-  // }
 }
 
 /*
 - gigiaero, 01/06/2026, 1048 hours
 */
+// NOTA: PENDENTE ADAPTAÇÃO PRO AF2
 double nu_switch(int m,int n,double rho[m][n-1],double C,double contraUV,
                  int i,int j,int axis){
   double C1 = .633939;
@@ -703,6 +668,62 @@ int rs_idx(double contraUV){
     return -1;
 }
 
+/*
+- gigiaero, 03/06/2026, 1544 hours
+*/
+void three_point_pol2_extrp(int m,int n,double A[m][n],double x[m][n],
+                            double y[m][n],int i,int end){
+  double d1,d2,d3;
+  // double px0 = x[0][i];
+  // double py0 = y[0][i];
+
+  if(!end){
+    d1 = sqrt(pow(x[1][i] - x[0][i],2.) + pow(y[1][i] - y[0][i],2.));
+    d2 = sqrt(pow(x[2][i] - x[0][i],2.) + pow(y[2][i] - y[0][i],2.));
+    d3 = sqrt(pow(x[3][i] - x[0][i],2.) + pow(y[3][i] - y[0][i],2.));
+    
+    A[0][i] = (d1*d1*d2*A[3][i] - d1*d1*d3*A[2][i] - d1*d2*d2*A[3][i] + 
+               d1*d3*d3*A[2][i] + d2*d2*d3*A[1][i] - d2*d3*d3*A[1][i])/
+              (d1*d1*d2 - d1*d1*d3 - d1*d2*d2  + d1*d3*d3  + d2*d2*d3 - 
+               d2*d3*d3);
+  }
+  else{
+    d1 = sqrt(pow(x[m-2][i] - x[m-1][i],2.) + pow(y[m-2][i] - y[m-1][i],2.));
+    d2 = sqrt(pow(x[m-3][i] - x[m-1][i],2.) + pow(y[m-3][i] - y[m-1][i],2.));
+    d3 = sqrt(pow(x[m-4][i] - x[m-1][i],2.) + pow(y[m-4][i] - y[m-1][i],2.));
+
+    A[m-1][i] = (d1*d1*d2*A[m-4][i] - d1*d1*d3*A[m-3][i] - d1*d2*d2*A[m-4][i] + 
+                 d1*d3*d3*A[m-3][i] + d2*d2*d3*A[m-2][i] - d2*d3*d3*A[m-2][i])/
+                (d1*d1*d2 - d1*d1*d3 - d1*d2*d2  + d1*d3*d3  + d2*d2*d3 - 
+                 d2*d3*d3);
+  }
+}
+
+/*
+- gigiaero, 03/06/2026, 1306 hours
+*/
+void two_point_linear_extrp(int m,int n,double A[m][n],double x[m][n],
+                            double y[m][n],int i,int end){
+  double d1,d2;
+  // double px0 = x[0][i];
+  // double py0 = y[0][i];
+  
+  if(!end){
+    d1 = sqrt(pow(x[1][i] - x[0][i],2.) + pow(y[1][i] - y[0][i],2.));
+    d2 = sqrt(pow(x[2][i] - x[0][i],2.) + pow(y[2][i] - y[0][i],2.));
+
+    A[0][i] = (d1*A[2][i] - d2*A[1][i])/(d1 - d2);
+  }
+  else{
+    d1 = sqrt(pow(x[m-2][i] - x[m-1][i],2.) + pow(y[m-2][i] - y[m-1][i],2.));
+    d2 = sqrt(pow(x[m-3][i] - x[m-1][i],2.) + pow(y[m-3][i] - y[m-1][i],2.));
+    // d1 = sqrt(x[m-2][i]*x[m-2][i] + y[m-2][i]*y[m-2][i]);
+    // d2 = sqrt(x[m-3][i]*x[m-3][i] + y[m-3][i]*y[m-3][i]);
+
+    A[m-1][i] = (d1*A[m-3][i] - d2*A[m-2][i])/(d1 - d2);
+  }
+}
+
 void solve_adi_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
                                     double A1[m][n],double A2[m][n],
                                     double A3[m][n],sim_prmtrs *config,
@@ -717,9 +738,11 @@ void solve_adi_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
 
   // a se pensar: calc_contraU e calc_contraV poderiam ser a mesma função
 
-  for(iter;iter<=config->max_iter;iter++){                                
-    calc_rho(m,n,rho,phi,A1,A2,A3);
-    L_phi_fullp(m,n,L_phi,phi,J,A1,A2,A3,rho,fp_prmtrs->C);
+  calc_rho(m,n,rho,phi,A1,A2,A3);
+  print_2d_array_to_file(m,n-1,rho,"mat_rho.dat",0);
+
+  // for(iter;iter<=config->max_iter;iter++){                                
+    // L_phi_fullp(m,n,L_phi,phi,J,A1,A2,A3,rho,fp_prmtrs->C);
 
     // calcular resíduos
 
@@ -731,7 +754,7 @@ void solve_adi_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
     // atualizar condições de contorno
 
     // forçar periodicidade aqui
-  }
+  // }
 
   free(rho);
 }
