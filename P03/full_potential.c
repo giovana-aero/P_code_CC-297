@@ -23,8 +23,8 @@ int main(){
   config.Ntype = 2;
   config.w = 2.;
   config.r = 1.;
-  config.alpha_seq = 1;
-  config.alpha = 1e-4;
+  config.alpha_seq = 0;
+  config.alpha = 1;
   config.alpha_H = 1e-1;
   config.set_alpha_H = 0;
   config.M = 5;

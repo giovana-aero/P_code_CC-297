@@ -1,8 +1,8 @@
 config.Ntype = 2
 config.w = 2.000000
 config.r = 1.000000
-config.alpha_seq = 1
-config.alpha = 1.000000e-04
+config.alpha_seq = 0
+config.alpha = 1.000000e+00
 config.alpha_H = 1.000000e-01
 config.set_alpha_H = 0
 config.M = 5

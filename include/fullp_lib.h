@@ -12,6 +12,9 @@ typedef struct fullp_parameters{
 
 void calc_A_metrics(int m,int n,double A1[m][n],double A2[m][n],double A3[m][n],
                     double x[m][n],double y[m][n],double J[m][n]);
+double calc_Ai(int m,int n,double phi[m][n],double J[m][n],double A1[m][n],
+               double A2[m][n],double A3[m][n],double rho[m][n-1],double C,
+               int i,int j);                    
 double calc_contraU(double dphi_dksi,double dphi_deta,double A1_val,
                     double A2_val);
 double calc_contraV(double dphi_dksi,double dphi_deta,double A2_val,

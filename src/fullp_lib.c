@@ -5,6 +5,7 @@
 #include"../include/eom_lib.h"
 #include"../include/fullp_lib.h"
 #include"../include/num_methods.h"
+#include"../include/strings.h"
 
 #define div_ref 1e100
 #define gamma 1.4
@@ -68,6 +69,88 @@ void calc_A_metrics(int m,int n,double A1[m][n],double A2[m][n],double A3[m][n],
 }
 
 /*
+- gigiaero, 03/06/2026, 2105 hours
+*/
+double calc_Ai(int m,int n,double phi[m][n],double J[m][n],double A1[m][n],
+               double A2[m][n],double A3[m][n],double rho[m][n-1],double C,
+               int i,int j){
+  if(i < 0)
+    i = n-2;
+
+  double dphi_dksi,dphi_deta;
+  double contraU,rho_til,nu_x;
+  double A1_ih = (A1[j][i+1] + A1[j][i])*.5;
+  double A2_ih = (A2[j][i+1] + A2[j][i])*.5;
+  
+  dphi_dksi = uniform_scheme_der1_o1_forward(m,n,phi,i,j,1);
+
+  if(j == 0) // ADI
+    dphi_deta = -A2_ih*dphi_dksi/(A3[j][i+1] + A3[j][i])*2.;
+  
+  // else if(j == m-1 && af2_inv) // AF2
+  // onde af2_inv indica que as matrizes foram "invertidas" pra uso no af2. 
+  // a condição do if acima será então (j == 0 && !af2_inv)
+
+  else
+    dphi_deta = (uniform_scheme_der1_o2_central(m,n,phi,i,j,2) + 
+                 uniform_scheme_der1_o2_central(m,n,phi,i+1,j,2))*.5;
+
+  contraU = calc_contraU(dphi_dksi,dphi_deta,A1_ih,A2_ih);
+
+  nu_x = nu_switch(m,n,rho,C,contraU,i,j,1);
+
+  rho_til = rho_coeffs(m,n,rho,nu_x,rs_idx(contraU),i,j,1);
+
+  return rho_til*A1_ih/((J[j][i+1] + J[j][i])*.5);
+}
+
+// /*
+// - gigiaero, 01/06/2026,1332 hours
+// */
+// // NOTA: PENDENTE ADAPTAÇÃO PRO AF2
+// double L_phi_fullp_der_terms_jh(int m,int n,double phi[m][n],double J[m][n],
+//                                 double A2[m][n],double A3[m][n],
+//                                 double rho[m][n-1],double C,int i,int j){
+//   double dphi_dksi,dphi_deta;
+//   double contraV,rho_bar,nu_y;
+//   double A3_jh = (A3[j+1][i] + A3[j][i])*.5;
+
+//   if(i == 0)
+//     dphi_dksi = (uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j) + 
+//                  uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j+1))*.5;
+//   else
+//     dphi_dksi = (uniform_scheme_der1_o2_central(m,n,phi,i,j,1) + 
+//                  uniform_scheme_der1_o2_central(m,n,phi,i,j+1,1))*.5;
+  
+//   dphi_deta = uniform_scheme_der1_o1_forward(m,n,phi,i,j,2);
+
+//   contraV = calc_contraV(dphi_dksi,dphi_deta,(A2[j+1][i] + A2[j][i])*.5,
+//                          (A3[j+1][i] + A3[j][i])*.5);
+
+//   nu_y = nu_switch(m,n,rho,C,contraV,i,j,2);
+
+//   rho_bar = rho_coeffs(m,n,rho,nu_y,rs_idx(contraV),i,j,2);
+
+//   return rho_bar*contraV/((J[j+1][i] + J[j][i])*.5);
+// }
+
+/*
+- gigiaero, 31/05/2026, 1143h hours
+*/
+double calc_contraU(double dphi_dksi,double dphi_deta,double A1_val,
+                    double A2_val){
+  return A1_val*dphi_dksi + A2_val*dphi_deta;
+}
+
+/*
+- gigiaero, 31/05/2026, 1321 hours
+*/
+double calc_contraV(double dphi_dksi,double dphi_deta,double A2_val,
+                    double A3_val){
+  return A2_val*dphi_dksi + A3_val*dphi_deta;
+}
+
+/*
 - gigiaero, 29/05/2026, 1435 hours
 */
 // a se considerar: calcular nas bordas usando interpolação linear
@@ -114,22 +197,6 @@ void calc_J(int m,int n,double J[m][n],double x[m][n],double y[m][n]){
 
   for(int j=0;j<m;j++)
     J[j][n-1] = J[j][0];
-}
-
-/*
-- gigiaero, 31/05/2026, 1143h hours
-*/
-double calc_contraU(double dphi_dksi,double dphi_deta,double A1_val,
-                    double A2_val){
-  return A1_val*dphi_dksi + A2_val*dphi_deta;
-}
-
-/*
-- gigiaero, 31/05/2026, 1321 hours
-*/
-double calc_contraV(double dphi_dksi,double dphi_deta,double A2_val,
-                    double A3_val){
-  return A2_val*dphi_dksi + A3_val*dphi_deta;
 }
 
 /*
@@ -434,40 +501,30 @@ double L_phi_fullp_der_terms_ih(int m,int n,double phi[m][n],double J[m][n],
 /*
 - gigiaero, 01/06/2026,1332 hours
 */
+// NOTA: PENDENTE ADAPTAÇÃO PRO AF2
 double L_phi_fullp_der_terms_jh(int m,int n,double phi[m][n],double J[m][n],
                                 double A2[m][n],double A3[m][n],
                                 double rho[m][n-1],double C,int i,int j){
   double dphi_dksi,dphi_deta;
   double contraV,rho_bar,nu_y;
 
-  if(i == 0){
+  if(i == 0)
     dphi_dksi = (uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j) + 
-                  uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j+1))*.5;
-    dphi_deta = uniform_scheme_der1_o1_forward(m,n,phi,0,j,2);
-
-    contraV = calc_contraV(dphi_dksi,dphi_deta,(A2[j+1][0] + A2[j][0])*.5,
-                           (A3[j+1][0] + A3[j][0])*.5);
-
-    nu_y = nu_switch(m,n,rho,C,contraV,0,j,2);
-
-    rho_bar = rho_coeffs(m,n,rho,nu_y,rs_idx(contraV),0,j,2);
-
-    return rho_bar*contraV/((J[j+1][0] + J[j][0])*.5);
-  }
-  else{
+                 uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j+1))*.5;
+  else
     dphi_dksi = (uniform_scheme_der1_o2_central(m,n,phi,i,j,1) + 
-                  uniform_scheme_der1_o2_central(m,n,phi,i,j+1,1))*.5;
-    dphi_deta = uniform_scheme_der1_o1_forward(m,n,phi,i,j,2);
+                 uniform_scheme_der1_o2_central(m,n,phi,i,j+1,1))*.5;
+  
+  dphi_deta = uniform_scheme_der1_o1_forward(m,n,phi,i,j,2);
 
-    contraV = calc_contraV(dphi_dksi,dphi_deta,(A2[j+1][i] + A2[j][i])*.5,
-                            (A3[j+1][i] + A3[j][i])*.5);
+  contraV = calc_contraV(dphi_dksi,dphi_deta,(A2[j+1][i] + A2[j][i])*.5,
+                         (A3[j+1][i] + A3[j][i])*.5);
 
-    nu_y = nu_switch(m,n,rho,C,contraV,i,j,2);
+  nu_y = nu_switch(m,n,rho,C,contraV,i,j,2);
 
-    rho_bar = rho_coeffs(m,n,rho,nu_y,rs_idx(contraV),i,j,2);
+  rho_bar = rho_coeffs(m,n,rho,nu_y,rs_idx(contraV),i,j,2);
 
-    return rho_bar*contraV/((J[j+1][i] + J[j][i])*.5);
-  }
+  return rho_bar*contraV/((J[j+1][i] + J[j][i])*.5);
 }
 
 /*
@@ -479,7 +536,8 @@ void L_phi_fullp(int m,int n,double L_phi[m][n],double phi[m][n],
   double term_ih,term_ihm1;
   double term_jh,term_jhm1;
 
-  for(int j=1;j<m-1;j++){
+  // NOTA: PENDENTE ADAPTAÇÃO PRO AF2
+  for(int j=0;j<m-1;j++){
     term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,0,j);
     term_ihm1 = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,n-2,j);
 
@@ -502,16 +560,15 @@ void L_phi_fullp(int m,int n,double L_phi[m][n],double phi[m][n],
 
   // superfície do aerofólio, i=0 aqui -----------------------
 
-  for(int i=1;i<n-1;i++){
-    term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,i,0);
-    term_ihm1 = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,i-1,0);
+  // for(int i=1;i<n-1;i++){
+  //   term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,i,0);
+  //   term_ihm1 = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,i-1,0);
 
-    term_jh = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,i,0);
-    // term_jhm1 = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,i,-1); !!!!!
-    term_jhm1  = -term_jh;
+  //   term_jh = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,i,0);
+  //   term_jhm1  = -term_jh;
 
-    L_phi[0][i] = (term_ih - term_ihm1) + (term_jh - term_jhm1);
-  }
+  //   L_phi[0][i] = (term_ih - term_ihm1) + (term_jh - term_jhm1);
+  // }
 
   for(int j=0;j<m-1;j++)
     L_phi[j][n-1] = L_phi[j][0];
@@ -731,30 +788,170 @@ void solve_adi_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
   // Solver variables
   double (*L_phi)[n] = calloc(m,sizeof *L_phi);
   double (*Cij)[n] = calloc(m,sizeof *Cij);
-  double (*f)[n] = calloc(m,sizeof *f);
   double (*rho)[n-1] = calloc(m,sizeof *rho);
-
+  double (*f)[n] = calloc(m,sizeof *f);
+  double *ak = malloc(sizeof(double)*(n-1));
+  double *bk = malloc(sizeof(double)*(n-1));
+  double *ck = malloc(sizeof(double)*(n-1));
+  double *fk = malloc(sizeof(double)*(n-1));
+  double *uk = malloc(sizeof(double)*(n-1));
+  double *an = malloc(sizeof(double)*(m-3));
+  double *bn = malloc(sizeof(double)*(m-2));
+  double *cn = malloc(sizeof(double)*(m-3));
+  double *fn = malloc(sizeof(double)*(m-2));
+  double *un = malloc(sizeof(double)*(m-2));
+  double Ai,Aip1,Aj,Ajp1;
+  double dphi_dksi,dphi_deta;
+  double contraU,contraV;
+  double beta_k = 1.;
+  // double beta_k,beta_n;
+  double omega = config->w;
+  double alpha = config->alpha;
+  // double alpha;
+  int k = 1;
   int iter = 1;
+  // Save files
+  char *filename_save = malloc(sizeof(char)*200);
+  char *buffer = malloc(sizeof(char)*200);
+  int str_end_idx;
+  // Residuals
+  char *filename_log = malloc(sizeof(char)*200);
+  double res;
+  FILE *file_log;
+
+  // Configure log files
+  sprintf(filename_log,"%s.log",config->casename);
+  file_log = fopen(filename_log,"w");
+
+  // Prepare string to save simulation data  
+  sprintf(filename_save,"%s_iter_",config->casename);
+  find_str_end(filename_save,&str_end_idx);
 
   // a se pensar: calc_contraU e calc_contraV poderiam ser a mesma função
 
-  calc_rho(m,n,rho,phi,A1,A2,A3);
-  print_2d_array_to_file(m,n-1,rho,"mat_rho.dat",0);
+  for(iter;iter<=config->max_iter;iter++){         
+    // alpha_sequence_aH(m,n,x,y,config,&k);
+    // alpha_sequence(&alpha,&k,iter,config);
 
-  // for(iter;iter<=config->max_iter;iter++){                                
-    // L_phi_fullp(m,n,L_phi,phi,J,A1,A2,A3,rho,fp_prmtrs->C);
+    calc_rho(m,n,rho,phi,A1,A2,A3);
+    // print_2d_array_to_file(m,n-1,rho,"mat_rho.dat",0);               
+    L_phi_fullp(m,n,L_phi,phi,J,A1,A2,A3,rho,fp_prmtrs->C);
 
-    // calcular resíduos
+    // print_2d_array_to_file(m,n,L_phi,"mat_L_phi.dat",0);
+
+    res = 0.;
+    for(int j=0;j<m-1;j++){
+      for(int i=0;i<n-1;i++){
+        if(fabs(L_phi[j][i]) > res)
+          res = fabs(L_phi[j][i]);
+      }
+    }
+
+    printf("ADI Iteration %010d | Res %.6e\n",iter,res);
+
+    fprintf(file_log,"%.6e\n",res);
+
+    // Test for convergence
+    if(res <= config->eps && iter != 0){
+      puts("<< Convergence! >>");
+      iter++;
+      break;
+    }
+
+    if(res >= div_ref){
+      puts("- Divergence");
+      iter++;
+      break;
+    }
+
+    // Solve for corrections - step 1 (ksi)
+    for(int j=0;j<m-1;j++){
+      Ai = calc_Ai(m,n,phi,J,A1,A2,A3,rho,fp_prmtrs->C,-1,j);
+      for(int i=0;i<n-1;i++){
+        // Ai = calc_Ai(m,n,phi,J,A1,A2,A3,rho,fp_prmtrs->C,i-1,j);
+        Aip1 = calc_Ai(m,n,phi,J,A1,A2,A3,rho,fp_prmtrs->C,i,j);
+
+        if(i == 0)
+          contraU = calc_contraU(uniform_scheme_der1_o2_central_prdc_ksi(m,n,
+                                                                         phi,j),
+                                 uniform_scheme_der1_o2_central(m,n,phi,i,j,2),
+                                 A1[j][i],A2[j][i]);
+
+        else
+          contraU = calc_contraU(uniform_scheme_der1_o2_central(m,n,phi,i,j,1),
+                                 uniform_scheme_der1_o2_central(m,n,phi,i,j,2),
+                                 A1[j][i],A2[j][i]);
+
+        if(contraU > 0){
+          ak[i] = -Ai - beta_k*fabs(contraU);
+          ck[i] = -Aip1;
+        }
+        else{
+          ak[i] = -Ai;
+          ck[i] = -Aip1 - beta_k*fabs(contraU);
+        }
+
+        bk[i] = alpha + Ai + Aip1 + beta_k*fabs(contraU);
+
+        fk[i] = omega*alpha*L_phi[j][i];
+
+        Ai = Aip1;
+      }
+
+      tridiagonal_pmatrix_solver(n-1,ak,bk,ck,fk,uk);
+
+      for(int i=0;i<n-1;i++)
+        f[j][i] = uk[i]; 
+    }
+
+    print_2d_array_to_file(m,n,f,"mat_f.dat",0);
+    exit(0);
 
     // operador N
     // sobre o amortecimento artificial:
     // contraU > 0 -> backward
     // contraU < 0 -> forward
 
+    for(int j=0;j<m-1;j++){
+      for(int i=0;i<n-1;i++)
+        phi[j][i] += Cij[j][i];
+    }
+
     // atualizar condições de contorno
 
     // forçar periodicidade aqui
-  // }
+    for(int j=0;j<m-1;j++)
+      phi[j][n-1] = phi[j][0];
 
+    if(!config->save_last_only)
+      save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                          &str_end_idx);
+    
+  }
+
+  // Save last iteration if it wasn't saved
+  if(iter%config->qtimes != 0 || config->save_last_only){
+    iter--; // To get the correct iteration number
+    sprintf(buffer,"L");
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+  }
+
+  free(L_phi);
+  free(Cij);
   free(rho);
+  free(f);
+  free(ak);
+  free(bk);
+  free(ck);
+  free(uk);
+  free(fk);
+  free(an);
+  free(bn);
+  free(cn);
+  free(un);
+  free(fn);
+  free(filename_save);
+  free(buffer);
+  free(filename_log);
+  fclose(file_log);
 }
