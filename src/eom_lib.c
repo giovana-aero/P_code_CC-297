@@ -17,7 +17,7 @@
 void alpha_sequence(double *alpha,int *k,int iter,sim_prmtrs *config){
   if(config->alpha_seq){
     *alpha = config->alpha_H*pow(config->alpha/config->alpha_H,
-             ((double)((*k)-1))/((double)(config->M-1)));
+             ((double)((*k) - 1))/((double)(config->M - 1)));
 
     (*k)++;
 
@@ -34,10 +34,8 @@ void alpha_sequence(double *alpha,int *k,int iter,sim_prmtrs *config){
 - gigiaero, 20/05/2026, 0853 hours
 */
 void alpha_sequence_aH(int m,int n,double x[m][n],double y[m][n],
-                       sim_prmtrs *config,int *k){
-  double max_x,max_y;
-
-  if((*k) != config->M && config->set_alpha_H != 0 && config->alpha_seq){
+                       sim_prmtrs *config,int k){
+  if(k != config->M && config->set_alpha_H != 0 && config->alpha_seq){
     switch(config->set_alpha_H){
       case 1: // ADI
         config->alpha_H = min_physical_spacing(m,n,x,y);
@@ -49,7 +47,7 @@ void alpha_sequence_aH(int m,int n,double x[m][n],double y[m][n],
         break;
 
       default:
-        puts("alpha_sequence_aH: invalid set_alpha_seq");
+        puts("alpha_sequence_aH: invalid set_alpha_H");
         exit(11);
     }
   }
@@ -1165,7 +1163,7 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   find_str_end(filename_save_x,&str_end_idx);
 
   for(iter;iter<=config->max_iter;iter++){
-    alpha_sequence_aH(m,n,x,y,config,&k);
+    alpha_sequence_aH(m,n,x,y,config,k);
     alpha_sequence(&alpha,&k,iter,config);
 
     calc_A(m,n,A,x,y);
@@ -1332,6 +1330,7 @@ void solve_adi_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
 }
 
 /*
+non-periodic version 
 - gigiaero, 24/05/2026, 1739 hours
 */
 void solve_adi_2d_rectangular_eom_np(int m,int n,double x[m][n],double y[m][n],
@@ -1390,7 +1389,7 @@ void solve_adi_2d_rectangular_eom_np(int m,int n,double x[m][n],double y[m][n],
   find_str_end(filename_save_x,&str_end_idx);
 
   for(iter;iter<=config->max_iter;iter++){
-    alpha_sequence_aH(m,n,x,y,config,&k);
+    alpha_sequence_aH(m,n,x,y,config,k);
     alpha_sequence(&alpha,&k,iter,config);
 
     calc_A(m,n,A,x,y);
@@ -1626,7 +1625,7 @@ void solve_af2_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   find_str_end(filename_save_x,&str_end_idx);
 
   for(iter;iter<=config->max_iter;iter++){
-    alpha_sequence_aH(m,n,x,y,config,&k);
+    alpha_sequence_aH(m,n,x,y,config,k);
     alpha_sequence(&alpha,&k,iter,config);
     
     calc_A(m,n,A,x,y);

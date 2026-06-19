@@ -1,4 +1,4 @@
-config.Ntype = 2
+config.Ntype = 3
 config.w = 2.000000
 config.r = 1.000000
 config.alpha_seq = 0

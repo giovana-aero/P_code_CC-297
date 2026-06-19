@@ -20,7 +20,7 @@ int main(){
 
   /* FLOW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   sim_prmtrs config;
-  config.Ntype = 2;
+  config.Ntype = 3;
   config.w = 2.;
   config.r = 1.;
   config.alpha_seq = 0;
@@ -39,6 +39,8 @@ int main(){
   fp_prmtrs.alpha = 0.;
   fp_prmtrs.Ma = .7;
   fp_prmtrs.C = 1.;
+  fp_prmtrs.beta_sub = .3;
+  fp_prmtrs.beta_super = 4.5;
   fp_prmtrs.lift = 0;
 
   /* FLOW (solution) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

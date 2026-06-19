@@ -1,4 +1,5 @@
 #include<stdio.h>
+#include<stdlib.h>
 #include"../include/2d_arrays.h"
 
 /*
@@ -36,10 +37,27 @@ void fill_2d_array(int m,int n,double A[m][n]){
 }
 
 /*
+- gigiaero, 10/06/2026, 1620 hours
+*/
+void flip_2d_array(int m,int n,double A[m][n]){
+  double (*tmp)[n] = calloc(m,sizeof *tmp);
+
+  copy_2d_array(m,n,A,tmp);
+
+  for(int j1=0,j2=m-1;j1<m;j1++,j2--){
+    for(int i1=0,i2=n-1;i1<n;i1++,i2--)
+      A[j1][i1] = tmp[j2][i2];
+  }
+
+  free(tmp);
+}
+
+/*
 - gigiaero, 20/05/2026, 0842 hours
 */
 double max_2d_array(int m,int n,double A[m][n]){
   double k = 0.;
+  
   for(int j=0;j<m;j++){
     for(int i=0;i<n;i++){
       if(A[j][i] > k)
