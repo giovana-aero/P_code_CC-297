@@ -401,13 +401,21 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
     case 3:
       // puts("fullp af2 pending");
       puts("AF2, full potential flow over airfoil");
-      // solve_af2_2d_rectangular_fullp(m,n,phi,x,y,config);
-      flip_2d_array(m,n,phi);
+
+      // flip_2d_array(m,n,A1);
+      // flip_2d_array(m,n,A2);
+      // flip_2d_array(m,n,A3);
+      // flip_2d_array(m,n,J);
+
+      solve_af2_2d_rectangular_fullp(m,n,phi,J,A1,A2,A3,config,fp_prmtrs);
+
+      // flip_2d_array(m,n,phi);
       flip_2d_array(m,n,J);
+      
       break;
       
     default:
-      puts("evaluate_delta_form_eom: Invalid Ntype");
+      puts("evaluate_delta_form_fullp: Invalid Ntype");
       exit(32);
   }
 
@@ -631,11 +639,14 @@ void L_phi_fullp(int m,int n,double L_phi[m][n],double phi[m][n],
   double term_jh,term_jhm1;
 
   for(int j=0+af2_flip;j<m-1+af2_flip;j++){
-    term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,0,j,af2_flip);
     term_ihm1=L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,n-2,j,af2_flip);
+    term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,0,j,af2_flip);
 
-    term_jh = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,0,j);
     term_jhm1 = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,0,j-1);
+    if(j == m-1)
+      term_jh = -term_jhm1;
+    else
+      term_jh = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,0,j);
 
     L_phi[j][0] = (term_ih - term_ihm1) + (term_jh - term_jhm1);
 
@@ -644,8 +655,11 @@ void L_phi_fullp(int m,int n,double L_phi[m][n],double phi[m][n],
       term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,i,j,af2_flip);
       // term_ihm1 = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,rho,C,i-1,j);
 
-      term_jh = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,i,j);
       term_jhm1 = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,i,j-1);
+      if(j == m-1)
+        term_jh = -term_jhm1;
+      else
+        term_jh = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,i,j);
 
       L_phi[j][i] = (term_ih - term_ihm1) + (term_jh - term_jhm1);
     }
@@ -665,6 +679,25 @@ void L_phi_fullp(int m,int n,double L_phi[m][n],double phi[m][n],
 
   for(int j=0+af2_flip;j<m-1+af2_flip;j++)
     L_phi[j][n-1] = L_phi[j][0];
+}
+
+/*
+- gigiaero, 19/06/2026, 1441 hours
+*/
+// pendente adaptação pro adi?
+void local_q_dervs(double *dphi_dksi,double *dphi_deta,int m,int n,
+                   double phi[m][n],double A2[m][n],double A3[m][n],
+                   int i,int j,int af2_flip){
+  if(i == 0)
+    *dphi_dksi = uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j);
+  else
+    *dphi_dksi = uniform_scheme_der1_o2_central(m,n,phi,i,j,1);
+
+  if(j == m-1 && af2_flip) // não sei se a condição do af2_flip é necessária, mas vou manter por ora
+    *dphi_deta = -A2[j][i]*(*dphi_dksi)/A3[j][i];
+  // elseif() condição pro adi aqui
+  else
+    *dphi_deta = uniform_scheme_der1_o2_central(m,n,phi,i,j,2);
 }
 
 /*
@@ -1166,10 +1199,14 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
   beta_initial_config(config,&fpb_prmtrs,fp_prmtrs->beta_super);
 
   for(iter;iter<=config->max_iter;iter++){
+    alpha_sequence(&alpha,&k,iter,config);
 
     calc_rho(m,n,rho,phi,A1,A2,A3,1);
 
     L_phi_fullp(m,n,L_phi,phi,J,A1,A2,A3,rho,fp_prmtrs->C,1);
+
+    print_2d_array_to_file(m,n-1,rho,"mat_rho.dat",0);
+    print_2d_array_to_file(m,n,L_phi,"mat_L_phi.dat",0);
 
     res = 0.;
     for(int j=0;j<m-1;j++){
@@ -1200,15 +1237,15 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
 
     // Solve for corrections - step 1 (eta)
     for(int i=0;i<n-1;i++){
-      Aj = calc_Aj(m,n,phi,J,A2,A3,rho,fp_prmtrs->C,i,j);
-      Ajp1 = calc_Aj(m,n,phi,J,A2,A3,rho,fp_prmtrs->C,i,j+1);
+      Aj = calc_Aj(m,n,phi,J,A2,A3,rho,fp_prmtrs->C,i,1);
+      Ajp1 = calc_Aj(m,n,phi,J,A2,A3,rho,fp_prmtrs->C,i,2);
 
       bn[0] = alpha + Aj;
       cn[0] = -Ajp1;
 
       fn[0] = alpha*omega*L_phi[1][i];
 
-      for(int j=2;j<m-2;j++){
+      for(int j=2;j<m-1;j++){
         Aj = calc_Aj(m,n,phi,J,A2,A3,rho,fp_prmtrs->C,i,j);
         Ajp1 = calc_Aj(m,n,phi,J,A2,A3,rho,fp_prmtrs->C,i,j+1);
 
@@ -1219,11 +1256,11 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
         fn[j-1] = alpha*omega*L_phi[j][i];
       }
 
-      Aj = calc_Aj(m,n,phi,J,A2,A3,rho,fp_prmtrs->C,i,j);
-      Ajp1 = calc_Aj(m,n,phi,J,A2,A3,rho,fp_prmtrs->C,i,j+1);
+      Aj = calc_Aj(m,n,phi,J,A2,A3,rho,fp_prmtrs->C,i,m-2);
+      // Ajp1 = calc_Aj(m,n,phi,J,A2,A3,rho,fp_prmtrs->C,i,m-1);
 
-      an[m-3] = alpha + Aj;
-      bn[m-2] = -Ajp1;
+      an[m-3] = 0.;
+      bn[m-2] = alpha + Aj;
 
       fn[m-2] = alpha*omega*L_phi[m-1][i];
 
@@ -1232,12 +1269,68 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
       for(int j=1;j<m;j++)
         f[j][i] = un[j-1];      
     }
-    
+
+    // print_2d_array_to_file(m,n,f,"mat_f.dat",0);
     
     // Solve for corrections - step 2 (ksi)
+    for(int j=1;j<m;j++){
+      for(int i=0;i<n-1;i++){
+        local_q_dervs(&dphi_dksi,&dphi_deta,m,n,phi,A2,A3,i,j,1);
 
+        beta_update(&beta,L2_res,res,config->M,&fpb_prmtrs,iter);
+        beta_switch(&beta,beta_sub,beta_super,
+                    (dphi_dksi*dphi_dksi + dphi_deta*dphi_deta)>=1);
+        
+        contraU = calc_contraU(dphi_dksi,dphi_deta,A1[j][i],A2[j][i]);
 
-    // LEMBRETE: o phi deve ser espelhado antes de ser salvo em arquivo
+        Ai = calc_Ai(m,n,phi,J,A1,A2,A3,rho,fp_prmtrs->C,i,j,1);
+        Aip1 = calc_Ai(m,n,phi,J,A1,A2,A3,rho,fp_prmtrs->C,i+1,j,1);
+
+        ak[i] = -Ai;
+        bk[i] = alpha + Ai + Aip1 + alpha*beta;
+        ck[i] = -Aip1;
+
+        fk[i] = f[j][i] + alpha*Cij[j-1][i]; 
+
+        if(contraU >= 0)
+          ak[i] -= alpha*beta;
+        else
+          ck[i] -= alpha*beta;
+      }
+
+      tridiagonal_pmatrix_solver(n-1,ak,bk,ck,fk,uk);
+
+      for(int i=0;i<n-1;i++)
+        Cij[j][i] = uk[i];
+    }
+
+    // print_2d_array_to_file(m,n,Cij,"mat_Cij.dat",0);
+
+    for(int j=1;j<m;j++){
+      for(int i=0;i<n-1;i++)
+        phi[j][i] += Cij[j][i];
+
+      phi[j][n-1] = phi[j][0];
+    }
+
+    // print_2d_array_to_file(m,n,Cij,"mat_Cij.dat",0);
+    // return;
+
+    if(!config->save_last_only){
+      // flip_2d_array(m,n,phi); // descomentar depois que o código estiver funcional
+      save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
+                          &str_end_idx);
+      // flip_2d_array(m,n,phi);
+    }
+  }
+
+  // Save last iteration if it wasn't saved
+  if(iter%config->qtimes != 0 || config->save_last_only){
+    flip_2d_array(m,n,phi);
+
+    iter--; // To get the correct iteration number
+    sprintf(buffer,"L");
+    save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
   }
 
   free(L_phi);

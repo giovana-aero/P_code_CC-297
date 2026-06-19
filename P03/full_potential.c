@@ -28,10 +28,10 @@ int main(){
   config.alpha_H = 1e-1;
   config.set_alpha_H = 0;
   config.M = 5;
-  config.max_iter = 500000;
-  config.qtimes = 72605;
+  config.max_iter = 47;
+  config.qtimes = 1;
   config.save_i_c = 1;
-  config.save_last_only = 1;
+  config.save_last_only = 0;
   config.eps = 1.e-6;
   char output_file[] = "results/fullp";
 

@@ -37,19 +37,19 @@ quiver(mesh.x(:,1:end-1),mesh.y(:,1:end-1),u(:,1:end-1),v(:,1:end-1),.1);
 grid on,axis equal
 
 
-function A = rearrange(A)
+% function A = rearrange(A)
 
-mid = round(size(A,2)/2);
+% mid = round(size(A,2)/2);
 
-half_up = A(:,mid:end);
-half_down = A(:,1:mid);
+% half_up = A(:,mid:end);
+% half_down = A(:,1:mid);
 
-half_down = flip(half_down,2);
-half_down = flip(half_down,1);
+% half_down = flip(half_down,2);
+% half_down = flip(half_down,1);
 
-A = [half_up;half_down];
+% A = [half_up;half_down];
 
-end
+% end
 
 % ideia: implementar manualmente streamlines
 % - em um dado ponto (x,y), checar quais são as coordenadas mais próximas na
