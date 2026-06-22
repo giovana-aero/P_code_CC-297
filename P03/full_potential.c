@@ -1,12 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include"../include/eom_lib.h"
 #include"../include/fullp_lib.h"
-#include"../include/mesh.h"
-
-// nome padrão dos arquivos de malha: fullp_mesh_x.dat e fullp_mesh_y.dat
-// init_only = 1 -> renomear a malha inicial pro nome padrão
-// init_only = 0 -> renomear a malha final pro nome padrão
 
 // A FAZER: funções que salvam em arquivos de texto os parâmetros da malha e da 
 // solução
@@ -21,18 +15,19 @@ int main(){
   /* FLOW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   sim_prmtrs config;
   config.Ntype = 3;
-  config.w = 2.;
+  config.w = 1.5;
   config.r = 1.;
   config.alpha_seq = 0;
-  config.alpha = 1;
+  config.alpha = 1.;
   config.alpha_H = 1e-1;
-  config.set_alpha_H = 0;
+  config.set_alpha_H = 2;
   config.M = 5;
-  config.max_iter = 47;
-  config.qtimes = 1;
+  config.max_iter = 10000;
+  config.qtimes = 5;
   config.save_i_c = 1;
-  config.save_last_only = 0;
+  config.save_last_only = 1;
   config.eps = 1.e-6;
+  // config.eps = 1.e-5;
   char output_file[] = "results/fullp";
 
   fullp_prmtrs fp_prmtrs;

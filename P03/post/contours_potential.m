@@ -16,7 +16,7 @@ if iter < 0
   iter_list = dir([address,casename,'_iter_*']);
   result = iter_list(end).name;
 else
-  result = sprintf("%s_x_iter_%010d.dat",casename,iter);
+  result = sprintf("%s_iter_%010d.dat",casename,iter);
 end
 
 mesh.x = dlmread([address,casename,'_x_mesh.dat']);

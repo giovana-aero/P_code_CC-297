@@ -2,7 +2,7 @@ clc,clear
 addpath('../../P02/post')
 
 address = '../results/';
-casename = 'fullp_mesh';
+casename = 'fullp';
 
 save_fig = 0;
 base_size = 800;
@@ -14,23 +14,24 @@ ylims = [];
 
 iter = -1;
 
-initial = {'_x_initial.dat','_y_initial.dat'};
+initial = {'_x_mesh.dat','_y_mesh.dat'};
 
-if iter < 0
-  iter_list_x = dir([address,casename,'_x_iter_*']);
-  iter_list_y = dir([address,casename,'_y_iter_*']);
-  result = {iter_list_x(end).name,iter_list_y(end).name};
-else
-  result = {sprintf("%s_x_iter_%010d.dat",casename,iter),...
-            sprintf("%s_y_iter_%010d.dat",casename,iter)};
-end
+% if iter < 0
+%   iter_list_x = dir([address,casename,'_x_iter_*']);
+%   iter_list_y = dir([address,casename,'_y_iter_*']);
+%   result = {iter_list_x(end).name,iter_list_y(end).name};
+% else
+%   result = {sprintf("%s_x_iter_%010d.dat",casename,iter),...
+%             sprintf("%s_y_iter_%010d.dat",casename,iter)};
+% end
 
-figure(1),clf
+% figure(1),clf
+hold on
 f_plot_mesh(1,address,casename,initial)
 if ~isempty(xlims),xlim(xlims),end
-figure(2),clf
-f_plot_mesh(2,address,'',result)
-if ~isempty(xlims),xlim(xlims),end
+% figure(2),clf
+% f_plot_mesh(2,address,'',result)
+% if ~isempty(xlims),xlim(xlims),end
 
 % mesh_x = dlmread([address,casename,'_initial_x.dat']);
 % mesh_y = dlmread([address,casename,'_initial_y.dat']);

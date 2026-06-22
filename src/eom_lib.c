@@ -1347,13 +1347,13 @@ void solve_adi_2d_rectangular_eom_np(int m,int n,double x[m][n],double y[m][n],
   double (*D)[n] = calloc(m,sizeof *D);
   double (*fx)[n] = calloc(m,sizeof *fx);
   double (*fy)[n] = calloc(m,sizeof *fy);
-  double *ak = malloc(sizeof(double)*(n-1));
-  double *bk = malloc(sizeof(double)*(n-1));
-  double *ck = malloc(sizeof(double)*(n-1));
-  double *fkx = malloc(sizeof(double)*(n-1));
-  double *fky = malloc(sizeof(double)*(n-1));
-  double *ukx = malloc(sizeof(double)*(n-1));
-  double *uky = malloc(sizeof(double)*(n-1));
+  double *ax = malloc(sizeof(double)*(n-1));
+  double *bx = malloc(sizeof(double)*(n-1));
+  double *cx = malloc(sizeof(double)*(n-1));
+  double *fxx = malloc(sizeof(double)*(n-1));
+  double *fxy = malloc(sizeof(double)*(n-1));
+  double *uxx = malloc(sizeof(double)*(n-1));
+  double *uxy = malloc(sizeof(double)*(n-1));
   double *an = malloc(sizeof(double)*(m-3));
   double *bn = malloc(sizeof(double)*(m-2));
   double *cn = malloc(sizeof(double)*(m-3));
@@ -1432,33 +1432,33 @@ void solve_adi_2d_rectangular_eom_np(int m,int n,double x[m][n],double y[m][n],
 
     // Solve for the deltas - step 1 (ksi)
     for(int j=1;j<m-1;j++){
-      bk[0] = alpha + 2.*A[j][1];
-      ck[0] = -A[j][1];
+      bx[0] = alpha + 2.*A[j][1];
+      cx[0] = -A[j][1];
 
-      fkx[0] = omega*alpha*L_phi_x[j][1];
-      fky[0] = omega*alpha*L_phi_y[j][1];
+      fxx[0] = omega*alpha*L_phi_x[j][1];
+      fxy[0] = omega*alpha*L_phi_y[j][1];
 
       for(int i=2;i<n-2;i++){
-        ak[i-2] = -A[j][i];
-        bk[i-1] = alpha + 2.*A[j][i];
-        ck[i-1] = -A[j][i];
+        ax[i-2] = -A[j][i];
+        bx[i-1] = alpha + 2.*A[j][i];
+        cx[i-1] = -A[j][i];
 
-        fkx[i-1] = omega*alpha*L_phi_x[j][i];
-        fky[i-1] = omega*alpha*L_phi_y[j][i];
+        fxx[i-1] = omega*alpha*L_phi_x[j][i];
+        fxy[i-1] = omega*alpha*L_phi_y[j][i];
       }
 
-      ak[n-4] = -A[j][n-2];
-      bk[n-3] = alpha + 2.*A[j][n-2];
+      ax[n-4] = -A[j][n-2];
+      bx[n-3] = alpha + 2.*A[j][n-2];
 
-      fkx[n-3] = omega*alpha*L_phi_x[j][n-2];
-      fky[n-3] = omega*alpha*L_phi_y[j][n-2];
+      fxx[n-3] = omega*alpha*L_phi_x[j][n-2];
+      fxy[n-3] = omega*alpha*L_phi_y[j][n-2];
 
-      tridiagonal_matrix_solver(n-2,ak,bk,ck,fkx,ukx);
-      tridiagonal_matrix_solver(n-2,ak,bk,ck,fky,uky);
+      tridiagonal_matrix_solver(n-2,ax,bx,cx,fxx,uxx);
+      tridiagonal_matrix_solver(n-2,ax,bx,cx,fxy,uxy);
 
       for(int i=1;i<n-1;i++){
-        fx[j][i] = ukx[i-1];
-        fy[j][i] = uky[i-1];
+        fx[j][i] = uxx[i-1];
+        fy[j][i] = uxy[i-1];
       }
     }
 
@@ -1544,13 +1544,13 @@ void solve_adi_2d_rectangular_eom_np(int m,int n,double x[m][n],double y[m][n],
   free(D);
   free(fx);
   free(fy);
-  free(ak);
-  free(bk);
-  free(ck);
-  free(ukx);
-  free(uky);
-  free(fkx);
-  free(fky);
+  free(ax);
+  free(bx);
+  free(cx);
+  free(uxx);
+  free(uxy);
+  free(fxx);
+  free(fxy);
   free(an);
   free(bn);
   free(cn);
@@ -1583,13 +1583,13 @@ void solve_af2_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   double (*D)[n] = calloc(m,sizeof *D);
   double (*fx)[n] = calloc(m,sizeof *fx);
   double (*fy)[n] = calloc(m,sizeof *fy);
-  double *ak = malloc(sizeof(double)*(n-1));
-  double *bk = malloc(sizeof(double)*(n-1));
-  double *ck = malloc(sizeof(double)*(n-1));
-  double *fkx = malloc(sizeof(double)*(n-1));
-  double *fky = malloc(sizeof(double)*(n-1));
-  double *ukx = malloc(sizeof(double)*(n-1));
-  double *uky = malloc(sizeof(double)*(n-1));
+  double *ax = malloc(sizeof(double)*(n-1));
+  double *bx = malloc(sizeof(double)*(n-1));
+  double *cx = malloc(sizeof(double)*(n-1));
+  double *fxx = malloc(sizeof(double)*(n-1));
+  double *fxy = malloc(sizeof(double)*(n-1));
+  double *uxx = malloc(sizeof(double)*(n-1));
+  double *uxy = malloc(sizeof(double)*(n-1));
   double *an = malloc(sizeof(double)*(m-3));
   double *bn = malloc(sizeof(double)*(m-2));
   double *cn = malloc(sizeof(double)*(m-3));
@@ -1701,20 +1701,20 @@ void solve_af2_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
     // Solve for the deltas - step 2 (ksi)
     for(int j=1;j<m-1;j++){
       for(int i=0;i<n-1;i++){
-        ak[i] = -A[j][i];
-        bk[i] = 1. + 2.*A[j][i];
-        ck[i] = -A[j][i];
+        ax[i] = -A[j][i];
+        bx[i] = 1. + 2.*A[j][i];
+        cx[i] = -A[j][i];
 
-        fkx[i] = fx[j][i] + Delta_x[j-1][i];
-        fky[i] = fy[j][i] + Delta_y[j-1][i];
+        fxx[i] = fx[j][i] + Delta_x[j-1][i];
+        fxy[i] = fy[j][i] + Delta_y[j-1][i];
       }
 
-      tridiagonal_pmatrix_solver(n-1,ak,bk,ck,fkx,ukx);
-      tridiagonal_pmatrix_solver(n-1,ak,bk,ck,fky,uky);
+      tridiagonal_pmatrix_solver(n-1,ax,bx,cx,fxx,uxx);
+      tridiagonal_pmatrix_solver(n-1,ax,bx,cx,fxy,uxy);
 
       for(int i=0;i<n-1;i++){
-        Delta_x[j][i] = ukx[i];
-        Delta_y[j][i] = uky[i];
+        Delta_x[j][i] = uxx[i];
+        Delta_y[j][i] = uxy[i];
       }
     }
 
@@ -1759,13 +1759,13 @@ void solve_af2_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   free(D);
   free(fx);
   free(fy);
-  free(ak);
-  free(bk);
-  free(ck);
-  free(ukx);
-  free(uky);
-  free(fkx);
-  free(fky);
+  free(ax);
+  free(bx);
+  free(cx);
+  free(uxx);
+  free(uxy);
+  free(fxx);
+  free(fxy);
   free(an);
   free(bn);
   free(cn);
@@ -1797,13 +1797,13 @@ void solve_slor_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   double (*B)[n] = calloc(m,sizeof *B);
   double (*C)[n] = calloc(m,sizeof *C);
   double (*D)[n] = calloc(m,sizeof *D);
-  double *ak = malloc(sizeof(double)*(n-1));
-  double *bk = malloc(sizeof(double)*(n-1));
-  double *ck = malloc(sizeof(double)*(n-1));
-  double *fkx = malloc(sizeof(double)*(n-1));
-  double *fky = malloc(sizeof(double)*(n-1));
-  double *ukx = malloc(sizeof(double)*(n-1));
-  double *uky = malloc(sizeof(double)*(n-1));
+  double *ax = malloc(sizeof(double)*(n-1));
+  double *bx = malloc(sizeof(double)*(n-1));
+  double *cx = malloc(sizeof(double)*(n-1));
+  double *fxx = malloc(sizeof(double)*(n-1));
+  double *fxy = malloc(sizeof(double)*(n-1));
+  double *uxx = malloc(sizeof(double)*(n-1));
+  double *uxy = malloc(sizeof(double)*(n-1));
   double omega = config->w;
   double inv_r = 1./config->r;
   int iter = 1;
@@ -1872,20 +1872,20 @@ void solve_slor_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
     // Calculate deltas
     for(int j=1;j<m-1;j++){
       for(int i=0;i<n-1;i++){
-        ak[i] = A[j][i];
-        bk[i] = -2.*(inv_r + A[j][i]);
-        ck[i] = A[j][i];
+        ax[i] = A[j][i];
+        bx[i] = -2.*(inv_r + A[j][i]);
+        cx[i] = A[j][i];
 
-        fkx[i] = -omega*L_phi_x[j][i] - Delta_x[j-1][i];
-        fky[i] = -omega*L_phi_y[j][i] - Delta_y[j-1][i];
+        fxx[i] = -omega*L_phi_x[j][i] - Delta_x[j-1][i];
+        fxy[i] = -omega*L_phi_y[j][i] - Delta_y[j-1][i];
       }
 
-      tridiagonal_pmatrix_solver(n-1,ak,bk,ck,fkx,ukx);
-      tridiagonal_pmatrix_solver(n-1,ak,bk,ck,fky,uky);
+      tridiagonal_pmatrix_solver(n-1,ax,bx,cx,fxx,uxx);
+      tridiagonal_pmatrix_solver(n-1,ax,bx,cx,fxy,uxy);
 
       for(int i=0;i<n-1;i++){
-        Delta_x[j][i] = ukx[i];
-        Delta_y[j][i] = uky[i];
+        Delta_x[j][i] = uxx[i];
+        Delta_y[j][i] = uxy[i];
       }
     }
 
@@ -1928,13 +1928,13 @@ void solve_slor_2d_rectangular_eom(int m,int n,double x[m][n],double y[m][n],
   free(B);
   free(C);
   free(D);
-  free(ak);
-  free(bk);
-  free(ck);
-  free(ukx);
-  free(uky);
-  free(fkx);
-  free(fky);
+  free(ax);
+  free(bx);
+  free(cx);
+  free(uxx);
+  free(uxy);
+  free(fxx);
+  free(fxy);
   free(filename_save_x);
   free(filename_save_y);
   free(buffer);
