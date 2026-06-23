@@ -22,7 +22,7 @@ int main(){
   config.alpha_H = 1e-1;
   config.set_alpha_H = 2;
   config.M = 5;
-  config.max_iter = 10000;
+  config.max_iter = 2000;
   config.qtimes = 5;
   config.save_i_c = 1;
   config.save_last_only = 1;
