@@ -86,47 +86,121 @@ void beta_update(double *beta,double L2_now,double Linf_now,int M,
     *beta = fpb_prmtrs->beta_low;
 }
 
-/*
-- gigiaero, 22/06/2026, 2127 hours
-*/
+// apagar depois!!!
 double calc_A_metrics(int m,int n,double x[m][n],double y[m][n],int i,int j,
-                      int A_num,int op){
+  int A_num,int op){
+
+  }
+
+/*
+- gigiaero, 23/06/2026, 0927 hours
+*/
+void calc_J_A_metrics(int m,int n,int m2,int n2,double J[m2][n2],
+                      double A1[m2][n2],double A2[m2][n2],double A3[m2][n2],
+                      double x[m][n],double y[m][n],int op){
+  double dx_dksi,dx_deta;
+  double dy_dksi,dy_deta;
   double ksix,ksiy;
   double etax,etay;
-  double J_val = calc_J(m,n,x,y,i,j,op);
+  int i_end,j_end;
 
-  switch(A_num){
-    case 1: // A1
-      ksix = J_val*get_dxy_deta(m,n,y,i,j,op);
-      ksiy = -J_val*get_dxy_deta(m,n,x,i,j,op);
+  if(op == 1 && n2 != n-1){
+    puts("calc_J_A_metrics: op 1, invalid indexation");
+    exit(207);
+  }
+  else if(op == 2 && m2 != m-1){
+    puts("calc_J_A_metrics: op 2, invalid indexation");
+    exit(207);
+  }
 
-      return ksix*ksix + ksiy*ksiy;
+  if(op == 1)
+    i_end = n-1;
+  else
+    i_end = n;
 
-      break;
+  if(op == 2)
+    j_end = m-1;
+  else
+    j_end = m;
 
-    case 2: // A2
-      ksix = J_val*get_dxy_deta(m,n,y,i,j,op);
-      ksiy = -J_val*get_dxy_deta(m,n,x,i,j,op);
-      etax = -J_val*get_dxy_dksi(m,n,y,i,j,op);
-      etay = J_val*get_dxy_dksi(m,n,x,i,j,op);
-
-      return ksix*etax + ksiy*etay;
-
-      break;
-
-    case 3: // A3
-      etax = -J_val*get_dxy_dksi(m,n,y,i,j,op);
-      etay = J_val*get_dxy_dksi(m,n,x,i,j,op);
-
-      return etax*etax + etay*etay;
-
-      break;
+  for(int j=0;j<j_end;j++){
+    for(int i=0;i<i_end;i++){
+      if(op == 1 && i == n-1){
+        puts("calc_rho: op 1, invalid indexation");
+        exit(207);
+      }
+      else if(op == 2 && j == m-1){
+        puts("calc_rho: op 2, invalid indexation");
+        exit(207);
+      }
       
-    default:
-      puts("calc_A1: invalid A_num");
-      exit(15);
+      dx_dksi = get_dxy_dksi(m,n,x,i,j,op);
+      dx_deta = get_dxy_deta(m,n,x,i,j,op);
+      dy_dksi = get_dxy_dksi(m,n,y,i,j,op);
+      dy_deta = get_dxy_deta(m,n,y,i,j,op);
+
+      J[j][i] = 1./(dx_dksi*dy_deta - dx_deta*dy_dksi);
+
+      ksix = J[j][i]*dy_deta;
+      ksiy = -J[j][i]*dx_deta;
+      etax = -J[j][i]*dy_dksi;
+      etay = J[j][i]*dx_dksi;
+
+      A1[j][i] = ksix*ksix + ksiy*ksiy;
+      A2[j][i] = ksix*etax + ksiy*etay;
+      A3[j][i] = etax*etax + etay*etay;
+    }
+
+    if(op != 1){
+      J[j][n-1] = J[j][0];
+      A1[j][n-1] = A1[j][0];
+      A2[j][n-1] = A2[j][0];
+      A3[j][n-1] = A3[j][0];
+    }
   }
 }
+
+// /*
+// - gigiaero, 22/06/2026, 2127 hours
+// */
+// double calc_A_metrics(int m,int n,double x[m][n],double y[m][n],int i,int j,
+//                       int A_num,int op){
+//   double ksix,ksiy;
+//   double etax,etay;
+//   double J_val = calc_J(m,n,x,y,i,j,op);
+
+//   switch(A_num){
+//     case 1: // A1
+//       ksix = J_val*get_dxy_deta(m,n,y,i,j,op);
+//       ksiy = -J_val*get_dxy_deta(m,n,x,i,j,op);
+
+//       return ksix*ksix + ksiy*ksiy;
+
+//       break;
+
+//     case 2: // A2
+//       ksix = J_val*get_dxy_deta(m,n,y,i,j,op);
+//       ksiy = -J_val*get_dxy_deta(m,n,x,i,j,op);
+//       etax = -J_val*get_dxy_dksi(m,n,y,i,j,op);
+//       etay = J_val*get_dxy_dksi(m,n,x,i,j,op);
+
+//       return ksix*etax + ksiy*etay;
+
+//       break;
+
+//     case 3: // A3
+//       etax = -J_val*get_dxy_dksi(m,n,y,i,j,op);
+//       etay = J_val*get_dxy_dksi(m,n,x,i,j,op);
+
+//       return etax*etax + etay*etay;
+
+//       break;
+      
+//     default:
+//       puts("calc_A1: invalid A_num");
+//       exit(15);
+//   }
+// }
 
 /*
 - gigiaero, 03/06/2026, 2105 hours
@@ -135,34 +209,12 @@ NOTE: adapted to af2 only for now
 refactored
 - gigiaero, 22/06/2026, 2256 hours
 */
-double calc_Ai(int m,int n,double phi[m][n],double x[m][n],double y[m][n],
-               double C,int i,int j){
-  double dphi_dksi,dphi_deta;
-  double contraU,rho_til,nu_x;
-  double A1_val,A2_val,A3_val;
-
-  if(i == 0)
-    i = n-2;
-  else
-    i--;
-
-  A1_val = calc_A_metrics(m,n,x,y,i,j,1,1);
-  A2_val = calc_A_metrics(m,n,x,y,i,j,2,1);
-  A3_val = calc_A_metrics(m,n,x,y,i,j,3,1);
-
-  check_j(m,j);
-  check_j(n,i);
-
-  dphi_dksi = get_dphi_dksi(m,n,phi,i,j,1);
-  dphi_deta = get_dphi_deta(m,n,phi,A2_val,A3_val,dphi_dksi,i,j,1);
-
-  contraU = calc_contraUV(dphi_dksi,dphi_deta,A1_val,A2_val);
-
-  nu_x = nu_switch(m,n,phi,x,y,C,contraU,i,j,1);
-
-  rho_til = rho_coeffs(m,n,phi,x,y,nu_x,rs_idx(contraU),i,j,1);
-
-  return rho_til*A1_val/calc_J(m,n,x,y,i,j,1);
+double calc_Ai(int m,int n,double Ai[m][n-1],double rho_til[m][n-1],
+               double A1_ih[m][n-1],double J_ih[m][n-1],int af2_flip){
+  for(int j=0+af2_flip;j<m-1+af2_flip;j++){
+    for(int i=0;i<n-1;i++)
+      Ai[j][i] = rho_til[j][i]*A1_ih[j][i]/J_ih[j][i];
+  }
 }
 
 /*
@@ -172,63 +224,13 @@ NOTE: adapted to af2 only for now
 refactored
 - gigiaero, 22/06/2026, 2301 hours
 */
-double calc_Aj(int m,int n,double phi[m][n],double x[m][n],double y[m][n],
-               double C,int i,int j){
-  double dphi_dksi,dphi_deta;
-  double contraV,rho_bar,nu_y;
-  double A2_val,A3_val;
-
-  j--;
-
-  A2_val = calc_A_metrics(m,n,x,y,i,j,2,2);
-  A3_val = calc_A_metrics(m,n,x,y,i,j,3,2);
-
-  check_j(n,i);
-  check_j(n,i+1);
-  check_j(m,j);
-  check_j(m,j+1);
-
-  dphi_dksi = get_dphi_dksi(m,n,phi,i,j,2);
-  dphi_deta = get_dphi_deta(m,n,phi,A2_val,A3_val,dphi_dksi,i,j,2);
-
-  contraV = calc_contraUV(dphi_dksi,dphi_deta,A2_val,A3_val);
-
-  nu_y = nu_switch(m,n,phi,x,y,C,contraV,i,j,2);
-
-  rho_bar = rho_coeffs(m,n,phi,x,y,nu_y,rs_idx(contraV),i,j,2);
-
-  return rho_bar*A3_val/calc_J(m,n,x,y,i,j,2);
+double calc_Aj(int m,int n,double Aj[m-1][n],double rho_bar[m-1][n],
+               double A3_jh[m-1][n],double J_jh[m-1][n]){
+  for(int j=0;j<m-1;j++){
+    for(int i=0;i<n-1;i++)
+      Aj[j][i] = rho_bar[j][i]*A3_jh[j][i]/J_jh[j][i];
+  }
 }
-
-// /*
-// - gigiaero, 01/06/2026,1332 hours
-// */
-// // NOTA: PENDENTE ADAPTAÇÃO PRO AF2
-// double L_phi_fullp_der_terms_jh(int m,int n,double phi[m][n],double J[m][n],
-//                                 double A2[m][n],double A3[m][n],
-//                                 double rho[m][n-1],double C,int i,int j){
-//   double dphi_dksi,dphi_deta;
-//   double contraV,rho_bar,nu_y;
-//   double A3_jh = (A3[j+1][i] + A3[j][i])*.5;
-
-//   if(i == 0)
-//     dphi_dksi = (uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j) + 
-//                  uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j+1))*.5;
-//   else
-//     dphi_dksi = (uniform_scheme_der1_o2_central(m,n,phi,i,j,1) + 
-//                  uniform_scheme_der1_o2_central(m,n,phi,i,j+1,1))*.5;
-  
-//   dphi_deta = uniform_scheme_der1_o1_forward(m,n,phi,i,j,2);
-
-//   contraV = calc_contraV(dphi_dksi,dphi_deta,(A2[j+1][i] + A2[j][i])*.5,
-//                          (A3[j+1][i] + A3[j][i])*.5);
-
-//   nu_y = nu_switch(m,n,rho,C,contraV,i,j,2);
-
-//   rho_bar = rho_coeffs(m,n,rho,nu_y,rs_idx(contraV),i,j,2);
-
-//   return rho_bar*contraV/((J[j+1][i] + J[j][i])*.5);
-// }
 
 /*
 - gigiaero, 31/05/2026, 1143h hours
@@ -239,48 +241,79 @@ refactored
 refactored (again)
 - gigiaero, 21/06/2026, 2202 hours
 */
-double calc_contraUV(double dphi_dksi,double dphi_deta,double A12,double A23){
-  return A12*dphi_dksi + A23*dphi_deta;
-}
-
-// /*
-// - gigiaero, 31/05/2026, 1321 hours
-
-// restructured
-// - gigiaero, 21/06/2026, 1418 hours
-// */
-// double calc_contraV(double dphi_dksi,double dphi_deta,int m,int n,
-//                     double A2[m][n],double A3[m][n],int i,int j,int op){
-//   double A2_val,A3_val;
-
-//   check_j(m,j);
-//   check_j(n,i);
-
-//   switch(op){
-//     case 1: // i+1/2,j
-//     check_j(n,i+1);
-//       A2_val = (A2[j][i+1] + A2[j][i])*.5;
-//       A3_val = (A3[j][i+1] + A3[j][i])*.5;
-//       break;
-
-//     case 2: // i,j+1/2
-//       check_j(m,j+1);
-//       A2_val = (A2[j+1][i] + A2[j][i])*.5;
-//       A3_val = (A3[j+1][i] + A3[j][i])*.5;
-//       break;
-
-//     case 3: // i,j
-//       A2_val = A2[j][i];
-//       A3_val = A3[j][i];
-//       break;
-
-//     default:
-//       puts("calc_contraV: invalid op");
-//       exit(15);
-//   }
-
-//   return A2_val*dphi_dksi + A3_val*dphi_deta;
+// double calc_contraUV(double dphi_dksi,double dphi_deta,double A12,double A23){
+//   return A12*dphi_dksi + A23*dphi_deta;
 // }
+
+/*
+- gigiaero, 31/05/2026, 1143h hours
+
+refactored
+- gigiaero, 21/06/2026, 1337 hours
+
+refactored (again)
+- gigiaero, 21/06/2026, 2202 hours
+
+yeah ┐(￣ー￣)┌
+- gigiaero, 23/06/2026, 1028
+*/
+void calc_contraUV(int m,int n,int m2,int n2,double contraUV[m2][n2],
+                   double phi[m][n],double A1[m2][n2],double A2[m2][n2],
+                   double A3[m2][n2],int op,int axis){
+  double dphi_dksi,dphi_deta;
+  double contraU,contraV;
+  double rho_primitive;
+  int i_end,j_end;
+
+  if(op == 1 && n2 != n-1){
+    puts("calc_contraUV: op 1, invalid indexation");
+    exit(207);
+  }
+  else if(op == 2 && m2 != m-1){
+    puts("calc_contraUV: op 2, invalid indexation");
+    exit(207);
+  }
+
+  if(op == 1)
+    i_end = n-1;
+  else
+    i_end = n;
+
+  if(op == 2)
+    j_end = m-1;
+  else
+    j_end = m;
+
+  for(int j=0;j<j_end;j++){
+    for(int i=0;i<i_end;i++){
+      if(op == 1 && i == n-1){
+        puts("calc_rho: op 1, invalid indexation");
+        exit(207);
+      }
+      else if(op == 2 && j == m-1){
+        puts("calc_rho: op 2, invalid indexation");
+        exit(207);
+      }
+
+      dphi_dksi = get_dphi_dksi(m,n,phi,i,j,op);
+      dphi_deta = get_dphi_deta(m,n,phi,A2[j][i],A3[j][i],dphi_dksi,i,j,op);
+
+      switch(axis){
+        case 1:
+          contraUV[j][i] = dphi_dksi*A1[j][i] + dphi_deta*A2[j][i];
+          break;
+
+        case 2:
+          contraUV[j][i] = dphi_dksi*A2[j][i] + dphi_deta*A3[j][i];
+          break;
+
+        default:
+          puts("calc_contraUV: invalid axis");
+          exit(15);
+      }
+    }
+  }
+}
 
 /*
 - gigiaero, 29/05/2026, 1435 hours
@@ -298,31 +331,59 @@ double calc_J(int m,int n,double x[m][n],double y[m][n],int i,int j,int op){
 
 refactored
 - gigiaero, 22/06/2026, 2217 hours
+
+refactored, again
+- gigiaero, 23/06/2026, 0949 hours
 */
-double calc_rho(int m,int n,double phi[m][n],double x[m][n],double y[m][n],
-                int i,int j,int op){
+double calc_rho(int m,int n,int m2,int n2,double rho[m2][n2],double phi[m][n],
+                double A2[m2][n2],double A3[m2][n2],double contraU[m2][n2],
+                double contraV[m2][n2],int op){
   double dphi_dksi,dphi_deta;
-  double contraU,contraV;
   double rho_primitive;
-  double A1_val,A2_val,A3_val;
+  int i_end,j_end;
 
-  A1_val = calc_A_metrics(m,n,x,y,i,j,1,op);
-  A2_val = calc_A_metrics(m,n,x,y,i,j,2,op);
-  A3_val = calc_A_metrics(m,n,x,y,i,j,3,op);
+  if(op == 1 && n2 != n-1){
+    puts("calc_rho: op 1, invalid indexation");
+    exit(207);
+  }
+  else if(op == 2 && m2 != m-1){
+    puts("calc_rho: op 2, invalid indexation");
+    exit(207);
+  }
 
-  dphi_dksi = get_dphi_dksi(m,n,phi,i,j,op);
-  dphi_deta = get_dphi_deta(m,n,phi,A2_val,A3_val,dphi_dksi,i,j,op);
+  if(op == 1)
+    i_end = n-1;
+  else
+    i_end = n;
 
-  contraU = calc_contraUV(dphi_dksi,dphi_deta,A1_val,A2_val);
-  contraV = calc_contraUV(dphi_dksi,dphi_deta,A2_val,A3_val);
+  if(op == 2)
+    j_end = m-1;
+  else
+    j_end = m;
 
-  rho_primitive = 1 - ((gamma - 1.)/(gamma + 1.))*(contraU*dphi_dksi + 
-                        contraV*dphi_deta);
-  
-  if(rho_primitive < 0.)
-    rho_primitive = .01;
-  
-  return pow(rho_primitive,1./(gamma - 1.));
+  for(int j=0;j<j_end;j++){
+    for(int i=0;i<i_end;i++){
+      if(op == 1 && i == n-1){
+        puts("calc_rho: op 1, invalid indexation");
+        exit(207);
+      }
+      else if(op == 2 && j == m-1){
+        puts("calc_rho: op 2, invalid indexation");
+        exit(207);
+      }
+
+      dphi_dksi = get_dphi_dksi(m,n,phi,i,j,op);
+      dphi_deta = get_dphi_deta(m,n,phi,A2[j][i],A3[j][i],dphi_dksi,i,j,op);
+
+      rho_primitive = 1 - ((gamma - 1.)/(gamma + 1.))*(contraU[j][i]*dphi_dksi + 
+                            contraV[j][i]*dphi_deta);
+      
+      if(rho_primitive < 0.)
+        rho_primitive = .01;
+      
+      rho[j][i] = pow(rho_primitive,1./(gamma - 1.));
+    }
+  }
 }
 
 /*
@@ -333,12 +394,19 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
                                char *fname_msh_y){
   double (*x)[n] = calloc(m,sizeof *x);
   double (*y)[n] = calloc(m,sizeof *y);
-  double (*phi)[n] = calloc(m,sizeof *phi);
   double (*J)[n] = calloc(m,sizeof *J);
   double (*A1)[n] = calloc(m,sizeof *A1);
   double (*A2)[n] = calloc(m,sizeof *A2);
   double (*A3)[n] = calloc(m,sizeof *A3);
-  // int af2_flip = 0;
+  double (*J_ih)[n-1] = calloc(m,sizeof *J_ih);
+  double (*A1_ih)[n-1] = calloc(m,sizeof *A1_ih);
+  double (*A2_ih)[n-1] = calloc(m,sizeof *A2_ih);
+  double (*A3_ih)[n-1] = calloc(m,sizeof *A3_ih);
+  double (*J_jh)[n] = calloc(m-1,sizeof *J_jh);
+  double (*A1_jh)[n] = calloc(m-1,sizeof *A1_jh);
+  double (*A2_jh)[n] = calloc(m-1,sizeof *A2_jh);
+  double (*A3_jh)[n] = calloc(m-1,sizeof *A3_jh);
+  double (*phi)[n] = calloc(m,sizeof *phi);
 
   save_prmtrs_sim(config);
   // salvar aqui parâmetros específicos do fullp ////////
@@ -352,33 +420,31 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   sprintf(filename,"%s_y_mesh.dat",config->casename);
   print_2d_array_to_file(m,n,y,filename,0);
 
-  // if(config->Ntype == 3){
-  //   flip_2d_array(m,n,x);
-  //   flip_2d_array(m,n,y);
-  //   // af2_flip = 1;
-  // }
+  if(config->Ntype == 3){
+    flip_2d_array(m,n,x);
+    flip_2d_array(m,n,y);
+    // af2_flip = 1;
+  }
 
   // print_2d_array_to_file(m,n,x,"mesh_x.dat",0);
   // print_2d_array_to_file(m,n,y,"mesh_y.dat",0);
 
-  for(int j=0;j<m;j++){
-    for(int i=0;i<n-1;i++){
-      J[j][i] = calc_J(m,n,x,y,i,j,3);
-      A1[j][i] = calc_A_metrics(m,n,x,y,i,j,1,3);
-      A2[j][i] = calc_A_metrics(m,n,x,y,i,j,2,3);
-      A3[j][i] = calc_A_metrics(m,n,x,y,i,j,3,3);
-    }
+  calc_J_A_metrics(m,n,m,n-1,J_ih,A1_ih,A2_ih,A3_ih,x,y,1);
+  calc_J_A_metrics(m,n,m-1,n,J_jh,A1_jh,A2_jh,A3_jh,x,y,2);
+  calc_J_A_metrics(m,n,m,n,J,A1,A2,A3,x,y,3);
 
-    J[j][n-1] = J[j][0];
-    A1[j][n-1] = A1[j][0];
-    A2[j][n-1] = A2[j][0];
-    A3[j][n-1] = A3[j][0];
-  }
-
-  // print_2d_array_to_file(m,n,J,"mat_J.dat",0);
-  // print_2d_array_to_file(m,n,A1,"mat_A1.dat",0);
-  // print_2d_array_to_file(m,n,A2,"mat_A2.dat",0);
-  // print_2d_array_to_file(m,n,A3,"mat_A3.dat",0);
+  print_2d_array_to_file(m,n,J,"mat_J.dat",0);
+  print_2d_array_to_file(m,n,A1,"mat_A1.dat",0);
+  print_2d_array_to_file(m,n,A2,"mat_A2.dat",0);
+  print_2d_array_to_file(m,n,A3,"mat_A3.dat",0);
+  print_2d_array_to_file(m,n-1,J_ih,"mat_J_ih.dat",0);
+  print_2d_array_to_file(m,n-1,A1_ih,"mat_A1_ih.dat",0);
+  print_2d_array_to_file(m,n-1,A2_ih,"mat_A2_ih.dat",0);
+  print_2d_array_to_file(m,n-1,A3_ih,"mat_A3_ih.dat",0);
+  print_2d_array_to_file(m-1,n,J_jh,"mat_J_jh.dat",0);
+  print_2d_array_to_file(m-1,n,A1_jh,"mat_A1_jh.dat",0);
+  print_2d_array_to_file(m-1,n,A2_jh,"mat_A2_jh.dat",0);
+  print_2d_array_to_file(m-1,n,A3_jh,"mat_A3_jh.dat",0);
 
   initialize_fullp(m,n,phi,x,y,fp_prmtrs);
 
@@ -406,13 +472,23 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
       // puts("fullp af2 pending");
       puts("AF2, full potential flow over airfoil");
 
-      flip_2d_array(m,n,phi);
-      flip_2d_array(m,n,A1);
-      flip_2d_array(m,n,A2);
-      flip_2d_array(m,n,A3);
-      flip_2d_array(m,n,J);
+      // repensar isso aqui
+      // flip_2d_array(m,n,phi);
+      // flip_2d_array(m,n,J);
+      // flip_2d_array(m,n,A1);
+      // flip_2d_array(m,n,A2);
+      // flip_2d_array(m,n,A3);
+      // flip_2d_array(m,n-1,J_ih);
+      // flip_2d_array(m,n-1,A1_ih);
+      // flip_2d_array(m,n-1,A2_ih);
+      // flip_2d_array(m,n-1,A3_ih);
+      // flip_2d_array(m-1,n,J_jh);
+      // flip_2d_array(m-1,n,A1_jh);
+      // flip_2d_array(m-1,n,A2_jh);
+      // flip_2d_array(m-1,n,A3_jh);
 
-      solve_af2_2d_rectangular_fullp(m,n,phi,x,y,J,A1,A2,A3,config,fp_prmtrs);
+      solve_af2_2d_rectangular_fullp(m,n,phi,J,A1,A2,A3,J_ih,A1_ih,A2_ih,A3_ih,
+                                     J_jh,A1_jh,A2_jh,A3_jh,config,fp_prmtrs);
 
       // flip_2d_array(m,n,phi);
       flip_2d_array(m,n,J);
@@ -446,11 +522,19 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   free(filename);
   free(x);
   free(y);
-  free(phi);
   free(J);
   free(A1);
   free(A2);
   free(A3);
+  free(J_ih);
+  free(A1_ih);
+  free(A2_ih);
+  free(A3_ih);
+  free(J_jh);
+  free(A1_jh);
+  free(A2_jh);
+  free(A3_jh);
+  free(phi);
   free(u);
   free(v);
   free(Ve);
@@ -494,16 +578,23 @@ double get_dphi_deta(int m,int n,double phi[m][n],double A2_val,double A3_val,
     case 1: // i+1/2,j
       if(j == 0 || j == m-1){
         check_j(n,i+1);
-        return -A2_val*dphi_dksi/A3_val;}
+        return -A2_val*dphi_dksi/A3_val;
+      }
       else{
         check_j(m,j-1);
         check_j(m,j+1);
         check_j(n,i+1);
         return (uniform_scheme_der1_o2_central(m,n,phi,i,j,2) + 
-                uniform_scheme_der1_o2_central(m,n,phi,i+1,j,2))*.5;}
+                uniform_scheme_der1_o2_central(m,n,phi,i+1,j,2))*.5;
+      }
       break;
 
     case 2: // i,j+1/2
+      if(j == m-1){
+        puts("get_dphi_deta: case 2, invalid j");
+        exit(207);
+      }
+
       check_j(m,j+1);
       return uniform_scheme_der1_o1_forward(m,n,phi,i,j,2);
       break;
@@ -514,7 +605,8 @@ double get_dphi_deta(int m,int n,double phi[m][n],double A2_val,double A3_val,
       else{
         check_j(m,j+1);
         check_j(m,j-1);
-        return uniform_scheme_der1_o2_central(m,n,phi,i,j,2);}
+        return uniform_scheme_der1_o2_central(m,n,phi,i,j,2);
+      }
       break;
 
     default:
@@ -533,19 +625,27 @@ double get_dphi_dksi(int m,int n,double phi[m][n],int i,int j,int op){
   switch(op){
     case 1: // i+1/2,j
     check_j(n,i+1);
-      return uniform_scheme_der1_o1_forward(m,n,phi,i,j,1);
+      if(i == n-1)
+        return uniform_scheme_der1_o1_forward(m,n,phi,0,j,1);
+      else
+        return uniform_scheme_der1_o1_forward(m,n,phi,i,j,1);
       break;
 
     case 2: // i,j+1/2
+      if(j == m-1){
+        puts("get_dxy_dksi: case 2, invalid j");
+        exit(207);
+      }
       check_j(m,j+1);
-      if(i == 0)
+      if(i == 0 || i == n-1)
         return (uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j) + 
                 uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j+1))*.5;
       else{
         check_j(n,i+1);
         check_j(n,i-1);
         return (uniform_scheme_der1_o2_central(m,n,phi,i,j,1) + 
-                uniform_scheme_der1_o2_central(m,n,phi,i,j+1,1))*.5;}
+                uniform_scheme_der1_o2_central(m,n,phi,i,j+1,1))*.5;
+              }
       break;
 
     case 3: // i,j
@@ -554,7 +654,8 @@ double get_dphi_dksi(int m,int n,double phi[m][n],int i,int j,int op){
       else{
         check_j(n,i+1);
         check_j(n,i-1);
-        return uniform_scheme_der1_o2_central(m,n,phi,i,j,1);}
+        return uniform_scheme_der1_o2_central(m,n,phi,i,j,1);
+      }
       break;
 
     default:
@@ -581,7 +682,7 @@ double get_dxy_deta(int m,int n,double xy[m][n],int i,int j,int op){
       break;
 
     case 2: // i,j+1/2
-      if(j+1 >= m){
+      if(j == m-1){
         puts("get_dxy_deta: case 2, invalid j");
         exit(207);
       }
@@ -599,7 +700,7 @@ double get_dxy_deta(int m,int n,double xy[m][n],int i,int j,int op){
       break;
       
     default:
-      puts("get_dx_dksi: invalid op");
+      puts("get_dx_deta: invalid op");
       exit(15);
   }
 }
@@ -610,11 +711,14 @@ double get_dxy_deta(int m,int n,double xy[m][n],int i,int j,int op){
 double get_dxy_dksi(int m,int n,double xy[m][n],int i,int j,int op){
   switch(op){
     case 1: // i+1/2,j
-      return uniform_scheme_der1_o1_forward(m,n,xy,i,j,1);
+      if(i == n-1)
+        return uniform_scheme_der1_o1_forward(m,n,xy,0,j,1);
+      else
+        return uniform_scheme_der1_o1_forward(m,n,xy,i,j,1);
       break;
 
     case 2: // i,j+1/2
-      if(j+1 >= m){
+      if(j == m-1){
         puts("get_dxy_dksi: case 2, invalid j");
         exit(207);
       }
@@ -714,17 +818,11 @@ void initialize_fullp(int m,int n,double phi[m][n],double x[m][n],double y[m][n]
 
   fp_prmtrs->alpha *= pi/180.;
 
-  // puts("Uinf = "); disp(Uinf);
-
   for(int j=0;j<m;j++){
     for(int i=0;i<n;i++)
       phi[j][i] = Uinf*cos(fp_prmtrs->alpha)*x[j][i] + 
                   Uinf*sin(fp_prmtrs->alpha)*y[j][i];
   }
-
-  // for(int i=0;i<n;i++)
-  //   phi[0][i] = Uinf*cos(fp_prmtrs->alpha)*x[0][i] + 
-  //               Uinf*sin(fp_prmtrs->alpha)*y[0][i];
 }
 
 /*
@@ -733,123 +831,104 @@ void initialize_fullp(int m,int n,double phi[m][n],double x[m][n],double y[m][n]
 refactored
 - gigiaero, 22/06/2026, 2252 hours
 */
-void L_phi_fullp(int m,int n,double L_phi[m][n],double phi[m][n],double x[m][n],
-                 double y[m][n],double C,int af2_flip){
-  double term_ih,term_ihm1;
-  double term_jh,term_jhm1;
-
+void L_phi_fullp(int m,int n,double L_phi[m][n],double L_phi_terms_ih[m][n-1],
+                 double L_phi_terms_jh[m][n-1],int af2_flip){
   for(int j=0+af2_flip;j<m-1+af2_flip;j++){
-    for(int i=0;i<n-1;i++){
-      if(i == 0)
-        term_ih = L_phi_fullp_der_terms_ih(m,n,phi,x,y,C,n-2,j);
-      else
-        term_ih = L_phi_fullp_der_terms_ih(m,n,phi,x,y,C,i-1,j);
-      
-      term_ih = L_phi_fullp_der_terms_ih(m,n,phi,x,y,C,i,j);
+    L_phi[j][0] = (L_phi_terms_ih[j][0] - L_phi_terms_ih[j][n-2]) + 
+                  (L_phi_terms_jh[j][0] - L_phi_terms_jh[j-1][0]);
 
-      term_jh = L_phi_fullp_der_terms_jh(m,n,phi,x,y,C,i,j-1);
+    for(int i=1;i<n-1;i++)
+      L_phi[j][i] = (L_phi_terms_ih[j][i] - L_phi_terms_ih[j][i-1]) + 
+                    (L_phi_terms_jh[j][i] - L_phi_terms_jh[j-1][i]);
 
-      if(j == m-1) // adaptação pro adi aqui?
-        term_jh = -term_jhm1;
-      else
-        term_jh = L_phi_fullp_der_terms_jh(m,n,phi,x,y,C,i,j);
-
-      L_phi[j][i] = (term_ih - term_ihm1) + (term_jh - term_jhm1);
-    }
-  }
-
-  // superfície do aerofólio, i=0 aqui -----------------------
-
-  // for(int i=1;i<n-1;i++){
-  //   term_ih = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,i,0);
-  //   term_ihm1 = L_phi_fullp_der_terms_ih(m,n,phi,J,A1,A2,A3,rho,C,i-1,0);
-
-  //   term_jh = L_phi_fullp_der_terms_jh(m,n,phi,J,A2,A3,rho,C,i,0);
-  //   term_jhm1  = -term_jh;
-
-  //   L_phi[0][i] = (term_ih - term_ihm1) + (term_jh - term_jhm1);
-  // }
-
-  for(int j=0+af2_flip;j<m-1+af2_flip;j++)
     L_phi[j][n-1] = L_phi[j][0];
+  }
 }
 
 /*
-- gigiaero, 01/06/2026,1314 hours
-
-refactored
-- gigiaero, 22/06/2026, 2245 hours
+- gigiaero, 23/06/2026, 1422 hours
 */
-double L_phi_fullp_der_terms_ih(int m,int n,double phi[m][n],double x[m][n],
-                                double y[m][n],double C,int i,int j){
-  double dphi_dksi,dphi_deta;
-  double contraU,rho_til,nu_x;
-  double A1_val = calc_A_metrics(m,n,x,y,i,j,1,1);
-  double A2_val = calc_A_metrics(m,n,x,y,i,j,2,1);
-  double A3_val = calc_A_metrics(m,n,x,y,i,j,3,1);
-
-  check_j(m,j);
-  check_j(n,i);
-  check_j(n,i+1);
-
-  dphi_dksi = get_dphi_dksi(m,n,phi,i,j,1);
-  dphi_deta = get_dphi_deta(m,n,phi,A2_val,A3_val,dphi_dksi,i,j,1);
-
-  contraU = calc_contraUV(dphi_dksi,dphi_deta,A1_val,A2_val);
-
-  nu_x = nu_switch(m,n,phi,x,y,C,contraU,i,j,1);
-
-  rho_til = rho_coeffs(m,n,phi,x,y,nu_x,rs_idx(contraU),i,j,1);
-
-  return rho_til*contraU/calc_J(m,n,x,y,i,j,1);
+void L_phi_fullp_der_terms_ih(int m,int n,double L_phi_terms_ih[m][n-1],
+                              double rho_til[m][n-1],double contraU_ih[m][n-1],
+                              double J_ih[m][n-1],int af2_flip){
+  for(int j=0+af2_flip;j<m-1+af2_flip;j++){
+    for(int i=0;i<n-1;i++)
+      L_phi_terms_ih[j][i] = rho_til[j][i]*contraU_ih[j][i]/J_ih[j][i];
+  }
 }
 
 /*
-- gigiaero, 01/06/2026,1332 hours
-
-refactored
-- gigiaero, 22/06/2026, 2249 hours
+adapted to af2 only for now
+- gigiaero, 23/06/2026, 1434 hours
 */
-double L_phi_fullp_der_terms_jh(int m,int n,double phi[m][n],double x[m][n],
-                                double y[m][n],double C,int i,int j){
-  double dphi_dksi,dphi_deta;
-  double contraV,rho_bar,nu_y;
-  double A2_val = calc_A_metrics(m,n,x,y,i,j,2,2);
-  double A3_val = calc_A_metrics(m,n,x,y,i,j,3,2);
-
-  check_j(m,j);
-  check_j(m,j+1);
-  check_j(n,i);
-
-  dphi_dksi = get_dphi_dksi(m,n,phi,i,j,2);
-  dphi_deta = get_dphi_deta(m,n,phi,A2_val,A3_val,dphi_dksi,i,j,2);
-
-  contraV = calc_contraUV(dphi_dksi,dphi_deta,A2_val,A3_val);
-
-  nu_y = nu_switch(m,n,phi,x,y,C,contraV,i,j,2);
-
-  rho_bar = rho_coeffs(m,n,phi,x,y,nu_y,rs_idx(contraV),i,j,2);
-
-  return rho_bar*contraV/calc_J(m,n,x,y,i,j,2);
+void L_phi_fullp_der_terms_jh(int m,int n,double L_phi_terms_jh[m][n-1],
+                              double rho_bar[m-1][n],double contraV_jh[m-1][n],
+                              double J_jh[m-1][n]){
+  for(int i=0;i<n-1;i++){
+    for(int j=0;j<m-1;j++)
+      L_phi_terms_jh[j][i] = rho_bar[j][i]*contraV_jh[j][i]/J_jh[j][i];
+    
+    L_phi_terms_jh[m-1][i] = - L_phi_terms_jh[m-2][i];
+  }
 }
 
 // /*
-// - gigiaero, 19/06/2026, 1441 hours
-// */
-// // pendente adaptação pro adi?
-// void local_q_dervs(double *dphi_dksi,double *dphi_deta,int m,int n,
-//                    double phi[m][n],double A2[m][n],double A3[m][n],
-//                    int i,int j,int af2_flip){
-//   if(i == 0)
-//     *dphi_dksi = uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j);
-//   else
-//     *dphi_dksi = uniform_scheme_der1_o2_central(m,n,phi,i,j,1);
+// - gigiaero, 01/06/2026,1314 hours
 
-//   if(j == m-1 && af2_flip) // não sei se a condição do af2_flip é necessária, mas vou manter por ora
-//     *dphi_deta = -A2[j][i]*(*dphi_dksi)/A3[j][i];
-//   // elseif() condição pro adi aqui
-//   else
-//     *dphi_deta = uniform_scheme_der1_o2_central(m,n,phi,i,j,2);
+// refactored
+// - gigiaero, 22/06/2026, 2245 hours
+// */
+// double L_phi_fullp_der_terms_ih(int m,int n,double phi[m][n],double x[m][n],
+//                                 double y[m][n],double C,int i,int j){
+//   double dphi_dksi,dphi_deta;
+//   double contraU,rho_til,nu_x;
+//   double A1_val = calc_A_metrics(m,n,x,y,i,j,1,1);
+//   double A2_val = calc_A_metrics(m,n,x,y,i,j,2,1);
+//   double A3_val = calc_A_metrics(m,n,x,y,i,j,3,1);
+
+//   check_j(m,j);
+//   check_j(n,i);
+//   check_j(n,i+1);
+
+//   dphi_dksi = get_dphi_dksi(m,n,phi,i,j,1);
+//   dphi_deta = get_dphi_deta(m,n,phi,A2_val,A3_val,dphi_dksi,i,j,1);
+
+//   // contraU = calc_contraUV(dphi_dksi,dphi_deta,A1_val,A2_val);
+
+//   // nu_x = nu_switch(m,n,phi,x,y,C,contraU,i,j,1);
+
+//   // rho_til = rho_coeffs(m,n,phi,x,y,nu_x,rs_idx(contraU),i,j,1);
+
+//   return rho_til*contraU/calc_J(m,n,x,y,i,j,1);
+// }
+
+// /*
+// - gigiaero, 01/06/2026,1332 hours
+
+// refactored
+// - gigiaero, 22/06/2026, 2249 hours
+// */
+// double L_phi_fullp_der_terms_jh(int m,int n,double phi[m][n],double x[m][n],
+//                                 double y[m][n],double C,int i,int j){
+//   double dphi_dksi,dphi_deta;
+//   double contraV,rho_bar,nu_y;
+//   double A2_val = calc_A_metrics(m,n,x,y,i,j,2,2);
+//   double A3_val = calc_A_metrics(m,n,x,y,i,j,3,2);
+
+//   check_j(m,j);
+//   check_j(m,j+1);
+//   check_j(n,i);
+
+//   dphi_dksi = get_dphi_dksi(m,n,phi,i,j,2);
+//   dphi_deta = get_dphi_deta(m,n,phi,A2_val,A3_val,dphi_dksi,i,j,2);
+
+//   // contraV = calc_contraUV(dphi_dksi,dphi_deta,A2_val,A3_val);
+
+//   // nu_y = nu_switch(m,n,phi,x,y,C,contraV,i,j,2);
+
+//   // rho_bar = rho_coeffs(m,n,phi,x,y,nu_y,rs_idx(contraV),i,j,2);
+
+//   return rho_bar*contraV/calc_J(m,n,x,y,i,j,2);
 // }
 
 /*
@@ -863,13 +942,6 @@ double max2(double n1,double n2){
     // puts("nonzero");
     return n2;}
 }
-
-// /*
-// - gigiaero, 31/05/2026, 1123 hours
-// */
-// double mean2(double n1,double n2){
-//   return (n1 + n2)/2.;
-// }
 
 /*
 - gigiaero, 31/05/2026, 1434 hours
@@ -942,65 +1014,82 @@ double norm_L2(int m,int n,double L_phi[m][n]){
   return sqrt(sum);
 }
 
-// /*
-// - gigiaero, 04/06/2026, 1605 hours
-// */
-// double norm_Linf(int m,int n,double A[m][n]){
-//   double k = 0.;
-  
-//   for(int j=0;j<m;j++){
-//     for(int i=0;i<n-1;i++){
-//       if(fabs(A[j][i]) > k)
-//         k = fabs(A[j][i]);
-//     }
-//   }
-
-//   return k;
-// }
-
 /*
 - gigiaero, 01/06/2026, 1048 hours
 
 refactored 
 - gigiaero, 22/06/2026, 2227 hours
+
+refactored once more
+- gigiaero, 23/06/2026, 1054 hours
 */
-double nu_switch(int m,int n,double phi[m][n],double x[m][n],double y[m][n],
-                 double C,double contraUV,int i,int j,int axis){
+void nu_switch(int m,int n,int m2,int n2,double nu[m2][n2],
+               double contraUV[m2][n2],double rho[m][n],double C,int op,
+               int axis){
   double C1 = .633939;
   double C2 = 4.9325;
-  double rho_integer_ij;
-  double nu;
+  double rho_val;
+  int i_end,j_end;
 
-  check_j(m,j);
-  check_j(n,i);
-
-  if(contraUV >= 0)
-    rho_integer_ij = calc_rho(m,n,phi,x,y,i,j,3);
-
-  else{
-    switch(axis){
-      case 1:
-        rho_integer_ij = calc_rho(m,n,phi,x,y,i+1,j,3);
-        break;
-
-      case 2:
-      check_j(m,j+1);
-        rho_integer_ij = calc_rho(m,n,phi,x,y,i,j+1,3);
-        break;
-
-      default:
-        puts("nu_switch: invalid axis");
-        exit(15);
-    }
+  if(op == 1 && n2 != n-1){
+    puts("nu_switch: op 1, invalid indexation");
+    exit(207);
+  }
+  else if(op == 2 && m2 != m-1){
+    puts("nu_switch: op 2, invalid indexation");
+    exit(207);
   }
 
-  nu = max2(0.,(C1 - rho_integer_ij)*C2*C);
-
-  if(nu > 1.)
-    return 1.;
-  
+  if(op == 1)
+    i_end = n-1;
   else
-    return nu;
+    i_end = n;
+
+  if(op == 2)
+    j_end = m-1;
+  else
+    j_end = m;
+
+  for(int j=0;j<j_end;j++){
+    for(int i=0;i<i_end;i++){
+      check_j(m,j);
+  check_j(n,i);
+
+      if(op == 1 && i == n-1){
+        puts("calc_rho: op 1, invalid indexation");
+        exit(207);
+      }
+      else if(op == 2 && j == m-1){
+        puts("calc_rho: op 2, invalid indexation");
+        exit(207);
+      }
+
+      if(contraUV[j][i] >= 0)
+        rho_val = rho[j][i];
+
+      else{
+        switch(axis){
+          case 1:
+            rho_val = rho[j][i+1];
+            break;
+
+          case 2:
+          check_j(m,j+1);
+            rho_val = rho[j+1][i];
+            break;
+
+          default:
+            puts("nu_switch: invalid axis");
+            exit(15);
+        }
+      }
+
+      nu[j][i] = max2(0.,(C1 - rho_val)*C2*C);
+
+      if(nu[j][i] > 1.)
+        nu[j][i] = 1.;
+    }
+  }
 }
 
 /*
@@ -1008,58 +1097,71 @@ double nu_switch(int m,int n,double phi[m][n],double x[m][n],double y[m][n],
 
 refactored
 - gigiaero, 22/06/2026, 2244 hours
+
+refactored
+- gigiaeor, 23/06/2026, 1343 hours
 */
-double rho_coeffs(int m,int n,double phi[m][n],double x[m][n],double y[m][n],
-                  double nu,int rs,int i,int j,int axis){
+double rho_coeffs(int m,int n,double rho_tb[m][n],double rho[m][n],
+                  double contraUV[m][n],double nu[m][n],int op,int axis){
   int i_p_r,j_p_s;
-  
-  check_j(m,j);
-  check_j(n,i);
-  
-  switch(axis){
-    case 1: // rho_til
-      if(i+rs < 0)
-        i_p_r = n-2;
-      else if(i+rs > n-2)
-        i_p_r = 0;
-      else
-        i_p_r = i + rs;
+  int i_end,j_end;
+  int rs;
 
-      // check_j(n,i+rs);
-      check_j(n,i_p_r);
-      check_j(n,i);
-      
-      return (1. - nu)*calc_rho(m,n,phi,x,y,i,j,1) + 
-              nu*calc_rho(m,n,phi,x,y,i_p_r,j,1);
-      
-        // return (1. - nu)*rho[j][i] + nu*rho[j][i+rs];}
+  // if(op == 1)
+  //   i_end = n-1;
+  // else
+  //   i_end = n;
 
-      break;
+  // if(op == 2)
+  //   j_end = m-1;
+  // else
+  //   j_end = m;
 
-    case 2: // rho_bar
-      if(j+rs >= m-1) // af2_flip?
-        // check_j(m,j+1);
-        j_p_s = j;
-        // return (1. - nu)*mean4_j(m,n,rho,i,j) + nu*mean4_j(m,n,rho,i,j);}
-      else if(j+rs < 0){
-        j_p_s = 0;
-        // return (1. - nu)*mean4_j(m,n,rho,i,j) + nu*mean4_j(m,n,rho,i,0);
-      }
-      else
-        j_p_s = j + rs;
-        // check_j(m,j+rs);
-        // check_j(m,j+rs+1);
-      check_j(m,j_p_s);
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n;i++){
       check_j(m,j);
-      return (1. - nu)*calc_rho(m,n,phi,x,y,i,j,2) + 
-              nu*calc_rho(m,n,phi,x,y,i,j_p_s,2);
-        // return (1. - nu)*mean4_j(m,n,rho,i,j) + nu*mean4_j(m,n,rho,i,j+rs);
+      check_j(n,i);
 
-      break;
+      rs = rs_idx(contraUV[j][i]);
 
-    default:
-      puts("rho_coeffs: invalid axis");
-      exit(15);
+      switch(axis){
+        case 1: // rho_til
+          if(i+rs < 0)
+            i_p_r = n - 2;
+          else if(i+rs > n-2)
+            i_p_r = 0;
+          else
+            i_p_r = i + rs;
+
+          check_j(n,i_p_r);
+          check_j(n,i);
+          
+          rho_tb[j][i] = (1. - nu[j][i])*rho[j][i] + nu[j][i]*rho[j][i_p_r];
+
+          break;
+
+        case 2: // rho_bar
+          if(j+rs >= m-1) // af2_flip? condição de contorno, página 52
+            j_p_s = j;
+            
+          else if(j+rs < 0)
+            j_p_s = 0;
+          
+          else
+            j_p_s = j + rs;
+            
+          check_j(m,j_p_s);
+          check_j(m,j);
+
+          rho_tb[j][i] = (1. - nu[j][i])*rho[j][i] + nu[j][i]*rho[j_p_s][i];
+
+          break;
+
+        default:
+          puts("rho_coeffs: invalid axis");
+          exit(15);
+      }
+    }
   }
 }
 
@@ -1125,6 +1227,8 @@ void two_point_linear_extrp(int m,int n,double A[m][n],double x[m][n],
   }
 }
 
+// (adi here)
+/*
 // void solve_adi_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
 //                                     double A1[m][n],double A2[m][n],
 //                                     double A3[m][n],sim_prmtrs *config,
@@ -1337,16 +1441,37 @@ void two_point_linear_extrp(int m,int n,double A[m][n],double x[m][n],
 //   free(fpb_prmtrs.L2);
 //   free(fpb_prmtrs.Linf);
 // }
+*/
 
-void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double x[m][n],double y[m][n],double J[m][n],
+void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
                                     double A1[m][n],double A2[m][n],
-                                    double A3[m][n],sim_prmtrs *config,
+                                    double A3[m][n],double J_ih[m][n-1],
+                                    double A1_ih[m][n-1],double A2_ih[m][n-1],
+                                    double A3_ih[m][n-1],double J_jh[m-1][n],
+                                    double A1_jh[m-1][n],double A2_jh[m-1][n],
+                                    double A3_jh[m-1][n],sim_prmtrs *config,
                                     fullp_prmtrs *fp_prmtrs){
   // Solver variables
   double (*L_phi)[n] = calloc(m,sizeof *L_phi);
   double (*Cij)[n] = calloc(m,sizeof *Cij);
-  double (*rho)[n-1] = calloc(m,sizeof *rho);
   double (*f)[n] = calloc(m,sizeof *f);
+  double (*rho)[n] = calloc(m,sizeof *rho);
+  double (*rho_ih)[n-1] = calloc(m,sizeof *rho_ih);
+  double (*rho_jh)[n] = calloc(m-1,sizeof *rho_jh);
+  double (*contraU)[n] = calloc(m,sizeof *contraU);
+  double (*contraU_ih)[n-1] = calloc(m,sizeof *contraU_ih);
+  double (*contraU_jh)[n] = calloc(m-1,sizeof *contraU_jh);
+  double (*contraV)[n] = calloc(m,sizeof *contraV);
+  double (*contraV_ih)[n-1] = calloc(m,sizeof *contraV_ih);
+  double (*contraV_jh)[n] = calloc(m-1,sizeof *contraV_jh);
+  double (*rho_til)[n-1] = calloc(m,sizeof *rho_til);
+  double (*rho_bar)[n] = calloc(m-1,sizeof *rho_bar);
+  double (*nu_ih)[n-1] = calloc(m,sizeof *nu_ih);
+  double (*nu_jh)[n] = calloc(m-1,sizeof *nu_jh);
+  double (*L_phi_terms_ih)[n-1] = calloc(m,sizeof *L_phi_terms_ih);
+  double (*L_phi_terms_jh)[n-1] = calloc(m,sizeof *L_phi_terms_jh);
+  double (*Ai)[n-1] = calloc(m,sizeof *Ai);
+  double (*Aj)[n] = calloc(m-1,sizeof *Aj);
   double *ax = malloc(sizeof(double)*(n-1));
   double *bx = malloc(sizeof(double)*(n-1));
   double *cx = malloc(sizeof(double)*(n-1));
@@ -1357,10 +1482,10 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double x[m][n],
   double *cn = malloc(sizeof(double)*(m-2));
   double *fn = malloc(sizeof(double)*(m-1));
   double *un = malloc(sizeof(double)*(m-1));
-  double A1_val,A2_val,A3_val;
-  double Ai,Aip1,Aj,Ajp1;
+  // double A1_val,A2_val,A3_val;
+  // double Ai,Aip1,Aj,Ajp1;
   double dphi_dksi,dphi_deta;
-  double contraU,contraV;
+  // double contraU,contraV;
   double beta_sub = fp_prmtrs->beta_sub;
   double beta_super;
   double beta;
@@ -1370,6 +1495,7 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double x[m][n],
   double alpha;
   int k = 1;
   int iter = 1;
+  int idx;
   // Save files
   char *filename_save = malloc(sizeof(char)*200);
   char *buffer = malloc(sizeof(char)*200);
@@ -1394,17 +1520,57 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double x[m][n],
   for(iter;iter<=config->max_iter;iter++){
     alpha_sequence(&alpha,&k,iter,config);
 
-    for(int j=0;j<m-1;j++){
-      for(int i=0;i<n-1;i++)
-        rho[j][i] = calc_rho(m,n,phi,x,y,i,j,1);
-    }
+    calc_contraUV(m,n,m,n-1,contraU_ih,phi,A1_ih,A2_ih,A3_ih,1,1);
+    calc_contraUV(m,n,m-1,n,contraU_jh,phi,A1_jh,A2_jh,A3_jh,2,1);
+    calc_contraUV(m,n,m,n,contraU,phi,A1,A2,A3,3,1);
+    calc_contraUV(m,n,m,n-1,contraV_ih,phi,A1_ih,A2_ih,A3_ih,1,2);
+    calc_contraUV(m,n,m-1,n,contraV_jh,phi,A1_jh,A2_jh,A3_jh,2,2);
+    calc_contraUV(m,n,m,n,contraV,phi,A1,A2,A3,3,2);
 
-    // print_2d_array_to_file(m,n-1,rho,"mat_rho.dat",0);
+    calc_rho(m,n,m,n-1,rho_ih,phi,A2_ih,A3_ih,contraU_ih,contraV_jh,1);
+    calc_rho(m,n,m-1,n,rho_jh,phi,A2_jh,A3_jh,contraU_jh,contraV_jh,2);
+    calc_rho(m,n,m,n,rho,phi,A2,A3,contraU,contraV,3);
 
-    L_phi_fullp(m,n,L_phi,phi,x,y,fp_prmtrs->C,1);
+    nu_switch(m,n,m,n-1,nu_ih,contraU_ih,rho,fp_prmtrs->C,1,1);
+    nu_switch(m,n,m-1,n,nu_jh,contraV_jh,rho,fp_prmtrs->C,2,2);
+
+    rho_coeffs(m,n-1,rho_til,rho_ih,contraU_ih,nu_ih,1,1);
+    rho_coeffs(m-1,n,rho_bar,rho_jh,contraV_jh,nu_jh,2,2);
+
+    L_phi_fullp_der_terms_ih(m,n,L_phi_terms_ih,rho_til,contraU_ih,
+                             J_ih,1);
+    L_phi_fullp_der_terms_jh(m,n,L_phi_terms_jh,rho_bar,contraV_jh,
+                             J_jh);
+
+    L_phi_fullp(m,n,L_phi,L_phi_terms_ih,L_phi_terms_jh,1);
+
+    calc_Ai(m,n,Ai,rho_til,A1_ih,J_ih,1);
+    calc_Aj(m,n,Aj,rho_bar,A3_ih,J_jh);
+
+    // print_2d_array_to_file(m,n,contraU,"mat_contraU.dat",0);
+    // print_2d_array_to_file(m,n-1,contraU,"mat_contraU_ih.dat",0);
+    // print_2d_array_to_file(m-1,n,contraU,"mat_contraU_jh.dat",0);
+    // print_2d_array_to_file(m,n,contraV,"mat_contraV.dat",0);
+    // print_2d_array_to_file(m,n-1,contraV_ih,"mat_contraV_ih.dat",0);
+    // print_2d_array_to_file(m-1,n,contraV_jh,"mat_contraV_jh.dat",0);
+
+    // print_2d_array_to_file(m,n,rho,"mat_rho.dat",0);
+    // print_2d_array_to_file(m,n-1,rho_ih,"mat_rho_ih.dat",0);
+    // print_2d_array_to_file(m-1,n,rho_jh,"mat_rho_jh.dat",0);
+
+    // print_2d_array_to_file(m,n-1,nu_ih,"mat_nu_ih.dat",0);
+    // print_2d_array_to_file(m-1,n,nu_jh,"mat_nu_jh.dat",0);
+
+    // print_2d_array_to_file(m,n-1,rho_til,"mat_rho_til.dat",0);
+    // print_2d_array_to_file(m-1,n,rho_bar,"mat_rho_bar.dat",0);
+
+    // print_2d_array_to_file(m,n-1,L_phi_terms_ih,"mat_L_phi_terms_ih.dat",0);
+    // print_2d_array_to_file(m,n-1,L_phi_terms_jh,"mat_L_phi_terms_jh.dat",0);
 
     // print_2d_array_to_file(m,n,L_phi,"mat_L_phi.dat",0);
-    // exit(1);
+
+    // print_2d_array_to_file(m,n-1,Ai,"mat_Ai.dat",0);
+    // print_2d_array_to_file(m-1,n,Aj,"mat_Aj.dat",0);
 
     res = 0.;
     for(int j=0;j<m-1;j++){
@@ -1435,30 +1601,21 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double x[m][n],
 
     // Solve for corrections - step 1 (eta)
     for(int i=0;i<n-1;i++){
-      Aj = calc_Aj(m,n,phi,x,y,fp_prmtrs->C,i,1);
-      Ajp1 = calc_Aj(m,n,phi,x,y,fp_prmtrs->C,i,2);
-
-      bn[0] = alpha + Aj;
-      cn[0] = -Ajp1;
+      bn[0] = alpha + Aj[0][i];
+      cn[0] = -Aj[1][i];
 
       fn[0] = alpha*omega*L_phi[1][i];
 
       for(int j=2;j<m-1;j++){
-        Aj = calc_Aj(m,n,phi,x,y,fp_prmtrs->C,i,j);
-        Ajp1 = calc_Aj(m,n,phi,x,y,fp_prmtrs->C,i,j+1);
-
         an[j-2] = 0.;
-        bn[j-1] = alpha + Aj;
-        cn[j-1] = -Ajp1;
+        bn[j-1] = alpha + Aj[j-1][i];
+        cn[j-1] = -Aj[j][i];
 
         fn[j-1] = alpha*omega*L_phi[j][i];
       }
 
-      Aj = calc_Aj(m,n,phi,x,y,fp_prmtrs->C,i,m-1);
-      // Ajp1 = calc_Aj(m,n,phi,J,A2,A3,rho,fp_prmtrs->C,i,m-1);
-
       an[m-3] = 0.;
-      bn[m-2] = alpha + Aj;
+      bn[m-2] = alpha + Aj[m-2][i];
 
       fn[m-2] = alpha*omega*L_phi[m-1][i];
 
@@ -1475,31 +1632,20 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double x[m][n],
     
     for(int j=1;j<m;j++){
       for(int i=0;i<n-1;i++){
-        A1_val = calc_A_metrics(m,n,x,y,i,j,1,3);
-        A2_val = calc_A_metrics(m,n,x,y,i,j,2,3);
-        A3_val = calc_A_metrics(m,n,x,y,i,j,3,3);
-
         dphi_dksi = get_dphi_dksi(m,n,phi,i,j,3);
-        dphi_deta = get_dphi_deta(m,n,phi,A2_val,A3_val,dphi_dksi,i,j,3);
-        
-        contraU = calc_contraUV(dphi_dksi,dphi_deta,A1_val,A2_val);
-        contraV = calc_contraUV(dphi_dksi,dphi_deta,A2_val,A3_val);
-
-        // beta_switch(&beta,beta_sub,beta_super,
-        //             get_mach(contraU,contraV,dphi_dksi,dphi_deta)>=1);
-        // disp(get_mach(contraU,contraV,dphi_dksi,dphi_deta));  
-        // disp(beta_super);
-        // disp(beta);
+        dphi_deta = get_dphi_deta(m,n,phi,A2[j][i],A3[j][i],dphi_dksi,i,j,3);
 
         beta_switch(&beta,beta_sub,beta_super,
-                    contraU*dphi_dksi + contraV*dphi_deta>=1.);
+                    contraU[j][i]*dphi_dksi + contraV[j][i]*dphi_deta>=1.);
 
-        Ai = calc_Ai(m,n,phi,x,y,fp_prmtrs->C,i,j);
-        Aip1 = calc_Ai(m,n,phi,x,y,fp_prmtrs->C,i+1,j);
+        if(i == 0)
+          idx = n-2;
+        else
+          idx = i-1;
 
-        ax[i] = -Ai;
-        bx[i] = alpha + Ai + Aip1 + alpha*beta;
-        cx[i] = -Aip1;
+        ax[i] = -Ai[j][idx];
+        bx[i] = alpha + Ai[j][idx] + Ai[j][i] + alpha*beta;
+        cx[i] = -Ai[j][i];
 
         fx[i] = f[j][i] + alpha*Cij[j-1][i]; 
 
@@ -1514,8 +1660,6 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double x[m][n],
       for(int i=0;i<n-1;i++)
         Cij[j][i] = ux[i];
     }
-
-    // print_2d_array_to_file(m,n,Cij,"mat_Cij.dat",0);
 
     for(int j=1;j<m;j++){
       for(int i=0;i<n-1;i++)
@@ -1544,10 +1688,28 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double x[m][n],
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
   }
 
+  
+
   free(L_phi);
   free(Cij);
-  free(rho);
   free(f);
+  free(rho);
+  free(rho_ih);
+  free(rho_jh);
+  free(contraU);
+  free(contraU_ih);
+  free(contraU_jh);
+  free(contraV);
+  free(contraV_ih);
+  free(contraV_jh);
+  free(rho_til);
+  free(rho_bar);
+  free(nu_ih);
+  free(nu_jh);
+  free(L_phi_terms_ih);
+  free(L_phi_terms_jh);
+  free(Ai);
+  free(Aj);
   free(ax);
   free(bx);
   free(cx);
@@ -1566,6 +1728,6 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double x[m][n],
   free(fpb_prmtrs.Linf);
 }
 
-double sound_speed(int m,int n,double phi[m][n],int i,int j){
+// double sound_speed(int m,int n,double phi[m][n],int i,int j){
 
-}
+// }
