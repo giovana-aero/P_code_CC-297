@@ -15,6 +15,8 @@ ylims = [];
 iter = -1;
 
 initial = {'_x_mesh.dat','_y_mesh.dat'};
+% initial = {'_x_mesh_ih.dat','_y_mesh_ih.dat'};
+% initial = {'_x_mesh_jh.dat','_y_mesh_jh.dat'};
 
 % if iter < 0
 %   iter_list_x = dir([address,casename,'_x_iter_*']);

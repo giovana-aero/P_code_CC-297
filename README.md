@@ -1,9 +1,9 @@
 # \<\< CC-297 - Elementos de mecânica dos fluidos computacional - Project code \>\>
 
 Folder structure:
-- P01: Project 01 (biconvex airfoil, chord approximation)
-- P02: Project 02 (elliptical type O mesh over a biconvex airfoil)
-- P03: Project 03 (full potential flow solution over a biconvex airfoil)
+- P01: Biconvex airfoil, transonic small disturbance potential solution
+- P02: Elliptical type O mesh over a biconvex airfoil
+- P03: Full potential flow solution over a biconvex airfoil
 - exercise_laplace2d: solution of the two-dimensional Laplace equation. I wrote this as practice before working on P01, intending to reuse the functions in the projects. Unfortunately, the code was only partially reusable.
 - post: generic post-processing scripts. Specialized scripts for each project are saved in their respective folders.
 - src: source code of the libraries.

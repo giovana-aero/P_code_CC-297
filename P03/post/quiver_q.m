@@ -26,7 +26,7 @@ y = mesh.y;
 
 figure(1),clf,hold on
 % scatter(x,y,'k')
-plot(x(1,:),y(1,:))
+% plot(x(1,:),y(1,:))
 % streamline(x,y,u,v)
 % scatter(x_up,y_up,'k')
 % scatter(x_down,y_down,'k')

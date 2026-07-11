@@ -10,13 +10,13 @@ fontsize = 22;
 xlims = [];
 ylims = [];
 
-mesh.x = dlmread([address,casename,'_x_mesh.dat']);
-mesh.y = dlmread([address,casename,'_y_mesh.dat']);
+mesh.x = dlmread([address,casename,'_x_mesh_ih.dat']);
+mesh.y = dlmread([address,casename,'_y_mesh_ih.dat']);
 
 figure(1),clf
-config.cb_label = 'q';
+config.cb_label = 'u';
 config.fontsize = fontsize;
-f_plot_contours(mesh,dlmread([address,casename,'_q.dat']),config)
+f_plot_contours(mesh,dlmread('../mat_contraV_ih.dat'),config)
 
 if save_fig
   set_fontsize_position(fontsize,pos,pba)

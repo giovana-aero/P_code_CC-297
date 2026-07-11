@@ -24,16 +24,14 @@ void beta_initial_config(sim_prmtrs *config,fp_beta_prmtrs *fpb_prmtrs,
 void beta_switch(double *beta,double beta_sub,double beta_super,int supersonic);
 void beta_update(double *beta,double L2_now,double Linf_now,int M,
                  fp_beta_prmtrs *fpb_prmtrs,int iter);
-void beta_switch(double *beta,double beta_sub,double beta_super,int supersonic);
-void calc_J_A_metrics(int m,int n,int m2,int n2,double J[m2][n2],
-                      double A1[m2][n2],double A2[m2][n2],double A3[m2][n2],
-                      double x[m][n],double y[m][n],int op);
-double calc_A_metrics(int m,int n,double x[m][n],double y[m][n],int i,int j,
-                      int A_num,int op);
 double calc_Ai(int m,int n,double Ai[m][n-1],double rho_til[m][n-1],
                double A1_ih[m][n-1],double J_ih[m][n-1],int af2_flip);
 double calc_Aj(int m,int n,double Aj[m-1][n],double rho_bar[m-1][n],
                double A3_jh[m-1][n],double J_jh[m-1][n]);
+void beta_switch(double *beta,double beta_sub,double beta_super,int supersonic);
+void calc_J_A_metrics(int m,int n,int m2,int n2,double J[m2][n2],
+                      double A1[m2][n2],double A2[m2][n2],double A3[m2][n2],
+                      double x[m][n],double y[m][n],int op);
 void calc_contraUV(int m,int n,int m2,int n2,double contraUV[m2][n2],
                    double phi[m][n],double A1[m2][n2],double A2[m2][n2],
                    double A3[m2][n2],int op,int axis);
@@ -54,9 +52,13 @@ double get_dphi_deta(int m,int n,double phi[m][n],double A2_val,double A3_val,
 double get_dphi_dksi(int m,int n,double phi[m][n],int i,int j,int op);
 double get_dxy_deta(int m,int n,double xy[m][n],int i,int j,int op);
 double get_dxy_dksi(int m,int n,double xy[m][n],int i,int j,int op);
+void get_half_meshes(int m,int n,double x[m][n],double y[m][n],
+                     double x_ih[m][n-1],double y_ih[m][n-1],
+                     double x_jh[m-1][n],double y_jh[m-1][n]);
 void get_u_v_potential_fullp(int m,int n,double phi[m][n],double x[m][n],
-                             double y[m][n],double J[m][n],double u[m][n],
-                             double v[m][n],double Ve[m][n]);
+                             double y[m][n],double J[m][n],double A2[m][n],
+                             double A3[m][n],double u[m][n],double v[m][n],
+                             double q[m][n],int op);
 void initialize_fullp(int m,int n,double phi[m][n],double x[m][n],
                       double y[m][n],fullp_prmtrs *fp_prmtrs);
 void L_phi_fullp(int m,int n,double L_phi[m][n],double L_phi_terms_ih[m][n-1],
@@ -73,9 +75,9 @@ void L_phi_fullp_der_terms_jh(int m,int n,double L_phi_terms_jh[m][n-1],
 double max2(double n1,double n2);
 // double mean2(double n1,double n2);
 double mean4_j(int m,int n,double rho[m][n-1],int i,int j);
-void metric_terms(double *ksix,double *ksiy,double *etax,double *etay,int m,
-                  int n,double J[m][n],double x[m][n],double y[m][n],
-                  int i,int j);
+// void metric_terms(double *ksix,double *ksiy,double *etax,double *etay,int m,
+//                   int n,double J[m][n],double x[m][n],double y[m][n],
+//                   int i,int j);
 double norm_L2(int m,int n,double L_phi[m][n]);
 void nu_switch(int m,int n,int m2,int n2,double nu[m2][n2],
                double contraUV[m2][n2],double rho[m][n],double C,int op,

@@ -15,17 +15,17 @@ int main(){
   /* FLOW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   sim_prmtrs config;
   config.Ntype = 3;
-  config.w = 1.5;
+  config.w = 1.;
   config.r = 1.;
   config.alpha_seq = 0;
   config.alpha = 1.;
   config.alpha_H = 1e-1;
   config.set_alpha_H = 2;
   config.M = 5;
-  config.max_iter = 50;
+  config.max_iter = 1;
   config.qtimes = 5;
   config.save_i_c = 1;
-  config.save_last_only = 00;
+  config.save_last_only = 1;
   config.eps = 1.e-6;
   // config.eps = 1.e-5;
   char output_file[] = "results/fullp";

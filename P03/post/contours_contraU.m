@@ -14,9 +14,9 @@ mesh.x = dlmread([address,casename,'_x_mesh.dat']);
 mesh.y = dlmread([address,casename,'_y_mesh.dat']);
 
 figure(1),clf
-config.cb_label = 'q';
+config.cb_label = 'v';
 config.fontsize = fontsize;
-f_plot_contours(mesh,dlmread([address,casename,'_q.dat']),config)
+f_plot_contours(mesh,dlmread([address,casename,'_contraU.dat']),config)
 
 if save_fig
   set_fontsize_position(fontsize,pos,pba)

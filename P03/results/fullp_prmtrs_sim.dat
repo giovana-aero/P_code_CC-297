@@ -1,13 +1,13 @@
 config.Ntype = 3
-config.w = 1.500000
+config.w = 1.000000
 config.r = 1.000000
 config.alpha_seq = 0
 config.alpha = 1.000000e+00
 config.alpha_H = 1.000000e-01
 config.set_alpha_H = 2
 config.M = 5
-config.max_iter = 50
+config.max_iter = 1
 config.qtimes = 5
 config.save_ic = 1
-config.save_last_only = 0
+config.save_last_only = 1
 config.eps = 1.000000e-06
