@@ -1169,7 +1169,7 @@ double uniform_scheme_der1_o1_backward(int m,int n,double phi[m][n],int i,int j,
       break;
 
     case 2: // Vertical
-      return (phi[j][i] - phi[j][i-1]);
+      return (phi[j][i] - phi[j-1][i]);
       break;
 
     default:

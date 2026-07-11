@@ -24,6 +24,11 @@ y = mesh.y;
 % [x,y] = meshgrid(0:0.1:1,0:0.1:1);
 % [X,Y] = meshgrid(1:92,1:15);
 
+% normalize ?
+q = sqrt(u.^2 + v.^2);
+u = u./q;
+v = v./q;
+
 figure(1),clf,hold on
 % scatter(x,y,'k')
 % plot(x(1,:),y(1,:))
