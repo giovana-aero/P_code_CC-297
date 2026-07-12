@@ -45,13 +45,13 @@ int main(){
   /* af_type */
   int n = 10; // cst - bernstein polynomial order
   msh.af_prmtrs = malloc(sizeof(double)*((n+2)*2 + 1));
-  msh.af_type = 1;
+  msh.af_type = 2;
   /* af_prmtrs (bi_air) */
-  msh.af_prmtrs[0] = 0.1;
+  // msh.af_prmtrs[0] = 0.1;
   /* af_prmtrs (naca4) */
-  // msh.af_prmtrs[0] = 2.;
-  // msh.af_prmtrs[1] = 4.;
-  // msh.af_prmtrs[2] = 10.;
+  msh.af_prmtrs[0] = 0.;
+  msh.af_prmtrs[1] = 0.;
+  msh.af_prmtrs[2] = 10.;
   // /* af_prmtrs (cst) */
   // msh.af_prmtrs[0] = (double) n;
   // msh.cst_foil = 3; 

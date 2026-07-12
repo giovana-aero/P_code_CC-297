@@ -7,26 +7,33 @@
 
 int main(){
   /* MESH ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+  /* Biconvex airfoil, 10% thickness */
   // char filename_msh_x[] = "../P02/eom_m15_n93_biair_t01/eom_x_iter_0000000047.dat";
   // char filename_msh_y[] = "../P02/eom_m15_n93_biair_t01/eom_y_iter_0000000047.dat";
   // int m = 15;
   // int n = 93;
-  char filename_msh_x[] = "../P02/eom_m40_n187_biair_t01/eom_x_iter_0000000069.dat";
-  char filename_msh_y[] = "../P02/eom_m40_n187_biair_t01/eom_y_iter_0000000069.dat";
-  int m = 40;
+  char filename_msh_x[] = "../P02/eom_m60_n187_biair_t01/eom_x_iter_0000000069.dat";
+  char filename_msh_y[] = "../P02/eom_m60_n187_biair_t01/eom_y_iter_0000000069.dat";
+  int m = 60;
   int n = 187;
+
+  /* NACA 0010 */
+  // char filename_msh_x[] = "../P02/eom_m60_n187_naca0010/eom_x_iter_0000000069.dat";
+  // char filename_msh_y[] = "../P02/eom_m60_n187_naca0010/eom_y_iter_0000000069.dat";
+  // int m = 60;
+  // int n = 187;
 
   /* FLOW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   sim_prmtrs config;
   config.Ntype = 3;
-  config.w = 1.;
+  config.w = 1.5;
   config.r = 1.;
   config.alpha_seq = 0;
   config.alpha = 1.;
   config.alpha_H = 1e-1;
   config.set_alpha_H = 2;
   config.M = 5;
-  config.max_iter = 1000;
+  config.max_iter = 10000;
   config.qtimes = 1;
   config.save_i_c = 1;
   config.save_last_only = 1;
@@ -36,8 +43,8 @@ int main(){
 
   fullp_prmtrs fp_prmtrs;
   fp_prmtrs.alpha = 0.;
-  fp_prmtrs.Ma = .7;
-  fp_prmtrs.C = 1.;
+  fp_prmtrs.Ma = 0.7;
+  fp_prmtrs.C = 1.5;
   fp_prmtrs.beta_sub = .3;
   fp_prmtrs.beta_super = 4.5;
   fp_prmtrs.lift = 0;

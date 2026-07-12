@@ -11,6 +11,10 @@
 
 #define div_ref 1e100
 
+void bidiagonal_up_matrix_solver(int n,double *b,double *c,double *f,double *u){
+  
+}
+
 /*
 - gigiaero, 01/04/2026, 1633 hours
 */

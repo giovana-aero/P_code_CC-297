@@ -35,9 +35,6 @@ void calc_J_A_metrics(int m,int n,double J[m][n],double A1[m][n],
 void calc_contraUV(int m,int n,double contraUV[m][n],double phi[m][n],
                    double A1[m][n],double A2[m][n],double A3[m][n],int op,
                    int axis);
-// double calc_contraV(double dphi_dksi,double dphi_deta,int m,int n,
-//                     double A2[m][n],double A3[m][n],int i,int j,int op);
-// double calc_J(int m,int n,double x[m][n],double y[m][n],int i,int j,int op);
 double calc_rho(int m,int n,double rho[m][n],double phi[m][n],double A2[m][n],
                 double A3[m][n],double contraU[m][n],double contraV[m][n],
                 int op);
@@ -45,8 +42,8 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
                                fullp_prmtrs *fp_prmtrs,char *fname_msh_x,
                                char *fname_msh_y);
 double freestream_u(double Ma);
-double get_mach(double contraU,double contraV,double dphi_dksi,
-                double dphi_deta);
+// double get_mach(double contraU,double contraV,double dphi_dksi,
+//                 double dphi_deta);
 double get_dphi_deta(int m,int n,double phi[m][n],double A2_val,double A3_val,
                      double dphi_dksi,int i,int j,int op);
 double get_dphi_dksi(int m,int n,double phi[m][n],int i,int j,int op);
