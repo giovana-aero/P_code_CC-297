@@ -44,6 +44,8 @@ void beta_switch(double *beta,double beta_sub,double beta_super,int supersonic){
 
   // if(supersonic)
   //   puts("supersonic");
+  // else
+  //   puts("subsonic");
 }
 
 /*
@@ -118,6 +120,102 @@ double calc_Aj(int m,int n,double Aj[m][n],double rho_bar[m][n],
       Aj[j][i] = rho_bar[j][i]*A3_jh[j][i]/J_jh[j][i];
     
     Aj[j][n-1] = Aj[j][0];
+  }
+}
+
+/*
+- gigiaero, 31/05/2026, 1143h hours
+
+refactored
+- gigiaero, 21/06/2026, 1337 hours
+
+refactored (again)
+- gigiaero, 21/06/2026, 2202 hours
+
+yeah ┐(￣ー￣)┌
+- gigiaero, 23/06/2026, 1028
+*/
+void calc_contraUV(int m,int n,double contraUV[m][n],double phi[m][n],
+                   double A1[m][n],double A2[m][n],double A3[m][n],int op,
+                   int axis){
+  double dphi_dksi,dphi_deta;
+  int j_end;
+
+  // if(op == 1 && n2 != n-1){
+  //   puts("calc_contraUV: op 1, invalid indexing");
+  //   exit(207);
+  // }
+  // else if(op == 2 && m2 != m-1){
+  //   puts("calc_contraUV: op 2, invalid indexing");
+  //   exit(207);
+  // }
+
+  // if(op == 1)
+  //   i_end = n-1;
+  // else
+  //   i_end = n;
+
+  if(op == 2)
+    j_end = m-1;
+  else
+    j_end = m;
+
+  for(int j=0;j<j_end;j++){
+    for(int i=0;i<n-1;i++){
+      // if(op == 1 && i == n-1){
+      //   puts("calc_contraUV: op 1, invalid indexing");
+      //   exit(207);
+      // }
+      // else if(op == 2 && j == m-1){
+      //   puts("calc_contraUV: op 2, invalid indexing");
+      //   exit(207);
+      // }
+
+      dphi_dksi = get_dphi_dksi(m,n,phi,i,j,op);
+      dphi_deta = get_dphi_deta(m,n,phi,A2[j][i],A3[j][i],dphi_dksi,i,j,op);
+
+      switch(axis){
+        case 1: // contraU
+          contraUV[j][i] = dphi_dksi*A1[j][i] + dphi_deta*A2[j][i];
+          // printf("%d | %d\n",i,j);
+          // disp(A1[j][i]);
+          // disp(A2[j][i]);
+          // disp(dphi_dksi);
+          // disp(dphi_deta);
+          break;
+
+        case 2: // contraV
+          contraUV[j][i] = dphi_dksi*A2[j][i] + dphi_deta*A3[j][i];
+          break;
+
+        default:
+          puts("calc_contraUV: invalid axis");
+          exit(15);
+      }
+    }
+
+    contraUV[j][n-1] = contraUV[j][0];
+  }
+
+  // Boundary conditions for the i,j+1/2 case
+  if(op == 2){
+    switch(axis){
+      case 1:
+        for(int i=0;i<n;i++)          
+          contraUV[m-1][i] = contraUV[m-2][i];
+      
+      break;
+
+      case 2:
+        for(int i=0;i<n;i++)          
+          contraUV[m-1][i] = -contraUV[m-2][i];
+
+      break;
+
+      default:
+        puts("calc_contraUV: invalid axis");
+        exit(15);
+    }
   }
 }
 
@@ -232,97 +330,6 @@ void calc_J_A_metrics(int m,int n,double J[m][n],double A1[m][n],
 // }
 
 /*
-- gigiaero, 31/05/2026, 1143h hours
-
-refactored
-- gigiaero, 21/06/2026, 1337 hours
-
-refactored (again)
-- gigiaero, 21/06/2026, 2202 hours
-
-yeah ┐(￣ー￣)┌
-- gigiaero, 23/06/2026, 1028
-*/
-void calc_contraUV(int m,int n,double contraUV[m][n],double phi[m][n],
-                   double A1[m][n],double A2[m][n],double A3[m][n],int op,
-                   int axis){
-  double dphi_dksi,dphi_deta;
-  int j_end;
-
-  // if(op == 1 && n2 != n-1){
-  //   puts("calc_contraUV: op 1, invalid indexing");
-  //   exit(207);
-  // }
-  // else if(op == 2 && m2 != m-1){
-  //   puts("calc_contraUV: op 2, invalid indexing");
-  //   exit(207);
-  // }
-
-  // if(op == 1)
-  //   i_end = n-1;
-  // else
-  //   i_end = n;
-
-  if(op == 2)
-    j_end = m-1;
-  else
-    j_end = m;
-
-  for(int j=0;j<j_end;j++){
-    for(int i=0;i<n-1;i++){
-      // if(op == 1 && i == n-1){
-      //   puts("calc_contraUV: op 1, invalid indexing");
-      //   exit(207);
-      // }
-      // else if(op == 2 && j == m-1){
-      //   puts("calc_contraUV: op 2, invalid indexing");
-      //   exit(207);
-      // }
-
-      dphi_dksi = get_dphi_dksi(m,n,phi,i,j,op);
-      dphi_deta = get_dphi_deta(m,n,phi,A2[j][i],A3[j][i],dphi_dksi,i,j,op);
-
-      switch(axis){
-        case 1: // contraU
-          contraUV[j][i] = dphi_dksi*A1[j][i] + dphi_deta*A2[j][i];
-          break;
-
-        case 2: // contraV
-          contraUV[j][i] = dphi_dksi*A2[j][i] + dphi_deta*A3[j][i];
-          break;
-
-        default:
-          puts("calc_contraUV: invalid axis");
-          exit(15);
-      }
-    }
-
-    contraUV[j][n-1] = contraUV[j][0];
-  }
-
-  // Boundary conditions for the i,j + 1/2 case
-  if(op == 2){
-    switch(axis){
-      case 1:
-        for(int i=0;i<n;i++)          
-          contraUV[m-1][i] = contraUV[m-2][i];
-      
-      break;
-
-      case 2:
-        for(int i=0;i<n;i++)          
-          contraUV[m-1][i] = -contraUV[m-2][i];
-
-      break;
-
-      default:
-        puts("calc_contraUV: invalid axis");
-        exit(15);
-    }
-  }
-}
-
-/*
 - gigiaero, 29/05/2026, 1435 hours
 
 refactored
@@ -389,12 +396,19 @@ double calc_rho(int m,int n,double rho[m][n],double phi[m][n],double A2[m][n],
         rho_primitive = .01;
       
       rho[j][i] = pow(rho_primitive,1./(gamma - 1.));
+
+      // disp(dphi_dksi);
+      // disp(dphi_deta);
+      // disp(contraU[j][i]);
+      // disp(contraV[j][i]);
+      // disp(rho[j][i]);
+      // putchar('\n');
     }
 
     rho[j][n-1] = rho[j][0];
   }
 
-  // Boundary conditions for the i,j + 1/2 case
+  // Boundary conditions for the i,j+1/2 case
   if(op == 2){
     for(int i=0;i<n;i++)
       rho[m-1][i] = rho[m-2][i];
@@ -447,8 +461,8 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   //   // af2_flip = 1;
   // }
 
-  print_2d_array_to_file(m,n,x,"mat_mesh_x.dat",0);
-  print_2d_array_to_file(m,n,y,"mat_mesh_y.dat",0);
+  // print_2d_array_to_file(m,n,x,"mat_mesh_x.dat",0);
+  // print_2d_array_to_file(m,n,y,"mat_mesh_y.dat",0);
 
   calc_J_A_metrics(m,n,J_ih,A1_ih,A2_ih,A3_ih,x,y,1);
   calc_J_A_metrics(m,n,J_jh,A1_jh,A2_jh,A3_jh,x,y,2);
@@ -456,18 +470,18 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   // get_half_meshes(m,n,J,A1,J_ih,A1_ih,J_jh,A1_jh);
   // get_half_meshes(m,n,A2,A3,A2_ih,A3_ih,A2_jh,A3_jh);
 
-  print_2d_array_to_file(m,n,J,"mat_J.dat",0);
-  print_2d_array_to_file(m,n,A1,"mat_A1.dat",0);
-  print_2d_array_to_file(m,n,A2,"mat_A2.dat",0);
-  print_2d_array_to_file(m,n,A3,"mat_A3.dat",0);
-  print_2d_array_to_file(m,n,J_ih,"mat_J_ih.dat",0);
-  print_2d_array_to_file(m,n,A1_ih,"mat_A1_ih.dat",0);
-  print_2d_array_to_file(m,n,A2_ih,"mat_A2_ih.dat",0);
-  print_2d_array_to_file(m,n,A3_ih,"mat_A3_ih.dat",0);
-  print_2d_array_to_file(m,n,J_jh,"mat_J_jh.dat",0);
-  print_2d_array_to_file(m,n,A1_jh,"mat_A1_jh.dat",0);
-  print_2d_array_to_file(m,n,A2_jh,"mat_A2_jh.dat",0);
-  print_2d_array_to_file(m,n,A3_jh,"mat_A3_jh.dat",0);
+  // print_2d_array_to_file(m,n,J,"mat_J.dat",0);
+  // print_2d_array_to_file(m,n,A1,"mat_A1.dat",0);
+  // print_2d_array_to_file(m,n,A2,"mat_A2.dat",0);
+  // print_2d_array_to_file(m,n,A3,"mat_A3.dat",0);
+  // print_2d_array_to_file(m,n,J_ih,"mat_J_ih.dat",0);
+  // print_2d_array_to_file(m,n,A1_ih,"mat_A1_ih.dat",0);
+  // print_2d_array_to_file(m,n,A2_ih,"mat_A2_ih.dat",0);
+  // print_2d_array_to_file(m,n,A3_ih,"mat_A3_ih.dat",0);
+  // print_2d_array_to_file(m,n,J_jh,"mat_J_jh.dat",0);
+  // print_2d_array_to_file(m,n,A1_jh,"mat_A1_jh.dat",0);
+  // print_2d_array_to_file(m,n,A2_jh,"mat_A2_jh.dat",0);
+  // print_2d_array_to_file(m,n,A3_jh,"mat_A3_jh.dat",0);
 
   initialize_fullp(m,n,phi,x,y,fp_prmtrs);
 
@@ -510,8 +524,8 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
       // flip_2d_array(m-1,n,A2_jh);
       // flip_2d_array(m-1,n,A3_jh);
 
-      solve_af2_2d_rectangular_fullp(m,n,phi,J,A1,A2,A3,J_ih,A1_ih,A2_ih,A3_ih,
-                                     J_jh,A1_jh,A2_jh,A3_jh,config,fp_prmtrs);
+      // solve_af2_2d_rectangular_fullp(m,n,phi,J,A1,A2,A3,J_ih,A1_ih,A2_ih,A3_ih,
+                                    //  J_jh,A1_jh,A2_jh,A3_jh,config,fp_prmtrs);
 
       // flip_2d_array(m,n,phi);
       // flip_2d_array(m,n,J);
@@ -553,7 +567,15 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   sprintf(filename,"%s_rho.dat",config->casename);
   print_2d_array_to_file(m,n,rho,filename,0);
 
-  // // apagar depois
+  // // // apagar depois
+  // double (*dphi_dksi)[n] = calloc(m,sizeof *dphi_dksi);
+  // for(int j=0;j<m;j++){
+  //   for(int i=0;i<n;i++)
+  //   dphi_dksi[j][i] = get_dphi_dksi(m,n,phi,i,j,3);
+  // }
+  // sprintf(filename,"mat_dphi_dksi.dat");
+  // print_2d_array_to_file(m,n,dphi_dksi,filename,0);
+
   // sprintf(filename,"%s_A1.dat",config->casename);
   // print_2d_array_to_file(m,n,A1,filename,0);
   // sprintf(filename,"%s_A2.dat",config->casename);
@@ -610,6 +632,7 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   // sprintf(filename,"%s_v_jh.dat",config->casename);
   // print_2d_array_to_file(m-1,n,v_jh,filename,0);
 
+  // free(dphi_dksi);
   // free(x_ih);
   // free(y_ih);
   // free(x_jh);
@@ -687,6 +710,8 @@ double get_dphi_deta(int m,int n,double phi[m][n],double A2_val,double A3_val,
       // if(j == 0 || j == m-1) // adaptation for adi?
       if(j == m-1)
         return -A2_val*dphi_dksi/A3_val;
+        // return (uniform_scheme_der1_o1_backward(m,n,phi,i,j,2) + 
+        //         uniform_scheme_der1_o1_backward(m,n,phi,i+1,j,2))*.5;
 
       else if(j == 0){
         check_j(m,j+1);
@@ -694,10 +719,11 @@ double get_dphi_deta(int m,int n,double phi[m][n],double A2_val,double A3_val,
         if(i == n-1)
           i = 0;
 
-        return (uniform_scheme_der1_o2_forward(m,n,phi,i,j,2) + 
-                uniform_scheme_der1_o2_forward(m,n,phi,i+1,j,2))*.5;
+        // return (uniform_scheme_der1_o2_forward(m,n,phi,i,j,2) + 
+        //         uniform_scheme_der1_o2_forward(m,n,phi,i+1,j,2))*.5;
+        return (uniform_scheme_der1_o1_forward(m,n,phi,i,j,2) + 
+                uniform_scheme_der1_o1_forward(m,n,phi,i+1,j,2))*.5; // tem que ser de primeira ordem?
       }
-      
       else{
         check_j(m,j-1);
         check_j(m,j+1);
@@ -711,29 +737,30 @@ double get_dphi_deta(int m,int n,double phi[m][n],double A2_val,double A3_val,
       break;
 
     case 2: // i,j+1/2
-      // if(j == m-1){
-      //   puts("get_dphi_deta: case 2, invalid j");
-      //   exit(207);
-      // }
-
-      if(j == m-1)
-        return -A2_val*dphi_dksi/A3_val;
-
-      else{
-        check_j(m,j+1);
-        return uniform_scheme_der1_o1_forward(m,n,phi,i,j,2);
+      if(j == m-1){
+        puts("get_dphi_deta: case 2, invalid j");
+        exit(207);
       }
+
+      // if(j == m-1)
+      //   return -A2_val*dphi_dksi/A3_val;
+
+      else
+        return uniform_scheme_der1_o1_forward(m,n,phi,i,j,2);
+
       break;
 
     case 3: // i,j
       // if(j == 0 || j == m-1) // adaptation for adi?
       if(j == m-1)
         return -A2_val*dphi_dksi/A3_val;
+        // return uniform_scheme_der1_o1_backward(m,n,phi,i,j,2);
 
       else if (j == 0){
         check_j(m,j+1);
         check_j(m,j+2);
-        return uniform_scheme_der1_o2_forward(m,n,phi,i,j,2);
+        // return uniform_scheme_der1_o2_forward(m,n,phi,i,j,2);
+        return uniform_scheme_der1_o1_forward(m,n,phi,i,j,2); // tem que ser de primeira ordem?
       }
       else{
         check_j(m,j+1);
@@ -759,22 +786,22 @@ double get_dphi_dksi(int m,int n,double phi[m][n],int i,int j,int op){
     case 1: // i+1/2,j
     check_j(n,i+1);
       if(i == n-1)
-        return uniform_scheme_der1_o1_forward(m,n,phi,0,j,1);
+        i = 0;
 
-      else
-        return uniform_scheme_der1_o1_forward(m,n,phi,i,j,1);
+      return uniform_scheme_der1_o1_forward(m,n,phi,i,j,1);
 
       break;
 
     case 2: // i,j+1/2
-      // if(j == m-1){
-      //   puts("get_dxy_dksi: case 2, invalid j");
-      //   exit(207);
-      // }
+      if(j == m-1){                                                 // revisar isto aqui
+        puts("get_dxy_dksi: case 2, invalid j");
+        exit(207);
+      }
 
       check_j(m,j+1);
 
       if(j == m-1){ // Approximate to case 3
+        puts("case 3 approximation");
         if(i == 0 || i == n-1)
           return uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j);
 
@@ -822,30 +849,29 @@ double get_dxy_deta(int m,int n,double xy[m][n],int i,int j,int op){
 
   switch(op){
     case 1: // i+1/2,j
+      if(i == n-1)
+        i = 0;
+
       if(j == 0){
         check_j(m,j+1);
         check_j(m,j+2);
 
-        if(i == n-1)
-          return (uniform_scheme_der1_o2_forward(m,n,xy,i,j,2) + 
-                  uniform_scheme_der1_o2_forward(m,n,xy,0,j,2))*.5;
-
-        else
-          return (uniform_scheme_der1_o2_forward(m,n,xy,i,j,2) + 
-                  uniform_scheme_der1_o2_forward(m,n,xy,i+1,j,2))*.5;
+        return (uniform_scheme_der1_o2_forward(m,n,xy,i,j,2) + 
+                uniform_scheme_der1_o2_forward(m,n,xy,i+1,j,2))*.5;
       }
       else if(j == m-1){
       check_j(m,j-1);
       check_j(m,j-2);
         return (uniform_scheme_der1_o2_backward(m,n,xy,i,j,2) + 
                 uniform_scheme_der1_o2_backward(m,n,xy,i+1,j,2))*.5;
-              }
+      }
       else{
         check_j(m,j-1);
         check_j(m,j+1);
+
         return (uniform_scheme_der1_o2_central(m,n,xy,i,j,2) + 
                 uniform_scheme_der1_o2_central(m,n,xy,i+1,j,2))*.5;
-              }
+      }
       break;
 
     case 2: // i,j+1/2
@@ -865,16 +891,12 @@ double get_dxy_deta(int m,int n,double xy[m][n],int i,int j,int op){
       break;
 
     case 3: // i,j
-      if(j == 0){
-        check_j(m,j+1);
-        check_j(m,j+2);
+      if(j == 0)
         return uniform_scheme_der1_o2_forward(m,n,xy,i,j,2);
-      }
-      else if(j == m-1){
-        check_j(m,j-1);
-        check_j(m,j-2);
+
+      else if(j == m-1)
         return uniform_scheme_der1_o2_backward(m,n,xy,i,j,2);
-      }
+
       else{
         check_j(m,j+1);
         check_j(m,j-1);
@@ -918,6 +940,7 @@ double get_dxy_dksi(int m,int n,double xy[m][n],int i,int j,int op){
         if(i == 0)
           return (uniform_scheme_der1_o2_central_prdc_ksi(m,n,xy,j) + 
                   uniform_scheme_der1_o2_central_prdc_ksi(m,n,xy,j+1))*.5;
+
         else
           return (uniform_scheme_der1_o2_central(m,n,xy,i,j,1) + 
                   uniform_scheme_der1_o2_central(m,n,xy,i,j+1,1))*.5;
@@ -1019,12 +1042,6 @@ void get_u_v_potential_fullp(int m,int n,double phi[m][n],double x[m][n],
       v[j][i] = dphi_dksi*ksiy + dphi_deta*etay;
 
       q[j][i] = sqrt(pow(u[j][i],2) + pow(v[j][i],2));
-    }
-
-    if(op != 1){
-      u[j][n-1] = u[j][0];
-      v[j][n-1] = v[j][0];
-      q[j][n-1] = q[j][0];
     }
   }
 
@@ -1305,7 +1322,7 @@ void nu_switch(int m,int n,double nu[m][n],double contraUV[m][n],
   double C1 = .633939;
   double C2 = 4.9325;
   double rho_val;
-  int i_end,j_end;
+  // int i_end,j_end;
 
   // if(op == 1 && n2 != n-1){
   //   puts("nu_switch: op 1, invalid indexing");
@@ -1414,8 +1431,10 @@ double rho_coeffs(int m,int n,double rho_tb[m][n],double rho[m][n],
         case 1: // rho_til
           if(i+rs < 0)
             i_p_r = n - 2;
+
           else if(i+rs > n-2)
             i_p_r = 0;
+
           else
             i_p_r = i + rs;
 
@@ -1452,7 +1471,7 @@ double rho_coeffs(int m,int n,double rho_tb[m][n],double rho[m][n],
     rho_tb[j][n-1] = rho_tb[j][0];
   }
 
-  // Boundary conditions for the i,j + 1/2 case
+  // Boundary conditions for the i,j+1/2 case
   if(op == 2){
     for(int i=0;i<n;i++)
       rho_tb[m-1][i] = rho_tb[m-2][i];
@@ -1811,6 +1830,8 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
   
   beta_initial_config(config,&fpb_prmtrs,fp_prmtrs->beta_super);
 
+  char filename[500];                                             // apagar depois
+
   for(iter;iter<=config->max_iter;iter++){
     alpha_sequence(&alpha,&k,iter,config);
 
@@ -1821,7 +1842,7 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
     calc_contraUV(m,n,contraV_jh,phi,A1_jh,A2_jh,A3_jh,2,2);
     calc_contraUV(m,n,contraV,phi,A1,A2,A3,3,2);
 
-    calc_rho(m,n,rho_ih,phi,A2_ih,A3_ih,contraU_ih,contraV_jh,1);
+    calc_rho(m,n,rho_ih,phi,A2_ih,A3_ih,contraU_ih,contraV_ih,1);
     calc_rho(m,n,rho_jh,phi,A2_jh,A3_jh,contraU_jh,contraV_jh,2);
     calc_rho(m,n,rho,phi,A2,A3,contraU,contraV,3);
 
@@ -1837,7 +1858,7 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
     L_phi_fullp(m,n,L_phi,L_phi_terms_ih,L_phi_terms_jh);
 
     calc_Ai(m,n,Ai,rho_til,A1_ih,J_ih);
-    calc_Aj(m,n,Aj,rho_bar,A3_ih,J_jh);
+    calc_Aj(m,n,Aj,rho_bar,A3_jh,J_jh);
 
     // print_2d_array_to_file(m,n,contraU,"mat_contraU.dat",0);
     // print_2d_array_to_file(m,n,contraU_ih,"mat_contraU_ih.dat",0);
@@ -1864,10 +1885,8 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
     // print_2d_array_to_file(m,n,Ai,"mat_Ai.dat",0);
     // print_2d_array_to_file(m,n,Aj,"mat_Aj.dat",0);
 
-    // return;
-
     res = 0.;
-    for(int j=0;j<m-1;j++){
+    for(int j=0;j<m;j++){
       for(int i=0;i<n-1;i++){
         if(fabs(L_phi[j][i]) > res)
           res = fabs(L_phi[j][i]);
@@ -1919,7 +1938,8 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
         f[j][i] = un[j-1];
     }
 
-    // print_2d_array_to_file(m,n,f,"mat_f.dat",0);
+    sprintf(filename,"mat_f_%010d.dat",iter);
+    // print_2d_array_to_file(m,n,f,filename,0);
     
     // Solve for corrections - step 2 (ksi)
     beta_update(&beta_super,L2_res,res,config->M,&fpb_prmtrs,iter);          // reativar isto depois e testar
@@ -1943,10 +1963,14 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
 
         fx[i] = f[j][i] + alpha*Cij[j-1][i]; 
 
-        if(contraU >= 0)
+        if(contraU_ih[j][i] >= 0)
           ax[i] -= alpha*beta;
         else
           cx[i] -= alpha*beta;
+
+        // printf("%f\n",contraU_ih[j][i]);
+        // printf("%d | %d | %f , %f , %f , %f ,%f\n",i,j,beta,ax[i],bx[i],cx[i],fx[i]);
+        // putchar('\n');
       }
 
       tridiagonal_pmatrix_solver(n-1,ax,bx,cx,fx,ux);
@@ -1955,15 +1979,16 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
         Cij[j][i] = ux[i];
     }
 
+    sprintf(filename,"mat_cij_%010d.dat",iter);
+    // print_2d_array_to_file(m,n,Cij,filename,0);
+    // exit(32);
+
     for(int j=1;j<m;j++){
       for(int i=0;i<n-1;i++)
         phi[j][i] += Cij[j][i];
 
       phi[j][n-1] = phi[j][0];
     }
-
-    // print_2d_array_to_file(m,n,Cij,"mat_Cij.dat",0);
-    // return;
 
     if(!config->save_last_only){
       // flip_2d_array(m,n,phi);

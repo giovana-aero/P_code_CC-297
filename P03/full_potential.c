@@ -7,10 +7,14 @@
 
 int main(){
   /* MESH ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  char filename_msh_x[] = "../P02/results/eom_x_iter_0000000047.dat";
-  char filename_msh_y[] = "../P02/results/eom_y_iter_0000000047.dat";
-  int m = 15;
-  int n = 93;
+  // char filename_msh_x[] = "../P02/eom_m15_n93_biair_t01/eom_x_iter_0000000047.dat";
+  // char filename_msh_y[] = "../P02/eom_m15_n93_biair_t01/eom_y_iter_0000000047.dat";
+  // int m = 15;
+  // int n = 93;
+  char filename_msh_x[] = "../P02/eom_m40_n187_biair_t01/eom_x_iter_0000000069.dat";
+  char filename_msh_y[] = "../P02/eom_m40_n187_biair_t01/eom_y_iter_0000000069.dat";
+  int m = 40;
+  int n = 187;
 
   /* FLOW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   sim_prmtrs config;
@@ -23,11 +27,11 @@ int main(){
   config.set_alpha_H = 2;
   config.M = 5;
   config.max_iter = 1000;
-  config.qtimes = 5;
+  config.qtimes = 1;
   config.save_i_c = 1;
   config.save_last_only = 1;
   config.eps = 1.e-6;
-  // config.eps = 1.e-5;
+  // config.eps = 1.e-8;
   char output_file[] = "results/fullp";
 
   fullp_prmtrs fp_prmtrs;

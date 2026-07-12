@@ -4,7 +4,7 @@
 #define _lib_f_potential_
 
 typedef struct fullp_parameters{
-  double alpha; // in degrees
+  double alpha; // Angle of attack in degrees
   double Ma;
   double C;
   double beta_sub;
@@ -26,8 +26,8 @@ void beta_update(double *beta,double L2_now,double Linf_now,int M,
                  fp_beta_prmtrs *fpb_prmtrs,int iter);
 double calc_Ai(int m,int n,double Ai[m][n],double rho_til[m][n],
                double A1_ih[m][n],double J_ih[m][n]);
-double calc_Aj(int m,int n,double Aj[m-1][n],double rho_bar[m-1][n],
-               double A3_jh[m-1][n],double J_jh[m-1][n]);
+double calc_Aj(int m,int n,double Aj[m][n],double rho_bar[m][n],
+               double A3_jh[m][n],double J_jh[m][n]);
 void beta_switch(double *beta,double beta_sub,double beta_super,int supersonic);
 void calc_J_A_metrics(int m,int n,double J[m][n],double A1[m][n],
                       double A2[m][n],double A3[m][n],double x[m][n],

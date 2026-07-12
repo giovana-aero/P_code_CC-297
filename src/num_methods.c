@@ -1139,26 +1139,6 @@ void tridiagonal_pmatrix_solver(int n,double *a,double *b,double *c,double *f,
 }
 
 /*
-- gigiaero, 27/04/2026, 1303 hours
-*/
-double uniform_scheme_der1_o2_central(int m,int n,double phi[m][n],int i,int j,
-                                      int axis){
-  switch(axis){
-    case 1: // Horizontal
-      return (phi[j][i+1] - phi[j][i-1])*.5;
-      break;
-
-    case 2: // Vertical
-      return (phi[j+1][i] - phi[j-1][i])*.5;
-      break;
-
-    default:
-      puts("uniform_scheme_der1_o2_central: invalid axis");
-      exit(15);
-  }
-}
-
-/*
 - gigiaero, 03/06/2026, 1351 hours
 */
 double uniform_scheme_der1_o1_backward(int m,int n,double phi[m][n],int i,int j,
@@ -1215,6 +1195,26 @@ double uniform_scheme_der1_o2_backward(int m,int n,double phi[m][n],int i,int j,
 
     default:
       puts("uniform_scheme_der1_o2_backward: invalid axis");
+      exit(15);
+  }
+}
+
+/*
+- gigiaero, 27/04/2026, 1303 hours
+*/
+double uniform_scheme_der1_o2_central(int m,int n,double phi[m][n],int i,int j,
+                                      int axis){
+  switch(axis){
+    case 1: // Horizontal
+      return (phi[j][i+1] - phi[j][i-1])*.5;
+      break;
+
+    case 2: // Vertical
+      return (phi[j+1][i] - phi[j-1][i])*.5;
+      break;
+
+    default:
+      puts("uniform_scheme_der1_o2_central: invalid axis");
       exit(15);
   }
 }

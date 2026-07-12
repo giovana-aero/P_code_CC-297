@@ -27,9 +27,9 @@ int main(){
   msh_prmtrs msh;
   msh.end_prmtrs = malloc(sizeof(double)*4);
   /* IMAX */
-  msh.IMAX = 93;
+  msh.IMAX = 93*2+1;
   /* JMAX */
-  msh.JMAX = 15;
+  msh.JMAX = 15*4;
   /* c */
   msh.c = 1.;
   /* end_prmtrs */
