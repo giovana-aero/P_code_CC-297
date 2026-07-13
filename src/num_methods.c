@@ -11,8 +11,16 @@
 
 #define div_ref 1e100
 
+/*
+so turns out this one was absurdly simple and i was kind of too desperate during
+project 02 to actually notice this
+- gigiaero, 12/07/2026, 1925 hours
+*/
 void bidiagonal_up_matrix_solver(int n,double *b,double *c,double *f,double *u){
-  
+  u[n-1] = f[n-1]/b[n-1];
+
+  for(int i=n-2;i>=0;i--)
+    u[i] = (f[i] - c[i]*u[i+1])/b[i];
 }
 
 /*

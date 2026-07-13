@@ -52,10 +52,14 @@ double get_dxy_dksi(int m,int n,double xy[m][n],int i,int j,int op);
 void get_half_meshes(int m,int n,double x[m][n],double y[m][n],
                      double x_ih[m][n-1],double y_ih[m][n-1],
                      double x_jh[m-1][n],double y_jh[m-1][n]);
-void get_u_v_potential_fullp(int m,int n,double phi[m][n],double x[m][n],
-                             double y[m][n],double J[m][n],double A2[m][n],
-                             double A3[m][n],double u[m][n],double v[m][n],
-                             double q[m][n],int op);
+void get_p_cp_fullp(int m,int n,double p[m][n],double cp[m][n],double rho[m][n],
+                    double Ma);
+void get_q_fullp(int m,int n,double q[m][n],double phi[m][n],
+                 double contraU[m][n],double contraV[m][n],double A2[m][n],
+                 double A3[m][n],int op);
+void get_u_v_fullp(int m,int n,double u[m][n],double v[m][n],double phi[m][n],
+                   double x[m][n],double y[m][n],double J[m][n],double A2[m][n],
+                   double A3[m][n],int op);
 void initialize_fullp(int m,int n,double phi[m][n],double x[m][n],
                       double y[m][n],fullp_prmtrs *fp_prmtrs);
 void L_phi_fullp(int m,int n,double L_phi[m][n],double L_phi_terms_ih[m][n-1],

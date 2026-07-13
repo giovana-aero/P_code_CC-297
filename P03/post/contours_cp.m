@@ -14,10 +14,10 @@ mesh.x = dlmread([address,casename,'_x_mesh.dat']);
 mesh.y = dlmread([address,casename,'_y_mesh.dat']);
 
 figure(1),clf,hold on
-config.cb_label = 'q';
+config.cb_label = 'C_p';
 config.fontsize = fontsize;
+f_plot_contours(mesh,dlmread([address,casename,'_cp.dat']),config)
 plot(mesh.x(1,:),mesh.y(1,:),'k')
-f_plot_contours(mesh,dlmread([address,casename,'_q.dat']),config)
 % colormap(purples_discrete())
 
 if save_fig

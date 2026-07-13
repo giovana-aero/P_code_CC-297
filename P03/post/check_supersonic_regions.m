@@ -13,13 +13,21 @@ ylims = [];
 mesh.x = dlmread([address,casename,'_x_mesh.dat']);
 mesh.y = dlmread([address,casename,'_y_mesh.dat']);
 
-figure(1),clf,hold on
+figure(1),clf
 config.cb_label = 'q';
 config.fontsize = fontsize;
-plot(mesh.x(1,:),mesh.y(1,:),'k')
-f_plot_contours(mesh,dlmread([address,casename,'_q.dat']),config)
-% colormap(purples_discrete())
+q = dlmread([address,casename,'_q.dat']);
+q = double(q >= 1);
 
-if save_fig
-  set_fontsize_position(fontsize,pos,pba)
+if(sum(sum(q)) == 0)
+  disp('no supersonic flow in the domain')
+
+else
+  % contour(mesh.x,mesh.y,q);
+  f_plot_contours(mesh,q,config)
+
+  if save_fig
+    set_fontsize_position(fontsize,pos,pba)
+  end
+
 end

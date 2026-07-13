@@ -343,11 +343,11 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   read_2d_array_from_file(m,n,x,fname_msh_x);
   read_2d_array_from_file(m,n,y,fname_msh_y);
 
-  if(config->Ntype == 3){
-    flip_2d_array(m,n,x);
-    flip_2d_array(m,n,y);
-    // af2_flip = 1;
-  }
+  // if(config->Ntype == 3){
+  //   flip_2d_array(m,n,x);
+  //   flip_2d_array(m,n,y);
+  //   // af2_flip = 1;
+  // }
 
   char *filename = malloc(sizeof(char)*200);
   sprintf(filename,"%s_x_mesh.dat",config->casename);
@@ -355,11 +355,11 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   sprintf(filename,"%s_y_mesh.dat",config->casename);
   print_2d_array_to_file(m,n,y,filename,0);
 
-  // if(config->Ntype == 3){
-  //   flip_2d_array(m,n,x);
-  //   flip_2d_array(m,n,y);
-  //   // af2_flip = 1;
-  // }
+  if(config->Ntype == 3){
+    flip_2d_array(m,n,x);
+    flip_2d_array(m,n,y);
+    // af2_flip = 1;
+  }
 
   // print_2d_array_to_file(m,n,x,"mat_mesh_x.dat",0);
   // print_2d_array_to_file(m,n,y,"mat_mesh_y.dat",0);
@@ -369,19 +369,6 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   calc_J_A_metrics(m,n,J,A1,A2,A3,x,y,3);
   // get_half_meshes(m,n,J,A1,J_ih,A1_ih,J_jh,A1_jh);
   // get_half_meshes(m,n,A2,A3,A2_ih,A3_ih,A2_jh,A3_jh);
-
-  // print_2d_array_to_file(m,n,J,"mat_J.dat",0);
-  // print_2d_array_to_file(m,n,A1,"mat_A1.dat",0);
-  // print_2d_array_to_file(m,n,A2,"mat_A2.dat",0);
-  // print_2d_array_to_file(m,n,A3,"mat_A3.dat",0);
-  // print_2d_array_to_file(m,n,J_ih,"mat_J_ih.dat",0);
-  // print_2d_array_to_file(m,n,A1_ih,"mat_A1_ih.dat",0);
-  // print_2d_array_to_file(m,n,A2_ih,"mat_A2_ih.dat",0);
-  // print_2d_array_to_file(m,n,A3_ih,"mat_A3_ih.dat",0);
-  // print_2d_array_to_file(m,n,J_jh,"mat_J_jh.dat",0);
-  // print_2d_array_to_file(m,n,A1_jh,"mat_A1_jh.dat",0);
-  // print_2d_array_to_file(m,n,A2_jh,"mat_A2_jh.dat",0);
-  // print_2d_array_to_file(m,n,A3_jh,"mat_A3_jh.dat",0);
 
   initialize_fullp(m,n,phi,x,y,fp_prmtrs);
 
@@ -406,35 +393,9 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
       break;
     
     case 3:
-      // puts("fullp af2 pending");
       puts("AF2, full potential flow over airfoil");
-
-      // repensar isso aqui
-      // flip_2d_array(m,n,phi);
-      // flip_2d_array(m,n,J);
-      // flip_2d_array(m,n,A1);
-      // flip_2d_array(m,n,A2);
-      // flip_2d_array(m,n,A3);
-      // flip_2d_array(m,n-1,J_ih);
-      // flip_2d_array(m,n-1,A1_ih);
-      // flip_2d_array(m,n-1,A2_ih);
-      // flip_2d_array(m,n-1,A3_ih);
-      // flip_2d_array(m-1,n,J_jh);
-      // flip_2d_array(m-1,n,A1_jh);
-      // flip_2d_array(m-1,n,A2_jh);
-      // flip_2d_array(m-1,n,A3_jh);
-
       solve_af2_2d_rectangular_fullp(m,n,phi,J,A1,A2,A3,J_ih,A1_ih,A2_ih,A3_ih,
                                      J_jh,A1_jh,A2_jh,A3_jh,config,fp_prmtrs);
-
-      // flip_2d_array(m,n,phi);
-      // flip_2d_array(m,n,J);
-      // flip_2d_array(m,n,A1);
-      // flip_2d_array(m,n,A2);
-      // flip_2d_array(m,n,A3);
-      // flip_2d_array(m,n,x);
-      // flip_2d_array(m,n,y);
-      
       break;
       
     default:
@@ -448,33 +409,26 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   double (*contraU)[n] = calloc(m,sizeof *contraU);
   double (*contraV)[n] = calloc(m,sizeof *contraV);
   double (*rho)[n] = calloc(m,sizeof *rho);
+  double (*p)[n] = calloc(m,sizeof *p);
+  double (*cp)[n] = calloc(m,sizeof *cp);
 
-  get_u_v_potential_fullp(m,n,phi,x,y,J,A1,A3,u,v,q,3);
   calc_contraUV(m,n,contraU,phi,A1,A2,A3,3,1);
   calc_contraUV(m,n,contraV,phi,A1,A2,A3,3,2);
   calc_rho(m,n,rho,phi,A2,A3,contraU,contraV,3);
+  get_u_v_fullp(m,n,u,v,phi,x,y,J,A1,A3,3);
+  get_q_fullp(m,n,q,phi,contraU,contraV,A2,A3,3);
+  get_p_cp_fullp(m,n,p,cp,rho,fp_prmtrs->Ma);
 
-  // double dphi_dksi,dphi_deta;
-  // for(int j=0;j<m;j++){
-  //   for(int i=0;i<n-1;i++){
-  //     if(i == 0 || i == n-1)
-  //       dphi_dksi = uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j);
-
-  //     else
-  //       dphi_dksi = uniform_scheme_der1_o2_central(m,n,phi,i,j,1);
-
-  //     if(j == 0)
-  //       dphi_deta = uniform_scheme_der1_o2_forward(m,n,phi,i,j,2);
-
-  //     else if(j == m-1)
-  //       dphi_deta = uniform_scheme_der1_o2_backward(m,n,phi,i,j,2);
-
-  //     else
-  //       dphi_deta = uniform_scheme_der1_o2_central(m,n,phi,i,j,2);
-
-  //     q[j][i] = sqrt(contraU[j][i]*dphi_dksi + contraV[j][i]*dphi_deta);
-  //   }
-  // }
+  if(config->Ntype == 3){
+    flip_2d_array(m,n,contraU);
+    flip_2d_array(m,n,contraV);
+    flip_2d_array(m,n,rho);
+    flip_2d_array(m,n,u);
+    flip_2d_array(m,n,v);
+    flip_2d_array(m,n,q);
+    flip_2d_array(m,n,p);
+    flip_2d_array(m,n,cp);
+  }
 
   sprintf(filename,"%s_u.dat",config->casename);
   print_2d_array_to_file(m,n,u,filename,0);
@@ -488,6 +442,10 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   print_2d_array_to_file(m,n,contraV,filename,0);
   sprintf(filename,"%s_rho.dat",config->casename);
   print_2d_array_to_file(m,n,rho,filename,0);
+  sprintf(filename,"%s_p.dat",config->casename);
+  print_2d_array_to_file(m,n,p,filename,0);
+  sprintf(filename,"%s_cp.dat",config->casename);
+  print_2d_array_to_file(m,n,cp,filename,0);
 
   // // // apagar depois
   // double (*dphi_dksi)[n] = calloc(m,sizeof *dphi_dksi);
@@ -591,6 +549,8 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   free(contraU);
   free(contraV);
   free(rho);
+  free(p);
+  free(cp);
 }
 
 /*
@@ -864,12 +824,54 @@ void get_half_meshes(int m,int n,double x[m][n],double y[m][n],
 }
 
 /*
-- gigiaero, 01/06/2026, 2204 hours
+- gigiaero, 12/07/2026, 2105 hours
 */
-void get_u_v_potential_fullp(int m,int n,double phi[m][n],double x[m][n],
-                             double y[m][n],double J[m][n],double A2[m][n],
-                             double A3[m][n],double u[m][n],double v[m][n],
-                             double q[m][n],int op){
+void get_p_cp_fullp(int m,int n,double p[m][n],double cp[m][n],double rho[m][n],
+                    double Ma){
+  double Uinf = freestream_u(Ma);
+  double rho_inf = pow(1. - (gamma - 1.)/(gamma + 1.)*Uinf*Uinf,1./(gamma - 1.));
+  double p_inf = (gamma + 1.)*pow(rho_inf,gamma)/2./gamma;
+
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n-1;i++){
+      p[j][i] = (gamma + 1.)*pow(rho[j][i],gamma)/2./gamma;
+      cp[j][i] = (p[j][i] - p_inf)/(.5*rho_inf*Uinf*Uinf);
+    }
+
+    p[j][n-1] = p[j][0];
+    cp[j][n-1] = cp[j][0];
+  }
+}
+
+/*
+- gigiaero, 12/07/2026, 2013 hours
+*/
+void get_q_fullp(int m,int n,double q[m][n],double phi[m][n],
+                 double contraU[m][n],double contraV[m][n],double A2[m][n],
+                 double A3[m][n],int op){
+  double dphi_dksi,dphi_deta;
+                  
+  for(int j=0;j<m;j++){
+    for(int i=0;i<n-1;i++){
+      dphi_dksi = get_dphi_dksi(m,n,phi,i,j,op);
+      dphi_deta = get_dphi_deta(m,n,phi,A2[j][i],A3[j][i],dphi_dksi,i,j,op);
+
+      q[j][i] = sqrt(contraU[j][i]*dphi_dksi + contraV[j][i]*dphi_deta);
+    }
+
+    q[j][n-1] = q[j][0];
+  }
+}
+
+/*
+- gigiaero, 01/06/2026, 2204 hours
+
+q calculations moved to a dedicated function
+- gigiaero, 12/07/2026, 2010 hours
+*/
+void get_u_v_fullp(int m,int n,double u[m][n],double v[m][n],double phi[m][n],
+                   double x[m][n],double y[m][n],double J[m][n],double A2[m][n],
+                   double A3[m][n],int op){
   double dx_dksi,dx_deta;
   double dy_dksi,dy_deta;
   double ksix,ksiy;
@@ -909,12 +911,12 @@ void get_u_v_potential_fullp(int m,int n,double phi[m][n],double x[m][n],
       u[j][i] = dphi_dksi*ksix + dphi_deta*etax;
       v[j][i] = dphi_dksi*ksiy + dphi_deta*etay;
 
-      q[j][i] = sqrt(pow(u[j][i],2) + pow(v[j][i],2));
+      // q[j][i] = sqrt(pow(u[j][i],2) + pow(v[j][i],2));
     }
 
     u[j][n-1] = u[j][0];
     v[j][n-1] = v[j][0];
-    q[j][n-1] = q[j][0];
+    // q[j][n-1] = q[j][0];
   }
 
   // // Domain interior
@@ -1533,6 +1535,10 @@ void two_point_linear_extrp(int m,int n,double A[m][n],double x[m][n],
 // }
 */
 
+/*
+FINALLY done
+- gigiaero, 12/07/2026, 1926 hours
+*/
 void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
                                     double A1[m][n],double A2[m][n],
                                     double A3[m][n],double J_ih[m][n],
@@ -1567,20 +1573,15 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
   double *cx = malloc(sizeof(double)*(n-1));
   double *fx = malloc(sizeof(double)*(n-1));
   double *ux = malloc(sizeof(double)*(n-1));
-  double *an = malloc(sizeof(double)*(m-2));
   double *bn = malloc(sizeof(double)*(m-1));
   double *cn = malloc(sizeof(double)*(m-2));
   double *fn = malloc(sizeof(double)*(m-1));
   double *un = malloc(sizeof(double)*(m-1));
-  // double A1_val,A2_val,A3_val;
-  // double Ai,Aip1,Aj,Ajp1;
   double dphi_dksi,dphi_deta;
-  // double contraU,contraV;
   double beta_sub = fp_prmtrs->beta_sub;
   double beta_super;
   double beta;
   fp_beta_prmtrs fpb_prmtrs;
-  // double beta,beta_n;
   double omega = config->w;
   double alpha;
   int k = 1;
@@ -1602,8 +1603,6 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
   // Prepare string to save simulation data  
   sprintf(filename_save,"%s_iter_",config->casename);
   find_str_end(filename_save,&str_end_idx);
-
-  // a se pensar: calc_contraU e calc_contraV poderiam ser a mesma função
   
   beta_initial_config(config,&fpb_prmtrs,fp_prmtrs->beta_super);
 
@@ -1697,25 +1696,23 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
       fn[0] = alpha*omega*L_phi[1][i];
 
       for(int j=2;j<m-1;j++){
-        an[j-2] = 0.;
         bn[j-1] = alpha + Aj[j-1][i];
         cn[j-1] = -Aj[j][i];
 
         fn[j-1] = alpha*omega*L_phi[j][i];
       }
 
-      an[m-3] = 0.;
       bn[m-2] = alpha + Aj[m-2][i];
 
       fn[m-2] = alpha*omega*L_phi[m-1][i];
 
-      tridiagonal_matrix_solver(m-1,an,bn,cn,fn,un);  // NOTA: escrever uma função pra sistema bidiagonal superior e substituir aqui
+      bidiagonal_up_matrix_solver(m-1,bn,cn,fn,un);
 
       for(int j=1;j<m;j++)
         f[j][i] = un[j-1];
     }
 
-    sprintf(filename,"mat_f_%010d.dat",iter);
+    // sprintf(filename,"mat_f_%010d.dat",iter);
     // print_2d_array_to_file(m,n,f,filename,0);
     
     // Solve for corrections - step 2 (ksi)
@@ -1756,7 +1753,7 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
         Cij[j][i] = ux[i];
     }
 
-    sprintf(filename,"mat_cij_%010d.dat",iter);
+    // sprintf(filename,"mat_cij_%010d.dat",iter);
     // print_2d_array_to_file(m,n,Cij,filename,0);
     // exit(32);
 
@@ -1768,20 +1765,20 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
     }
 
     if(!config->save_last_only){
-      // flip_2d_array(m,n,phi);
+      flip_2d_array(m,n,phi);
       save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,
                           &str_end_idx);
-      // flip_2d_array(m,n,phi);
+      flip_2d_array(m,n,phi);
     }
   }
 
-  // flip_2d_array(m,n,phi);
-
   // Save last iteration if it wasn't saved
   if(iter%config->qtimes != 0 || config->save_last_only){
+    flip_2d_array(m,n,phi);
     iter--; // To get the correct iteration number
     sprintf(buffer,"L");
     save_results_qtimes(m,n,phi,&iter,config,buffer,filename_save,&str_end_idx);
+    flip_2d_array(m,n,phi);
   }
 
   free(L_phi);
@@ -1809,7 +1806,6 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
   free(cx);
   free(ux);
   free(fx);
-  free(an);
   free(bn);
   free(cn);
   free(un);

@@ -7,6 +7,6 @@ axis equal
 
 colormap(slanCM('bupu'))
 
-cb_latex(colorbar(),config.cb_label,config.fontsize);
+% cb_latex(colorbar(),config.cb_label,config.fontsize);
 
 end

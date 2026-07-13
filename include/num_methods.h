@@ -21,6 +21,11 @@ typedef struct s_parameters{
   2-ADI
   3-AF2
   4-ADI non-periodic
+
+  P03
+  1-SLOR
+  2-ADI
+  3-AF2
   */
   int Ntype;
   double r;
@@ -44,7 +49,7 @@ typedef struct s_parameters{
   char *casename; // Note: destination directory must exist beforehand
 }sim_prmtrs;
 
-double factorial(int n);
+void bidiagonal_up_matrix_solver(int n,double *b,double *c,double *f,double *u);
 double C_op(int m,int n,double phi[m][n],double phi_old[m][n],int i,int j);
 void calc_residual(double *phi_elem,double *phi_old_elem,double *N_elem,
                   double *res_elem);
@@ -56,6 +61,7 @@ void diagonal_matrix_solver(int n,double A[n][n],double *f,double *u);
 void evaluate_delta_form(int m,int n,double phi[m][n],double *x,double *y,
                          sim_prmtrs *config,int num_b_c_r,
                          b_conditions_2d *b_c_r);
+double factorial(int n);
 void N_p_jacobi(double *N,double *x,double *y,int i,int j);
 void save_prmtrs_sim(sim_prmtrs *s_p);
 void save_results_qtimes(int m,int n,double phi[m][n],int *iter,
