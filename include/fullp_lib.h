@@ -10,6 +10,7 @@ typedef struct fullp_parameters{
   double beta_sub;
   double beta_super;
   int lift; // Activate formulation to take lift into account
+  double Rg; // Subrelaxation parameter (circulation)
 }fullp_prmtrs;
 
 typedef struct fullp_beta_parameters{
@@ -28,6 +29,7 @@ double calc_Ai(int m,int n,double Ai[m][n],double rho_til[m][n],
                double A1_ih[m][n],double J_ih[m][n]);
 double calc_Aj(int m,int n,double Aj[m][n],double rho_bar[m][n],
                double A3_jh[m][n],double J_jh[m][n]);
+void calc_circulation(double *Gamma,int n,double *phi,double Rg);
 void beta_switch(double *beta,double beta_sub,double beta_super,int supersonic);
 void calc_J_A_metrics(int m,int n,double J[m][n],double A1[m][n],
                       double A2[m][n],double A3[m][n],double x[m][n],
@@ -99,7 +101,9 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
                                     double A1_ih[m][n],double A2_ih[m][n],
                                     double A3_ih[m][n],double J_jh[m][n],
                                     double A1_jh[m][n],double A2_jh[m][n],
-                                    double A3_jh[m][n],sim_prmtrs *config,
-                                    fullp_prmtrs *fp_prmtrs);
+                                    double A3_jh[m][n],double *x,double *y,
+                                    sim_prmtrs *config,fullp_prmtrs *fp_prmtrs);
+void update_vortex(int n,double *phi,double *x,double *y,double Gamma,
+                   fullp_prmtrs *fp_prmtrs);
 
 #endif

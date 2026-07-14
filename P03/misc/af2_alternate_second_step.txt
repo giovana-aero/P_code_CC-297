@@ -1,0 +1,101 @@
+// Solve for corrections - step 1 (eta)
+    for(int i=0;i<n-1;i++){
+      bn[0] = alpha + Aj[0][i];
+      cn[0] = -Aj[1][i];
+
+      fn[0] = alpha*omega*L_phi[1][i];
+
+      for(int j=2;j<m-1;j++){
+        bn[j-1] = alpha + Aj[j-1][i];
+        cn[j-1] = -Aj[j][i];
+
+        fn[j-1] = alpha*omega*L_phi[j][i];
+      }
+
+      bn[m-2] = alpha + Aj[m-2][i];
+
+      fn[m-2] = alpha*omega*L_phi[m-1][i];
+
+      bidiagonal_up_matrix_solver(m-1,bn,cn,fn,un);
+
+      for(int j=1;j<m;j++)
+        f[j][i] = un[j-1];
+    }
+
+    for(int j=0;j<m;j++)
+      f[j][n-1] = f[j][0];
+
+    // sprintf(filename,"mat_f_%010d.dat",iter);
+    // print_2d_array_to_file(m,n,f,filename,0);
+    
+    // Solve for corrections - step 2 (ksi)
+    for(int j=1;j<m;j++){
+      // for(int i=0;i<n-1;i++){
+      for(int i=1;i<n;i++){
+        dphi_dksi = get_dphi_dksi(m,n,phi,i,j,3);
+        dphi_deta = get_dphi_deta(m,n,phi,A2[j][i],A3[j][i],dphi_dksi,i,j,3);
+
+        beta_switch(&beta,beta_sub,beta_super,
+                    contraU[j][i]*dphi_dksi + contraV[j][i]*dphi_deta >= 1.);
+
+        if(i == 0)
+          idx = n-2;
+          
+        else
+          idx = i-1;
+
+        ax[i-1] = -Ai[j][idx];
+        bx[i-1] = alpha + Ai[j][idx] + Ai[j][i] + alpha*beta;
+        cx[i-1] = -Ai[j][i];
+
+        fx[i-1] = f[j][i] + alpha*Cij[j-1][i]; 
+
+        if(contraU_ih[j][i] >= 0)
+          ax[i-1] -= alpha*beta;
+
+        else
+          cx[i-1] -= alpha*beta;
+
+        // if(fp_prmtrs->lift && i == 0)
+        //   fx[i-1] -= Ai[j][idx]*(Gamma[0] - Gamma[1]);
+        
+        if(fp_prmtrs->lift && i == n-1){
+          if(contraU_ih[j][i] >= 0)
+            fx[i] -= Ai[j][i]*(Gamma[0] - Gamma[1]);
+
+          else
+            fx[i] -= (Ai[j][i] + alpha*beta)*(Gamma[0] - Gamma[1]);
+        }
+      }
+
+      tridiagonal_pmatrix_solver(n-1,ax,bx,cx,fx,ux);
+
+      for(int i=0;i<n-1;i++)
+        Cij[j][i+1] = ux[i];
+    }
+
+    // sprintf(filename,"mat_cij_%010d.dat",iter);
+    // print_2d_array_to_file(m,n,Cij,filename,0);
+    // exit(32);
+
+    // for(int j=0;j<m;j++){
+    //   for(int i=0;i<n-1;i++)
+    //     phi[j][i] += Cij[j][i];
+
+    //   phi[j][n-1] = phi[j][0];
+    // }
+
+    for(int j=0;j<m;j++){
+      for(int i=1;i<n;i++)
+        phi[j][i] += Cij[j][i];
+
+      phi[j][0] = phi[j][n-1];
+    }
+
+    if(fp_prmtrs->lift){
+      calc_circulation(Gamma,n,phi[m-1],fp_prmtrs->Rg);
+      update_vortex(n,phi[0],x,y,Gamma[0],fp_prmtrs);
+
+      for(int j=0;j<m;j++)
+        phi[j][0] = phi[j][n-1] + Gamma[0];
+    }

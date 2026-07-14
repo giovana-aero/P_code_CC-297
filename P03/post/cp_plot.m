@@ -22,3 +22,6 @@ figure(1),clf
 % plot(mesh.x(1,chord_nump:end),mesh.y(1,chord_nump:end))
 plot(mesh.x(1,1:chord_nump),cp(1,1:chord_nump),'k'),hold on,grid on
 plot(mesh.x(1,chord_nump:end),cp(1,chord_nump:end),'k')
+
+inv_yaxis();
+

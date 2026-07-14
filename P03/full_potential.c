@@ -16,12 +16,16 @@ int main(){
   // char filename_msh_y[] = "../P02/eom_m60_n187_biair_t01/eom_y_iter_0000000069.dat";
   // int m = 60;
   // int n = 187;
-
-  /* NACA 0010 */
-  char filename_msh_x[] = "../P02/eom_m60_n187_naca0010/eom_x_iter_0000000069.dat";
-  char filename_msh_y[] = "../P02/eom_m60_n187_naca0010/eom_y_iter_0000000069.dat";
+  char filename_msh_x[] = "../P02/eom_m60_n187_biair_t01_25c/eom_x_iter_0000000074.dat";
+  char filename_msh_y[] = "../P02/eom_m60_n187_biair_t01_25c/eom_y_iter_0000000074.dat";
   int m = 60;
   int n = 187;
+
+  /* NACA 0010 */
+  // char filename_msh_x[] = "../P02/eom_m60_n187_naca0010/eom_x_iter_0000000069.dat";
+  // char filename_msh_y[] = "../P02/eom_m60_n187_naca0010/eom_y_iter_0000000069.dat";
+  // int m = 60;
+  // int n = 187;
 
   /* FLOW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   sim_prmtrs config;
@@ -33,7 +37,7 @@ int main(){
   config.alpha_H = 1e3;
   config.set_alpha_H = 0;
   config.M = 5;
-  config.max_iter = 10000;
+  config.max_iter = 1000;
   config.qtimes = 1;
   config.save_i_c = 1;
   config.save_last_only = 1;
@@ -43,11 +47,12 @@ int main(){
 
   fullp_prmtrs fp_prmtrs;
   fp_prmtrs.alpha = 0.;
-  fp_prmtrs.Ma = .95;
-  fp_prmtrs.C = 1.5;
+  fp_prmtrs.Ma = .7;
+  fp_prmtrs.C = 1.;
   fp_prmtrs.beta_sub = .3;
   fp_prmtrs.beta_super = 4.5;
   fp_prmtrs.lift = 0;
+  fp_prmtrs.Rg = .1;
 
   /* FLOW (solution) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   config.casename = malloc(sizeof(char)*200);
