@@ -2,24 +2,25 @@
 #include<stdlib.h>
 #include"../include/fullp_lib.h"
 
-// A FAZER: funções que salvam em arquivos de texto os parâmetros da malha e da 
-// solução
-
 int main(){
   /* MESH ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   /* Biconvex airfoil, 10% thickness */
-  // char filename_msh_x[] = "../P02/eom_m15_n93_biair_t01/eom_x_iter_0000000047.dat";
-  // char filename_msh_y[] = "../P02/eom_m15_n93_biair_t01/eom_y_iter_0000000047.dat";
-  // int m = 15;
-  // int n = 93;
+  char filename_msh_x[] = "../P02/eom_m15_n93_biair_t01/eom_x_iter_0000000047.dat";
+  char filename_msh_y[] = "../P02/eom_m15_n93_biair_t01/eom_y_iter_0000000047.dat";
+  int m = 15;
+  int n = 93;
   // char filename_msh_x[] = "../P02/eom_m60_n187_biair_t01/eom_x_iter_0000000069.dat";
   // char filename_msh_y[] = "../P02/eom_m60_n187_biair_t01/eom_y_iter_0000000069.dat";
   // int m = 60;
   // int n = 187;
-  char filename_msh_x[] = "../P02/eom_m60_n187_biair_t01_25c/eom_x_iter_0000000074.dat";
-  char filename_msh_y[] = "../P02/eom_m60_n187_biair_t01_25c/eom_y_iter_0000000074.dat";
-  int m = 60;
-  int n = 187;
+  // char filename_msh_x[] = "../P02/eom_m60_n187_biair_t01_25c/eom_x_iter_0000000074.dat";
+  // char filename_msh_y[] = "../P02/eom_m60_n187_biair_t01_25c/eom_y_iter_0000000074.dat";
+  // int m = 60;
+  // int n = 187;
+  // char filename_msh_x[] = "../P02/eom_m81_n241_biair_t01/eom_x_iter_0000000065.dat";
+  // char filename_msh_y[] = "../P02/eom_m81_n241_biair_t01/eom_y_iter_0000000065.dat";
+  // int m = 81;
+  // int n = 241;
 
   /* NACA 0010 */
   // char filename_msh_x[] = "../P02/eom_m60_n187_naca0010/eom_x_iter_0000000069.dat";
@@ -51,7 +52,7 @@ int main(){
   fp_prmtrs.C = 1.;
   fp_prmtrs.beta_sub = .3;
   fp_prmtrs.beta_super = 4.5;
-  fp_prmtrs.lift = 0;
+  fp_prmtrs.lift = 0; // (not working)
   fp_prmtrs.Rg = .1;
 
   /* FLOW (solution) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

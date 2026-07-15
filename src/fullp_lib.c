@@ -357,7 +357,7 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   double (*phi)[n] = calloc(m,sizeof *phi);
 
   save_prmtrs_sim(config);
-  // salvar aqui parâmetros específicos do fullp ////////
+  save_prmtrs_fullp(config->casename,fp_prmtrs,fname_msh_x,fname_msh_y);
 
   read_2d_array_from_file(m,n,x,fname_msh_x);
   read_2d_array_from_file(m,n,y,fname_msh_y);
@@ -368,7 +368,7 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   //   // af2_flip = 1;
   // }
 
-  // Center of the external boundary must be positioned at the c/4 point     // rever o posicionamento disto em relação ao resto
+  // Center of the external boundary must be positioned at the c/4 point
   if(fp_prmtrs->lift){
     for(int j=0;j<m;j++){
       for(int i=0;i<n;i++)
@@ -578,6 +578,196 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
   free(cp);
 }
 
+// stopped for now. this code is getting to ugly for my taste and i should place
+// my focus elsewhere
+// - gigiaero, 15/07/2026, 1408 hours
+// void fullp_multigrid(int m[4],int n[4],sim_prmtrs *config,
+//                      fullp_prmtrs *fp_prmtrs,char *fname_msh_x[],
+//                      char *fname_msh_y[]){
+//   // Prepare meshes
+//   double (*x1)[n[0]] = calloc(m[0],sizeof *x1);
+//   double (*y1)[n[0]] = calloc(m[0],sizeof *y1);
+//   double (*x2)[n[1]] = calloc(m[1],sizeof *x2);
+//   double (*y2)[n[1]] = calloc(m[1],sizeof *y2);
+//   double (*x3)[n[2]] = calloc(m[2],sizeof *x3);
+//   double (*y3)[n[2]] = calloc(m[2],sizeof *y3);
+//   double (*x4)[n[3]] = calloc(m[3],sizeof *x4);
+//   double (*y4)[n[3]] = calloc(m[3],sizeof *y4);
+
+//   save_prmtrs_sim(config);
+//   save_prmtrs_fullp_multigrid(config->casename,fp_prmtrs,fname_msh_x,
+//                               fname_msh_y);
+
+//   read_2d_array_from_file(m[0],n[0],x1,fname_msh_x[0]);
+//   read_2d_array_from_file(m[0],n[0],y1,fname_msh_y[0]);
+//   read_2d_array_from_file(m[1],n[1],x2,fname_msh_x[1]);
+//   read_2d_array_from_file(m[1],n[1],y2,fname_msh_y[1]);
+//   read_2d_array_from_file(m[2],n[2],x3,fname_msh_x[2]);
+//   read_2d_array_from_file(m[2],n[2],y3,fname_msh_y[2]);
+//   read_2d_array_from_file(m[3],n[3],x4,fname_msh_x[3]);
+//   read_2d_array_from_file(m[3],n[3],y4,fname_msh_y[3]);
+
+//   char *filename = malloc(sizeof(char)*200);
+//   sprintf(filename,"%s_x_mesh1.dat",config->casename);
+//   print_2d_array_to_file(m[0],n[0],x1,filename,0);
+//   sprintf(filename,"%s_y_mesh1.dat",config->casename);
+//   print_2d_array_to_file(m[0],n[0],y1,filename,0);
+//   sprintf(filename,"%s_x_mesh2.dat",config->casename);
+//   print_2d_array_to_file(m[1],n[1],x2,filename,0);
+//   sprintf(filename,"%s_y_mesh2.dat",config->casename);
+//   print_2d_array_to_file(m[1],n[1],y2,filename,0);
+//   sprintf(filename,"%s_x_mesh3.dat",config->casename);
+//   print_2d_array_to_file(m[2],n[2],x3,filename,0);
+//   sprintf(filename,"%s_y_mesh3.dat",config->casename);
+//   print_2d_array_to_file(m[2],n[2],y3,filename,0);
+//   sprintf(filename,"%s_x_mesh4.dat",config->casename);
+//   print_2d_array_to_file(m[3],n[3],x4,filename,0);
+//   sprintf(filename,"%s_y_mesh4.dat",config->casename);
+//   print_2d_array_to_file(m[3],n[3],y4,filename,0);
+
+//   flip_2d_array(m[0],n[0],x1);
+//   flip_2d_array(m[0],n[0],y1);
+//   flip_2d_array(m[1],n[1],x2);
+//   flip_2d_array(m[1],n[1],y2);
+//   flip_2d_array(m[2],n[2],x3);
+//   flip_2d_array(m[2],n[2],y3);
+//   flip_2d_array(m[3],n[3],x4);
+//   flip_2d_array(m[3],n[3],y4);
+
+//   // Prepare general curvilinear coordinate parameters
+//   double (*J_1)[n[0]] = calloc(m[0],sizeof *J_1); // Mesh 1
+//   double (*A1_1)[n[0]] = calloc(m[0],sizeof *A1_1);
+//   double (*A2_1)[n[0]] = calloc(m[0],sizeof *A2_1);
+//   double (*A3_1)[n[0]] = calloc(m[0],sizeof *A3_1);
+//   double (*J_ih_1)[n[0]] = calloc(m[0],sizeof *J_ih_1);
+//   double (*A1_ih_1)[n[0]] = calloc(m[0],sizeof *A1_ih_1);
+//   double (*A2_ih_1)[n[0]] = calloc(m[0],sizeof *A2_ih_1);
+//   double (*A3_ih_1)[n[0]] = calloc(m[0],sizeof *A3_ih_1);
+//   double (*J_jh_1)[n[0]] = calloc(m[0],sizeof *J_jh_1);
+//   double (*A1_jh_1)[n[0]] = calloc(m[0],sizeof *A1_jh_1);
+//   double (*A2_jh_1)[n[0]] = calloc(m[0],sizeof *A2_jh_1);
+//   double (*A3_jh_1)[n[0]] = calloc(m[0],sizeof *A3_jh_1);
+//   double (*phi_1)[n[0]] = calloc(m[0],sizeof *phi_1);
+//   double (*J_2)[n[1]] = calloc(m[1],sizeof *J_2); // Mesh 2
+//   double (*A1_2)[n[1]] = calloc(m[1],sizeof *A1_2);
+//   double (*A2_2)[n[1]] = calloc(m[1],sizeof *A2_2);
+//   double (*A3_2)[n[1]] = calloc(m[1],sizeof *A3_2);
+//   double (*J_ih_2)[n[1]] = calloc(m[1],sizeof *J_ih_2);
+//   double (*A1_ih_2)[n[1]] = calloc(m[1],sizeof *A1_ih_2);
+//   double (*A2_ih_2)[n[1]] = calloc(m[1],sizeof *A2_ih_2);
+//   double (*A3_ih_2)[n[1]] = calloc(m[1],sizeof *A3_ih_2);
+//   double (*J_jh_2)[n[1]] = calloc(m[1],sizeof *J_jh_2);
+//   double (*A1_jh_2)[n[1]] = calloc(m[1],sizeof *A1_jh_2);
+//   double (*A2_jh_2)[n[1]] = calloc(m[1],sizeof *A2_jh_2);
+//   double (*A3_jh_2)[n[1]] = calloc(m[1],sizeof *A3_jh_2);
+//   double (*phi_2)[n[1]] = calloc(m[1],sizeof *phi_2);
+//   double (*J_3)[n[2]] = calloc(m[2],sizeof *J_3); // Mesh 3
+//   double (*A1_3)[n[2]] = calloc(m[2],sizeof *A1_3);
+//   double (*A2_3)[n[2]] = calloc(m[2],sizeof *A2_3);
+//   double (*A3_3)[n[2]] = calloc(m[2],sizeof *A3_3);
+//   double (*J_ih_3)[n[2]] = calloc(m[2],sizeof *J_ih_3);
+//   double (*A1_ih_3)[n[2]] = calloc(m[2],sizeof *A1_ih_3);
+//   double (*A2_ih_3)[n[2]] = calloc(m[2],sizeof *A2_ih_3);
+//   double (*A3_ih_3)[n[2]] = calloc(m[2],sizeof *A3_ih_3);
+//   double (*J_jh_3)[n[2]] = calloc(m[2],sizeof *J_jh_3);
+//   double (*A1_jh_3)[n[2]] = calloc(m[2],sizeof *A1_jh_3);
+//   double (*A2_jh_3)[n[2]] = calloc(m[2],sizeof *A2_jh_3);
+//   double (*A3_jh_3)[n[2]] = calloc(m[2],sizeof *A3_jh_3);
+//   double (*phi_3)[n[2]] = calloc(m[2],sizeof *phi_3);
+//   double (*J_4)[n[3]] = calloc(m[3],sizeof *J_4); // Mesh 4
+//   double (*A1_4)[n[3]] = calloc(m[3],sizeof *A1_4);
+//   double (*A2_4)[n[3]] = calloc(m[3],sizeof *A2_4);
+//   double (*A3_4)[n[3]] = calloc(m[3],sizeof *A3_4);
+//   double (*J_ih_4)[n[3]] = calloc(m[3],sizeof *J_ih_4);
+//   double (*A1_ih_4)[n[3]] = calloc(m[3],sizeof *A1_ih_4);
+//   double (*A2_ih_4)[n[3]] = calloc(m[3],sizeof *A2_ih_4);
+//   double (*A3_ih_4)[n[3]] = calloc(m[3],sizeof *A3_ih_4);
+//   double (*J_jh_4)[n[3]] = calloc(m[3],sizeof *J_jh_4);
+//   double (*A1_jh_4)[n[3]] = calloc(m[3],sizeof *A1_jh_4);
+//   double (*A2_jh_4)[n[3]] = calloc(m[3],sizeof *A2_jh_4);
+//   double (*A3_jh_4)[n[3]] = calloc(m[3],sizeof *A3_jh_4);
+//   double (*phi_4)[n[3]] = calloc(m[3],sizeof *phi_4);
+
+//   calc_J_A_metrics(m[0],n[0],J_ih_1,A1_ih_1,A2_ih_1,A3_ih_1,x1,y1,1);
+//   calc_J_A_metrics(m[0],n[0],J_jh_1,A1_jh_1,A2_jh_1,A3_jh_1,x1,y1,2);
+//   calc_J_A_metrics(m[0],n[0],J_1,A1_1,A2_1,A3_1,x1,y1,3);
+//   calc_J_A_metrics(m[1],n[1],J_ih_2,A1_ih_2,A2_ih_2,A3_ih_2,x2,y2,1);
+//   calc_J_A_metrics(m[1],n[1],J_jh_2,A1_jh_2,A2_jh_2,A3_jh_2,x2,y2,2);
+//   calc_J_A_metrics(m[1],n[1],J_2,A1_2,A2_2,A3_2,x2,y2,3);
+//   calc_J_A_metrics(m[2],n[2],J_ih_3,A1_ih_3,A2_ih_3,A3_ih_3,x3,y3,1);
+//   calc_J_A_metrics(m[2],n[2],J_jh_3,A1_jh_3,A2_jh_3,A3_jh_3,x3,y3,2);
+//   calc_J_A_metrics(m[2],n[2],J_3,A1_3,A2_3,A3_3,x3,y3,3);
+//   calc_J_A_metrics(m[3],n[3],J_ih_4,A1_ih_4,A2_ih_4,A3_ih_4,x4,y4,1);
+//   calc_J_A_metrics(m[3],n[3],J_jh_4,A1_jh_4,A2_jh_4,A3_jh_4,x4,y4,2);
+//   calc_J_A_metrics(m[3],n[3],J_4,A1_4,A2_4,A3_4,x4,y4,3);
+
+//   initialize_fullp(m[0],n[0],phi_1,x1,y1,fp_prmtrs);
+//   initialize_fullp(m[1],n[1],phi_2,x2,y2,fp_prmtrs);
+//   initialize_fullp(m[2],n[2],phi_3,x3,y3,fp_prmtrs);
+//   initialize_fullp(m[3],n[3],phi_4,x4,y4,fp_prmtrs);
+
+//   // Meshes
+//   free(x1);
+//   free(y1);
+//   free(x2);
+//   free(y2);
+//   free(x3);
+//   free(y3);
+//   free(x4);
+//   free(y4);
+//   free(filename);
+
+//   // GCC
+//   free(A1_1); // Mesh 1
+//   free(A2_1);
+//   free(A3_1);
+//   free(J_ih_1);
+//   free(A1_ih_1);
+//   free(A2_ih_1);
+//   free(A3_ih_1);
+//   free(J_jh_1);
+//   free(A1_jh_1);
+//   free(A2_jh_1);
+//   free(A3_jh_1);
+//   free(phi_1);
+//   free(A1_2); // Mesh 2
+//   free(A2_2);
+//   free(A3_2);
+//   free(J_ih_2);
+//   free(A1_ih_2);
+//   free(A2_ih_2);
+//   free(A3_ih_2);
+//   free(J_jh_2);
+//   free(A1_jh_2);
+//   free(A2_jh_2);
+//   free(A3_jh_2);
+//   free(phi_2);
+//   free(A1_3); // Mesh 3
+//   free(A2_3);
+//   free(A3_3);
+//   free(J_ih_3);
+//   free(A1_ih_3);
+//   free(A2_ih_3);
+//   free(A3_ih_3);
+//   free(J_jh_3);
+//   free(A1_jh_3);
+//   free(A2_jh_3);
+//   free(A3_jh_3);
+//   free(phi_3);
+//   free(A1_4); // Mesh 4
+//   free(A2_4);
+//   free(A3_4);
+//   free(J_ih_4);
+//   free(A1_ih_4);
+//   free(A2_ih_4);
+//   free(A3_ih_4);
+//   free(J_jh_4);
+//   free(A1_jh_4);
+//   free(A2_jh_4);
+//   free(A3_jh_4);
+//   free(phi_4);
+// }
+
 /*
 - gigiaero, 01/06/2026, 1555 hours
 */
@@ -691,7 +881,6 @@ double get_dphi_dksi(int m,int n,double phi[m][n],int i,int j,int op){
 
     case 2: // i,j+1/2
       if(j == m-1){ // Approximate to case 3
-        puts("case 3 approximation");
         if(i == 0 || i == n-1)
           return uniform_scheme_der1_o2_central_prdc_ksi(m,n,phi,j);
 
@@ -1292,58 +1481,6 @@ int rs_idx(double contraUV){
     return -1;
 }
 
-/*
-- gigiaero, 03/06/2026, 1544 hours
-*/
-void three_point_pol2_extrp(int m,int n,double A[m][n],double x[m][n],
-                            double y[m][n],int i,int end){
-  double d1,d2,d3;
-
-  if(!end){
-    d1 = sqrt(pow(x[1][i] - x[0][i],2.) + pow(y[1][i] - y[0][i],2.));
-    d2 = sqrt(pow(x[2][i] - x[0][i],2.) + pow(y[2][i] - y[0][i],2.));
-    d3 = sqrt(pow(x[3][i] - x[0][i],2.) + pow(y[3][i] - y[0][i],2.));
-    
-    A[0][i] = (d1*d1*d2*A[3][i] - d1*d1*d3*A[2][i] - d1*d2*d2*A[3][i] + 
-               d1*d3*d3*A[2][i] + d2*d2*d3*A[1][i] - d2*d3*d3*A[1][i])/
-              (d1*d1*d2 - d1*d1*d3 - d1*d2*d2  + d1*d3*d3  + d2*d2*d3 - 
-               d2*d3*d3);
-  }
-  else{
-    d1 = sqrt(pow(x[m-2][i] - x[m-1][i],2.) + pow(y[m-2][i] - y[m-1][i],2.));
-    d2 = sqrt(pow(x[m-3][i] - x[m-1][i],2.) + pow(y[m-3][i] - y[m-1][i],2.));
-    d3 = sqrt(pow(x[m-4][i] - x[m-1][i],2.) + pow(y[m-4][i] - y[m-1][i],2.));
-
-    A[m-1][i] = (d1*d1*d2*A[m-4][i] - d1*d1*d3*A[m-3][i] - d1*d2*d2*A[m-4][i] + 
-                 d1*d3*d3*A[m-3][i] + d2*d2*d3*A[m-2][i] - d2*d3*d3*A[m-2][i])/
-                (d1*d1*d2 - d1*d1*d3 - d1*d2*d2  + d1*d3*d3  + d2*d2*d3 - 
-                 d2*d3*d3);
-  }
-}
-
-/*
-- gigiaero, 03/06/2026, 1306 hours
-*/
-void two_point_linear_extrp(int m,int n,double A[m][n],double x[m][n],
-                            double y[m][n],int i,int end){
-  double d1,d2;
-  
-  if(!end){
-    d1 = sqrt(pow(x[1][i] - x[0][i],2.) + pow(y[1][i] - y[0][i],2.));
-    d2 = sqrt(pow(x[2][i] - x[0][i],2.) + pow(y[2][i] - y[0][i],2.));
-
-    A[0][i] = (d1*A[2][i] - d2*A[1][i])/(d1 - d2);
-  }
-  else{
-    d1 = sqrt(pow(x[m-2][i] - x[m-1][i],2.) + pow(y[m-2][i] - y[m-1][i],2.));
-    d2 = sqrt(pow(x[m-3][i] - x[m-1][i],2.) + pow(y[m-3][i] - y[m-1][i],2.));
-    // d1 = sqrt(x[m-2][i]*x[m-2][i] + y[m-2][i]*y[m-2][i]);
-    // d2 = sqrt(x[m-3][i]*x[m-3][i] + y[m-3][i]*y[m-3][i]);
-
-    A[m-1][i] = (d1*A[m-3][i] - d2*A[m-2][i])/(d1 - d2);
-  }
-}
-
 // (adi here)
 /*
 // void solve_adi_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
@@ -1559,6 +1696,62 @@ void two_point_linear_extrp(int m,int n,double A[m][n],double x[m][n],
 //   free(fpb_prmtrs.Linf);
 // }
 */
+
+/*
+- gigiaero, 15/07/2026, 1241 hours
+*/
+void save_prmtrs_fullp(char *casename,fullp_prmtrs *fp_prmtrs,
+                       char *fname_msh_x,char *fname_msh_y){
+  char *filename = malloc(sizeof(char)*200);
+  FILE *output;
+
+  sprintf(filename,"%s_prmtrs_fullp.dat",casename);
+
+  output = fopen(filename,"w");
+
+  fprintf(output,"fp.prmtrs.alpha = %f;\n",fp_prmtrs->alpha);
+  fprintf(output,"fp.prmtrs.Ma = %f;\n",fp_prmtrs->Ma);
+  fprintf(output,"fp.prmtrs.C = %f;\n",fp_prmtrs->C);
+  fprintf(output,"fp.prmtrs.beta_sub = %f;\n",fp_prmtrs->beta_sub);
+  fprintf(output,"fp.prmtrs.beta_super = %f;\n",fp_prmtrs->beta_super);
+  fprintf(output,"fp.prmtrs.lift = %d;\n",fp_prmtrs->lift);
+  fprintf(output,"fp.prmtrs.Rg = %f;\n\n",fp_prmtrs->Rg);
+
+  fprintf(output,"char filename_msh_x[] = \"%s\";\n",fname_msh_x);
+  fprintf(output,"char filename_msh_y[] = \"%s\";\n",fname_msh_y);
+
+  fclose(output);
+  free(filename);
+}
+
+/*
+
+*/
+void save_prmtrs_fullp_multigrid(char *casename,fullp_prmtrs *fp_prmtrs,
+                                 char *fname_msh_x[],char *fname_msh_y[]){
+  char *filename = malloc(sizeof(char)*200);
+  FILE *output;
+
+  sprintf(filename,"%s_prmtrs_fullp.dat",casename);
+
+  output = fopen(filename,"w");
+
+  fprintf(output,"fp.prmtrs.alpha = %f;\n",fp_prmtrs->alpha);
+  fprintf(output,"fp.prmtrs.Ma = %f;\n",fp_prmtrs->Ma);
+  fprintf(output,"fp.prmtrs.C = %f;\n",fp_prmtrs->C);
+  fprintf(output,"fp.prmtrs.beta_sub = %f;\n",fp_prmtrs->beta_sub);
+  fprintf(output,"fp.prmtrs.beta_super = %f;\n",fp_prmtrs->beta_super);
+  fprintf(output,"fp.prmtrs.lift = %d;\n",fp_prmtrs->lift);
+  fprintf(output,"fp.prmtrs.Rg = %f;\n\n",fp_prmtrs->Rg);
+
+  fprintf(output,"char *fname_msh_x[] = {\"%s\",\n\"%s\",\n\"%s\",\n\"%s\"};\n",
+          fname_msh_x[0],fname_msh_x[1],fname_msh_x[2],fname_msh_x[3]);
+  fprintf(output,"char *fname_msh_y[] = {\"%s\",\n\"%s\",\n\"%s\",\n\"%s\"};\n",
+          fname_msh_y[0],fname_msh_y[1],fname_msh_y[2],fname_msh_y[3]);
+
+  fclose(output);
+  free(filename);
+}
 
 /*
 FINALLY done
@@ -1805,9 +1998,10 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
 
       for(int j=0;j<m;j++)
         phi[j][0] = phi[j][n-1] + Gamma[0];
+        // phi[j][n-1] = phi[j][0] - Gamma[0];
     }
 
-    disp(Gamma[0]);
+    // disp(Gamma[0]);
 
     if(!config->save_last_only){
       flip_2d_array(m,n,phi);
@@ -1861,6 +2055,58 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
   fclose(file_log);
   free(fpb_prmtrs.L2);
   free(fpb_prmtrs.Linf);
+}
+
+/*
+- gigiaero, 03/06/2026, 1544 hours
+*/
+void three_point_pol2_extrp(int m,int n,double A[m][n],double x[m][n],
+                            double y[m][n],int i,int end){
+  double d1,d2,d3;
+
+  if(!end){
+    d1 = sqrt(pow(x[1][i] - x[0][i],2.) + pow(y[1][i] - y[0][i],2.));
+    d2 = sqrt(pow(x[2][i] - x[0][i],2.) + pow(y[2][i] - y[0][i],2.));
+    d3 = sqrt(pow(x[3][i] - x[0][i],2.) + pow(y[3][i] - y[0][i],2.));
+    
+    A[0][i] = (d1*d1*d2*A[3][i] - d1*d1*d3*A[2][i] - d1*d2*d2*A[3][i] + 
+               d1*d3*d3*A[2][i] + d2*d2*d3*A[1][i] - d2*d3*d3*A[1][i])/
+              (d1*d1*d2 - d1*d1*d3 - d1*d2*d2  + d1*d3*d3  + d2*d2*d3 - 
+               d2*d3*d3);
+  }
+  else{
+    d1 = sqrt(pow(x[m-2][i] - x[m-1][i],2.) + pow(y[m-2][i] - y[m-1][i],2.));
+    d2 = sqrt(pow(x[m-3][i] - x[m-1][i],2.) + pow(y[m-3][i] - y[m-1][i],2.));
+    d3 = sqrt(pow(x[m-4][i] - x[m-1][i],2.) + pow(y[m-4][i] - y[m-1][i],2.));
+
+    A[m-1][i] = (d1*d1*d2*A[m-4][i] - d1*d1*d3*A[m-3][i] - d1*d2*d2*A[m-4][i] + 
+                 d1*d3*d3*A[m-3][i] + d2*d2*d3*A[m-2][i] - d2*d3*d3*A[m-2][i])/
+                (d1*d1*d2 - d1*d1*d3 - d1*d2*d2  + d1*d3*d3  + d2*d2*d3 - 
+                 d2*d3*d3);
+  }
+}
+
+/*
+- gigiaero, 03/06/2026, 1306 hours
+*/
+void two_point_linear_extrp(int m,int n,double A[m][n],double x[m][n],
+                            double y[m][n],int i,int end){
+  double d1,d2;
+  
+  if(!end){
+    d1 = sqrt(pow(x[1][i] - x[0][i],2.) + pow(y[1][i] - y[0][i],2.));
+    d2 = sqrt(pow(x[2][i] - x[0][i],2.) + pow(y[2][i] - y[0][i],2.));
+
+    A[0][i] = (d1*A[2][i] - d2*A[1][i])/(d1 - d2);
+  }
+  else{
+    d1 = sqrt(pow(x[m-2][i] - x[m-1][i],2.) + pow(y[m-2][i] - y[m-1][i],2.));
+    d2 = sqrt(pow(x[m-3][i] - x[m-1][i],2.) + pow(y[m-3][i] - y[m-1][i],2.));
+    // d1 = sqrt(x[m-2][i]*x[m-2][i] + y[m-2][i]*y[m-2][i]);
+    // d2 = sqrt(x[m-3][i]*x[m-3][i] + y[m-3][i]*y[m-3][i]);
+
+    A[m-1][i] = (d1*A[m-3][i] - d2*A[m-2][i])/(d1 - d2);
+  }
 }
 
 /*

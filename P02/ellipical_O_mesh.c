@@ -27,16 +27,18 @@ int main(){
   msh_prmtrs msh;
   msh.end_prmtrs = malloc(sizeof(double)*4);
   /* IMAX */
-  msh.IMAX = 93*2+1;
+  // msh.IMAX = 93;
+  msh.IMAX = 241;
   /* JMAX */
-  msh.JMAX = 15*4;
+  // msh.JMAX = 15;
+  msh.JMAX = 81;
   /* c */
   msh.c = 1.;
   /* end_prmtrs */
   msh.end_prmtrs[0] = 6.5*msh.c;
   msh.end_prmtrs[1] = 6.5*msh.c;
-  // msh.end_prmtrs[2] = msh.c*.5;
-  msh.end_prmtrs[2] = msh.c*.25;
+  msh.end_prmtrs[2] = msh.c*.5;
+  // msh.end_prmtrs[2] = msh.c*.25;
   msh.end_prmtrs[3] = 0.;
   /* init_type */
   msh.init_type = 3;

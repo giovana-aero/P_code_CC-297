@@ -1,7 +1,7 @@
 /* IMAX */
-msh.IMAX = 241
+msh.IMAX = 121
 /* JMAX */
-msh.JMAX = 81
+msh.JMAX = 41
 /* c */
 msh.c = 1.000000
 /* end_prmtrs */

@@ -868,7 +868,7 @@ void naca4(int n,double *x,double *xu,double *xl,double *yu,double *yl,
 /*
 - gigiaero, 29/05/2026, 1342 hours
 */
-void save_prmtrs_msh(char* casename,msh_prmtrs *msh){
+void save_prmtrs_msh(char *casename,msh_prmtrs *msh){
   char *filename = malloc(sizeof(char)*200);
   FILE *output;
 
@@ -877,34 +877,34 @@ void save_prmtrs_msh(char* casename,msh_prmtrs *msh){
   output = fopen(filename,"w");
 
   fprintf(output,"/* IMAX */\n");
-  fprintf(output,"msh.IMAX = %d\n",msh->IMAX);
+  fprintf(output,"msh.IMAX = %d;\n",msh->IMAX);
   fprintf(output,"/* JMAX */\n");
-  fprintf(output,"msh.JMAX = %d\n",msh->JMAX);
+  fprintf(output,"msh.JMAX = %d;\n",msh->JMAX);
   fprintf(output,"/* c */\n");
-  fprintf(output,"msh.c = %f\n",msh->c);
+  fprintf(output,"msh.c = %f;\n",msh->c);
   fprintf(output,"/* end_prmtrs */\n");
-  fprintf(output,"msh.end_prmtrs[0] = %f\n",msh->end_prmtrs[0]);
-  fprintf(output,"msh.end_prmtrs[1] = %f\n",msh->end_prmtrs[1]);
-  fprintf(output,"msh.end_prmtrs[2] = %f\n",msh->end_prmtrs[2]);
-  fprintf(output,"msh.end_prmtrs[3] = %f\n",msh->end_prmtrs[3]);
+  fprintf(output,"msh.end_prmtrs[0] = %f;\n",msh->end_prmtrs[0]);
+  fprintf(output,"msh.end_prmtrs[1] = %f;\n",msh->end_prmtrs[1]);
+  fprintf(output,"msh.end_prmtrs[2] = %f;\n",msh->end_prmtrs[2]);
+  fprintf(output,"msh.end_prmtrs[3] = %f;\n",msh->end_prmtrs[3]);
   fprintf(output,"/* init_type */\n");
-  fprintf(output,"msh.init_type = %d\n",msh->init_type);
+  fprintf(output,"msh.init_type = %d;\n",msh->init_type);
   fprintf(output,"/* af_type */\n");
-  fprintf(output,"msh.af_type = %d\n",msh->af_type);
+  fprintf(output,"msh.af_type = %d;\n",msh->af_type);
   if(msh->af_type == 1){
     fprintf(output,"/* af_prmtrs (bi_air) */\n");
-    fprintf(output,"msh.af_prmtrs[0] = %f\n",msh->af_prmtrs[0]);
+    fprintf(output,"msh.af_prmtrs[0] = %f;\n",msh->af_prmtrs[0]);
   }
   else if(msh->af_type == 2){
     fprintf(output,"/* af_prmtrs (naca4) */\n");
-    fprintf(output,"msh.af_prmtrs[0] = %f\n",msh->af_prmtrs[0]);
-    fprintf(output,"msh.af_prmtrs[1] = %f\n",msh->af_prmtrs[1]);
-    fprintf(output,"msh.af_prmtrs[2] = %f\n",msh->af_prmtrs[2]);
+    fprintf(output,"msh.af_prmtrs[0] = %f;\n",msh->af_prmtrs[0]);
+    fprintf(output,"msh.af_prmtrs[1] = %f;\n",msh->af_prmtrs[1]);
+    fprintf(output,"msh.af_prmtrs[2] = %f;\n",msh->af_prmtrs[2]);
   }
   else if(msh->af_type == 3){
     fprintf(output,"/* af_prmtrs (cst) */\n");
-    fprintf(output,"int n = %d\n",(int) msh->af_prmtrs[0]);
-    fprintf(output,"int cst_foil = %d\n",msh->cst_foil);
+    fprintf(output,"int n = %d;\n",(int) msh->af_prmtrs[0]);
+    fprintf(output,"int cst_foil = %d;\n",msh->cst_foil);
   }
   else{
     puts("save_prmtrs_msh: invalid af_type");

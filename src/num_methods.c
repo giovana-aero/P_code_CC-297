@@ -226,19 +226,19 @@ void save_prmtrs_sim(sim_prmtrs *s_p){
 
   output = fopen(filename,"w");
 
-  fprintf(output,"config.Ntype = %d\n",s_p->Ntype);
-  fprintf(output,"config.w = %f\n",s_p->w);
-  fprintf(output,"config.r = %f\n",s_p->r);
-  fprintf(output,"config.alpha_seq = %d\n",s_p->alpha_seq);
-  fprintf(output,"config.alpha = %e\n",s_p->alpha);
-  fprintf(output,"config.alpha_H = %e\n",s_p->alpha_H);
-  fprintf(output,"config.set_alpha_H = %d\n",s_p->set_alpha_H);
-  fprintf(output,"config.M = %d\n",s_p->M);
-  fprintf(output,"config.max_iter = %ld\n",s_p->max_iter);
-  fprintf(output,"config.qtimes = %ld\n",s_p->qtimes);
-  fprintf(output,"config.save_ic = %d\n",s_p->save_i_c);
-  fprintf(output,"config.save_last_only = %d\n",s_p->save_last_only);
-  fprintf(output,"config.eps = %e\n",s_p->eps);
+  fprintf(output,"config.Ntype = %d;\n",s_p->Ntype);
+  fprintf(output,"config.w = %f;\n",s_p->w);
+  fprintf(output,"config.r = %f;\n",s_p->r);
+  fprintf(output,"config.alpha_seq = %d;\n",s_p->alpha_seq);
+  fprintf(output,"config.alpha = %e;\n",s_p->alpha);
+  fprintf(output,"config.alpha_H = %e;\n",s_p->alpha_H);
+  fprintf(output,"config.set_alpha_H = %d;\n",s_p->set_alpha_H);
+  fprintf(output,"config.M = %d;\n",s_p->M);
+  fprintf(output,"config.max_iter = %ld;\n",s_p->max_iter);
+  fprintf(output,"config.qtimes = %ld;\n",s_p->qtimes);
+  fprintf(output,"config.save_ic = %d;\n",s_p->save_i_c);
+  fprintf(output,"config.save_last_only = %d;\n",s_p->save_last_only);
+  fprintf(output,"config.eps = %e;\n",s_p->eps);
 
   fclose(output);
   free(filename);

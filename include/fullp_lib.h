@@ -46,6 +46,9 @@ void evaluate_delta_form_fullp(int m,int n,sim_prmtrs *config,
 double freestream_u(double Ma);
 // double get_mach(double contraU,double contraV,double dphi_dksi,
 //                 double dphi_deta);
+// void fullp_multigrid(int m[4],int n[4],sim_prmtrs *config,
+//                      fullp_prmtrs *fp_prmtrs,char *fname_msh_x[],
+//                      char *fname_msh_y[]);
 double get_dphi_deta(int m,int n,double phi[m][n],double A2_val,double A3_val,
                      double dphi_dksi,int i,int j,int op);
 double get_dphi_dksi(int m,int n,double phi[m][n],int i,int j,int op);
@@ -87,10 +90,10 @@ void nu_switch(int m,int n,double nu[m][n],double contraUV[m][n],
 double rho_coeffs(int m,int n,double rho_tb[m][n],double rho[m][n],
                   double contraUV[m][n],double nu[m][n],int op,int axis);
 int rs_idx(double contraUV);
-void three_point_pol2_extrp(int m,int n,double A[m][n],double x[m][n],
-                            double y[m][n],int i,int end);
-void two_point_linear_extrp(int m,int n,double A[m][n],double x[m][n],
-                            double y[m][n],int i,int end);
+void save_prmtrs_fullp(char *casename,fullp_prmtrs *fp_prmtrs,
+                       char *fname_msh_x,char *fname_msh_y);
+void save_prmtrs_fullp_multigrid(char *casename,fullp_prmtrs *fp_prmtrs,
+                                 char *fname_msh_x[],char *fname_msh_y[]);
 // void solve_adi_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
 //                                     double A1[m][n],double A2[m][n],
 //                                     double A3[m][n],sim_prmtrs *config,
@@ -103,6 +106,10 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
                                     double A1_jh[m][n],double A2_jh[m][n],
                                     double A3_jh[m][n],double *x,double *y,
                                     sim_prmtrs *config,fullp_prmtrs *fp_prmtrs);
+void three_point_pol2_extrp(int m,int n,double A[m][n],double x[m][n],
+                            double y[m][n],int i,int end);
+void two_point_linear_extrp(int m,int n,double A[m][n],double x[m][n],
+                            double y[m][n],int i,int end);
 void update_vortex(int n,double *phi,double *x,double *y,double Gamma,
                    fullp_prmtrs *fp_prmtrs);
 
