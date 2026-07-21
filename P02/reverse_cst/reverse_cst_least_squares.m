@@ -54,6 +54,8 @@ p_op = 1;
 % filename = 'naca2312.txt';
 % filename = 'naca2411.txt';
 % filename = 'naca64A005.92.txt'
+% filename = 'naca64A010.txt'
+filename = 'supercritical_TM-X-1831.txt';
 
 coo = dlmread(filename);
 coo = converter_function_xfoil(coo);

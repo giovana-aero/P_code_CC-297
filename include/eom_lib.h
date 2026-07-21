@@ -36,6 +36,7 @@ typedef struct mesh_parameters{
   4-parabolic
   */
   int init_type;
+  double exspc; // spacing parameter used in parabolic meshes
 }msh_prmtrs;
 
 void alpha_sequence(double *alpha,int *k,int iter,sim_prmtrs *config);

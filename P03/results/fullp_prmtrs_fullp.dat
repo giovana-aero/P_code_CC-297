@@ -1,16 +1,10 @@
-fp.prmtrs.alpha = 0.000000;
+fp.prmtrs.alpha = 1.000000;
 fp.prmtrs.Ma = 0.700000;
-fp.prmtrs.C = 1.000000;
+fp.prmtrs.C = 1.200000;
 fp.prmtrs.beta_sub = 0.300000;
 fp.prmtrs.beta_super = 4.500000;
-fp.prmtrs.lift = 0;
-fp.prmtrs.Rg = 0.100000;
+fp.prmtrs.lift = 1;
+fp.prmtrs.Rg = 0.500000;
 
-char *fname_msh_x[] = {"../P02/eom_m81_n241_biair_t01/eom_x_iter_0000000065.dat",
-"../P02/eom_m41_n121_biair_t01/eom_x_iter_0000000064.dat",
-"../P02/eom_m21_n61_biair_t01/eom_x_iter_0000000047.dat",
-"../P02/eom_m11_n31_biair_t01/eom_x_iter_0000000168.dat"};
-char *fname_msh_y[] = {"../P02/eom_m81_n241_biair_t01/eom_y_iter_0000000065.dat",
-"../P02/eom_m41_n121_biair_t01/eom_y_iter_0000000064.dat",
-"../P02/eom_m21_n61_biair_t01/eom_y_iter_0000000047.dat",
-"../P02/eom_m11_n31_biair_t01/eom_y_iter_0000000168.dat"};
+char filename_msh_x[] = "../P02/eom_m60_n187_biair_t01_25c/eom_x_iter_0000000074.dat";
+char filename_msh_y[] = "../P02/eom_m60_n187_biair_t01_25c/eom_y_iter_0000000074.dat";

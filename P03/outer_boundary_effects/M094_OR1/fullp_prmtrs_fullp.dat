@@ -1,0 +1,10 @@
+fp.prmtrs.alpha = 0.000000;
+fp.prmtrs.Ma = 0.940000;
+fp.prmtrs.C = 1.000000;
+fp.prmtrs.beta_sub = 0.300000;
+fp.prmtrs.beta_super = 4.500000;
+fp.prmtrs.lift = 0;
+fp.prmtrs.Rg = 0.100000;
+
+char filename_msh_x[] = "../P02/eom_m41_n121_biair_t01/eom_x_iter_0000000064.dat";
+char filename_msh_y[] = "../P02/eom_m41_n121_biair_t01/eom_y_iter_0000000064.dat";

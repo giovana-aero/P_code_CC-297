@@ -271,6 +271,14 @@ void cst_prmtrs(msh_prmtrs *msh){
       strcat(filename,"s1223_cst_prmtrs.dat");
       break;
 
+    case 5: // n = 10
+      strcat(filename,"naca64A010_cst_prmtrs.dat");
+      break;
+
+    case 6: // n = 10
+      strcat(filename,"supercritical_TM-X-1831_cst_prmtrs.dat");
+      break;
+
     default:
       puts("cst_prmtrs: invalid airfoil")  ;
       exit(108);
@@ -709,12 +717,6 @@ double min_physical_spacing(int m,int n,double x[m][n],double y[m][n]){
       deltayx = fabs(y[j][i+1] - y[j][i]);
       deltayy = fabs(y[j+1][i] - y[j][i]);
 
-      /* limpar isto quando eu estiver certa que está tudo em ordem */
-      // disp(deltaxx);
-      // disp(deltaxy);
-      // disp(deltayx);
-      // disp(deltayy);
-
       if(deltaxx > deltaxy && deltaxy != 0)
         deltaxx = deltaxy;
 
@@ -726,54 +728,29 @@ double min_physical_spacing(int m,int n,double x[m][n],double y[m][n]){
       
       if(min > deltayy && deltayy != 0)
         min = deltayy;
-      
-      // disp(min);
-      // putchar('\n');
-      // min = (deltaxx > deltayy) ? deltaxx : deltayy;
     }
   }
 
-  // puts("-------------------------------"); putchar('\n');
-
   for(int j=0;j<m;j++){
     deltaxx = fabs(x[j][n-1] - x[j][n-2]);
-    // deltaxy = x[j+1][i] - x[j][i];
     deltayx = fabs(y[j][n-1] - y[j][n-2]);
-    // deltayy = y[j+1][i] - y[j][i];
-
-    // disp(deltaxx);
-    // disp(deltayx);
 
     if(min > deltaxy && deltaxy != 0)
       min = deltaxy;
 
     if(min > deltayx && deltayx != 0)
       min = deltayx;
-
-    // min = (deltaxx > deltayx) ? deltaxx : deltayx; 
-    // disp(min);
-    // putchar('\n');
   }
 
-  // puts("-------------------------------"); putchar('\n');
-
   for(int i=0;i<n;i++){
-    // deltaxx = x[j][i+1] - x[j][i];
     deltaxy = fabs(x[m-1][i] - x[m-2][i]);
-    // deltayx = y[j][i+1] - y[j][i];
     deltayy = fabs(y[m-1][i] - y[m-2][i]);
 
-    // disp(deltaxy);
-    // disp(deltayy);
-
-    if(min > deltaxy)
+    if(min > deltaxy && deltaxy != 0)
       min = deltaxy;
 
-    if(min > deltayx)
+    if(min > deltayx && deltayx != 0)
       min = deltayx;
-
-    // min = (deltaxy > deltayy) ? deltaxy : deltayy;
-    // disp(min); putchar('\n');
   }
 
   return min;
@@ -889,6 +866,8 @@ void save_prmtrs_msh(char *casename,msh_prmtrs *msh){
   fprintf(output,"msh.end_prmtrs[3] = %f;\n",msh->end_prmtrs[3]);
   fprintf(output,"/* init_type */\n");
   fprintf(output,"msh.init_type = %d;\n",msh->init_type);
+  if(msh->init_type == 4)
+    fprintf(output,"msh.exscp = %f;\n",msh->exspc);
   fprintf(output,"/* af_type */\n");
   fprintf(output,"msh.af_type = %d;\n",msh->af_type);
   if(msh->af_type == 1){

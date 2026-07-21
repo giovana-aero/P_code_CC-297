@@ -2,36 +2,36 @@ clc,clear
 
 casename = 'bi_air';
 cmap = slanCM('bupu');
-save_figs = 1;
+save_figs = 0;
 
-% bi_air, t005
-address_list = {'../final_results_slor/t005_mtype1/',...
-                '../final_results_slor/t005_mtype4/'};
-address_ref = {'../original_cp_chord_005.dat',...
-               '../../../P01/ref_data/t005.dat'};
-lgds = {'Malha 1','Malha 4'};
-lgds_ref = {'Referencia (corda)','Referencia (geometria completa)'};
-linestyles = {'-','-'};
-linestyles_ref = {'--',':'};
-colors = {cmap(100,:),cmap(150,:)};
-colors_ref = {'k','k'};
-ILE = [11,81];
-ITE = [31,241];
-filename = 'compare_cp_chord_t005';
-
-% % bi_air, t010
-% address_list = {'../final_results_slor/t010_mtype1/',...
-%                 '../final_results_slor/t010_mtype4/'};
-% address_ref = {'../../../P01/ref_data/t010.dat'};
+% % bi_air, t005
+% address_list = {'../final_results_slor/t005_mtype1/',...
+%                 '../final_results_slor/t005_mtype4/'};
+% address_ref = {'../original_cp_chord_005.dat',...
+%                '../../../P01/ref_data/t005.dat'};
 % lgds = {'Malha 1','Malha 4'};
-% lgds_ref = {'Referencia (geometria completa)'};
+% lgds_ref = {'Referencia (corda)','Referencia (geometria completa)'};
 % linestyles = {'-','-'};
 % linestyles_ref = {'--',':'};
 % colors = {cmap(100,:),cmap(150,:)};
 % colors_ref = {'k','k'};
 % ILE = [11,81];
 % ITE = [31,241];
-% filename = 'compare_cp_chord_t010';
+% filename = 'compare_cp_chord_t005';
+
+% bi_air, t010
+address_list = {'../final_results_slor/t010_mtype1/',...
+                '../final_results_slor/t010_mtype4/'};
+address_ref = {'../../../P01/ref_data/t010.dat'};
+lgds = {'Malha 1','Malha 4'};
+lgds_ref = {'Referencia (geometria completa)'};
+linestyles = {'-','-'};
+linestyles_ref = {'--',':'};
+colors = {cmap(100,:),cmap(150,:)};
+colors_ref = {'k','k'};
+ILE = [11,81];
+ITE = [31,241];
+filename = 'compare_cp_chord_t010';
 
 % % naca0005
 % address_list = {'../final_results_slor/naca0005_mtype1/',...

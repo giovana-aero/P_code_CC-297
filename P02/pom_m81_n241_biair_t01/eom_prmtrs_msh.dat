@@ -1,0 +1,18 @@
+/* IMAX */
+msh.IMAX = 241;
+/* JMAX */
+msh.JMAX = 81;
+/* c */
+msh.c = 1.000000;
+/* end_prmtrs */
+msh.end_prmtrs[0] = 6.500000;
+msh.end_prmtrs[1] = 6.500000;
+msh.end_prmtrs[2] = 0.500000;
+msh.end_prmtrs[3] = 0.000000;
+/* init_type */
+msh.init_type = 4;
+msh.exscp = 0.100000;
+/* af_type */
+msh.af_type = 1;
+/* af_prmtrs (bi_air) */
+msh.af_prmtrs[0] = 0.100000;

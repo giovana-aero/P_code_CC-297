@@ -6,6 +6,15 @@ ref_val = 1e-6;
 save_figs = 0;
 cmap = slanCM('bupu');
 
+% results
+address_list = {'../results/'};
+lgds = {'../results/'};
+linestyles = {'-'};
+xlims = [];
+ylims = [];
+filename = [];
+colors = {[0,0,0]};
+
 % % w - slor
 % address_list = {'../optimizations/base/slor/';
 %                 '../optimizations/omega/slor/w09/';
@@ -47,22 +56,22 @@ cmap = slanCM('bupu');
 % filename = '../../../P02/figuras/testes/w_optimization_af2';
 % colors = {[0,0,0],cmap(210,:),cmap(210,:),cmap(100,:),cmap(100,:)};
 
-% a - adi
-address_list = {'../optimizations/base/adi/';
-                '../optimizations/alpha/adi/a15/';
-                '../optimizations/alpha/adi/a1e-1/';
-                '../optimizations/alpha/adi/a1e-2/';
-                '../optimizations/alpha/adi/a1e-3/';
-                '../optimizations/alpha/adi/a1e-4/';
-                '../optimizations/alpha/adi/a1e-5/';
-                '../optimizations/alpha/adi/aseq_suggestion/';
-                '../optimizations/alpha/adi/aseq_opt/'};
-lgds = {'$\alpha=1.0$','$\alpha=1.5$','$\alpha=1\mathrm{E}-01$','$\alpha=1\mathrm{E}-02$','$\alpha=1\mathrm{E}-03$','$\alpha=1\mathrm{E}-04$','$\alpha=1\mathrm{E}-05$','Seq. sugerida','$\alpha_L=1\mathrm{E}-04,\alpha_H=1\mathrm{E}-01$'};
-linestyles = {'-','-','-.','--','-','-.','--',':','--'};
-xlims = [-.05,1]*1e4;
-ylims = [5e-7,.1];
-filename = '../../../P02/figuras/testes/a_optimization_adi';
-colors = {[0,0,0],cmap(210,:),cmap(210,:),cmap(210,:),cmap(100,:),cmap(100,:),cmap(100,:),'k','k'};
+% % a - adi
+% address_list = {'../optimizations/base/adi/';
+%                 '../optimizations/alpha/adi/a15/';
+%                 '../optimizations/alpha/adi/a1e-1/';
+%                 '../optimizations/alpha/adi/a1e-2/';
+%                 '../optimizations/alpha/adi/a1e-3/';
+%                 '../optimizations/alpha/adi/a1e-4/';
+%                 '../optimizations/alpha/adi/a1e-5/';
+%                 '../optimizations/alpha/adi/aseq_suggestion/';
+%                 '../optimizations/alpha/adi/aseq_opt/'};
+% lgds = {'$\alpha=1.0$','$\alpha=1.5$','$\alpha=1\mathrm{E}-01$','$\alpha=1\mathrm{E}-02$','$\alpha=1\mathrm{E}-03$','$\alpha=1\mathrm{E}-04$','$\alpha=1\mathrm{E}-05$','Seq. sugerida','$\alpha_L=1\mathrm{E}-04,\alpha_H=1\mathrm{E}-01$'};
+% linestyles = {'-','-','-.','--','-','-.','--',':','--'};
+% xlims = [-.05,1]*1e4;
+% ylims = [5e-7,.1];
+% filename = '../../../P02/figuras/testes/a_optimization_adi';
+% colors = {[0,0,0],cmap(210,:),cmap(210,:),cmap(210,:),cmap(100,:),cmap(100,:),cmap(100,:),'k','k'};
 
 % % a - af2
 % address_list = {'../optimizations/base/af2/';

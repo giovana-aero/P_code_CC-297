@@ -109,6 +109,9 @@ void loc_ref_grid(int m,int n,double x[m][n],double y[m][n],double *eps_switch,
 
 /*
 - gigiaero, 14/05/2026, 1733 hours 
+
+addition of the exspc parameter to make it easier to control parabolic meshes
+- gigiaero, 19/07/2026, 1146 hours
 */
 void parabolic_mesh(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
   double *eps_switch = malloc(sizeof(double)*m);
@@ -127,8 +130,7 @@ void parabolic_mesh(int m,int n,double x[m][n],double y[m][n],msh_prmtrs *msh){
   linspace(eps_switch,0.,1.,m);
   // cosspace(s,0.,1.,m,1);
   // linspace(s,0.,1.,m);
-  exspace(s,.35,m); // the only one that properly works every time, it seems.
-                    // the coefficient was chosen kind of empirically.
+  exspace(s,msh->exspc,m); 
 
   for(int j=1;j<m-1;j++){
     loc_ref_grid(m,n,x,y,eps_switch,s,j);

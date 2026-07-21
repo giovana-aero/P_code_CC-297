@@ -809,18 +809,13 @@ double get_dphi_deta(int m,int n,double phi[m][n],double A2_val,double A3_val,
         return -A2_val*dphi_dksi/A3_val;
 
       else if(j == 0){
-        check_j(m,j+1);
-        check_j(m,j+2);
         if(i == n-1)
           i = 0;
 
-        return (uniform_scheme_der1_o1_forward(m,n,phi,i,j,2) + 
-                uniform_scheme_der1_o1_forward(m,n,phi,i+1,j,2))*.5; // tem que ser de primeira ordem?
+        return (uniform_scheme_der1_o2_forward(m,n,phi,i,j,2) + 
+                uniform_scheme_der1_o2_forward(m,n,phi,i+1,j,2))*.5; // tem que ser de primeira ordem?
       }
       else{
-        check_j(m,j-1);
-        check_j(m,j+1);
-        check_j(n,i+1);
         if(i == n-1)
           i = 0;
 
@@ -871,7 +866,6 @@ double get_dphi_dksi(int m,int n,double phi[m][n],int i,int j,int op){
         
   switch(op){
     case 1: // i+1/2,j
-    check_j(n,i+1);
       if(i == n-1)
         i = 0;
 
@@ -918,9 +912,6 @@ double get_dphi_dksi(int m,int n,double phi[m][n],int i,int j,int op){
 - gigiaero, 22/06/2026, 2103 hours
 */
 double get_dxy_deta(int m,int n,double xy[m][n],int i,int j,int op){
-  check_j(m,j);
-  check_j(n,i);
-
   switch(op){
     case 1: // i+1/2,j
       if(i == n-1)
@@ -1043,7 +1034,7 @@ void get_half_meshes(int m,int n,double x[m][n],double y[m][n],
 void get_p_cp_fullp(int m,int n,double p[m][n],double cp[m][n],double rho[m][n],
                     double Ma){
   double Uinf = freestream_u(Ma);
-  double rho_inf = pow(1. - (gamma - 1.)/(gamma + 1.)*Uinf*Uinf,1./(gamma - 1.));
+  double rho_inf =pow(1. - (gamma - 1.)/(gamma + 1.)*Uinf*Uinf,1./(gamma - 1.));
   double p_inf = (gamma + 1.)*pow(rho_inf,gamma)/2./gamma;
 
   for(int j=0;j<m;j++){
@@ -1481,6 +1472,35 @@ int rs_idx(double contraUV){
     return -1;
 }
 
+/*
+- gigiaero, 15/07/2026, ???? hours
+*/
+void save_prmtrs_fullp_multigrid(char *casename,fullp_prmtrs *fp_prmtrs,
+                                 char *fname_msh_x[],char *fname_msh_y[]){
+  char *filename = malloc(sizeof(char)*200);
+  FILE *output;
+
+  sprintf(filename,"%s_prmtrs_fullp.dat",casename);
+
+  output = fopen(filename,"w");
+
+  fprintf(output,"fp_prmtrs.alpha = %f;\n",fp_prmtrs->alpha);
+  fprintf(output,"fp_prmtrs.Ma = %f;\n",fp_prmtrs->Ma);
+  fprintf(output,"fp_prmtrs.C = %f;\n",fp_prmtrs->C);
+  fprintf(output,"fp_prmtrs.beta_sub = %f;\n",fp_prmtrs->beta_sub);
+  fprintf(output,"fp_prmtrs.beta_super = %f;\n",fp_prmtrs->beta_super);
+  fprintf(output,"fp_prmtrs.lift = %d;\n",fp_prmtrs->lift);
+  fprintf(output,"fp_prmtrs.Rg = %f;\n\n",fp_prmtrs->Rg);
+
+  fprintf(output,"char *fname_msh_x[] = {\"%s\",\n\"%s\",\n\"%s\",\n\"%s\"};\n",
+          fname_msh_x[0],fname_msh_x[1],fname_msh_x[2],fname_msh_x[3]);
+  fprintf(output,"char *fname_msh_y[] = {\"%s\",\n\"%s\",\n\"%s\",\n\"%s\"};\n",
+          fname_msh_y[0],fname_msh_y[1],fname_msh_y[2],fname_msh_y[3]);
+
+  fclose(output);
+  free(filename);
+}
+
 // (adi here)
 /*
 // void solve_adi_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
@@ -1725,35 +1745,6 @@ void save_prmtrs_fullp(char *casename,fullp_prmtrs *fp_prmtrs,
 }
 
 /*
-
-*/
-void save_prmtrs_fullp_multigrid(char *casename,fullp_prmtrs *fp_prmtrs,
-                                 char *fname_msh_x[],char *fname_msh_y[]){
-  char *filename = malloc(sizeof(char)*200);
-  FILE *output;
-
-  sprintf(filename,"%s_prmtrs_fullp.dat",casename);
-
-  output = fopen(filename,"w");
-
-  fprintf(output,"fp.prmtrs.alpha = %f;\n",fp_prmtrs->alpha);
-  fprintf(output,"fp.prmtrs.Ma = %f;\n",fp_prmtrs->Ma);
-  fprintf(output,"fp.prmtrs.C = %f;\n",fp_prmtrs->C);
-  fprintf(output,"fp.prmtrs.beta_sub = %f;\n",fp_prmtrs->beta_sub);
-  fprintf(output,"fp.prmtrs.beta_super = %f;\n",fp_prmtrs->beta_super);
-  fprintf(output,"fp.prmtrs.lift = %d;\n",fp_prmtrs->lift);
-  fprintf(output,"fp.prmtrs.Rg = %f;\n\n",fp_prmtrs->Rg);
-
-  fprintf(output,"char *fname_msh_x[] = {\"%s\",\n\"%s\",\n\"%s\",\n\"%s\"};\n",
-          fname_msh_x[0],fname_msh_x[1],fname_msh_x[2],fname_msh_x[3]);
-  fprintf(output,"char *fname_msh_y[] = {\"%s\",\n\"%s\",\n\"%s\",\n\"%s\"};\n",
-          fname_msh_y[0],fname_msh_y[1],fname_msh_y[2],fname_msh_y[3]);
-
-  fclose(output);
-  free(filename);
-}
-
-/*
 FINALLY done
 - gigiaero, 12/07/2026, 1926 hours
 */
@@ -1800,7 +1791,8 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
   double beta_super;
   double beta;
   fp_beta_prmtrs fpb_prmtrs;
-  double Gamma[] = {0.,0.,0.};
+  double (*Gamma)[3] = calloc(m,sizeof *Gamma);
+  // double Gamma[] = {0.,0.,0.};
   // double Gamma[] = {phi[m-1][1] - phi[m-1][n-2],phi[m-1][1] - phi[m-1][n-2],
   //                   phi[m-1][1] - phi[m-1][n-2]};
   double omega = config->w;
@@ -1859,34 +1851,6 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
 
     beta_update(&beta_super,L2_res,res,config->M,&fpb_prmtrs,iter);
 
-    // print_2d_array_to_file(m,n,contraU,"mat_contraU.dat",0);
-    // print_2d_array_to_file(m,n,contraU_ih,"mat_contraU_ih.dat",0);
-    // print_2d_array_to_file(m,n,contraU_jh,"mat_contraU_jh.dat",0);
-    // print_2d_array_to_file(m,n,contraV,"mat_contraV.dat",0);
-    // print_2d_array_to_file(m,n,contraV_ih,"mat_contraV_ih.dat",0);
-    // print_2d_array_to_file(m,n,contraV_jh,"mat_contraV_jh.dat",0);
-
-    // print_2d_array_to_file(m,n,rho,"mat_rho.dat",0);
-    // print_2d_array_to_file(m,n,rho_ih,"mat_rho_ih.dat",0);
-    // print_2d_array_to_file(m,n,rho_jh,"mat_rho_jh.dat",0);
-
-    // print_2d_array_to_file(m,n,nu_ih,"mat_nu_ih.dat",0);
-    // print_2d_array_to_file(m,n,nu_jh,"mat_nu_jh.dat",0);
-
-    // print_2d_array_to_file(m,n,rho_til,"mat_rho_til.dat",0);
-    // print_2d_array_to_file(m,n,rho_bar,"mat_rho_bar.dat",0);
-
-    // print_2d_array_to_file(m,n-1,L_phi_terms_ih,"mat_L_phi_terms_ih.dat",0);
-    // print_2d_array_to_file(m,n-1,L_phi_terms_jh,"mat_L_phi_terms_jh.dat",0);
-
-    // print_2d_array_to_file(m,n,L_phi,"mat_L_phi.dat",0);
-
-    // print_2d_array_to_file(m,n,Ai,"mat_Ai.dat",0);
-    // print_2d_array_to_file(m,n,Aj,"mat_Aj.dat",0);
-
-    // if(fp_prmtrs->lift)
-    //   calc_circulation(Gamma,n,phi[m-1],fp_prmtrs->Rg);
-
     res = 0.;
     for(int j=0;j<m;j++){
       for(int i=0;i<n-1;i++){
@@ -1937,9 +1901,6 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
       for(int j=1;j<m;j++)
         f[j][i] = un[j-1];
     }
-
-    // sprintf(filename,"mat_f_%010d.dat",iter);
-    // print_2d_array_to_file(m,n,f,filename,0);
     
     // Solve for corrections - step 2 (ksi)
     for(int j=1;j<m;j++){
@@ -1962,17 +1923,18 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
 
         fx[i] = f[j][i] + alpha*Cij[j-1][i]; 
 
-        if(contraU_ih[j][i] >= 0)
+        // if(contraU_ih[j][i] >= 0)
+        if(contraU[j][i] >= 0)
           ax[i] -= alpha*beta;
 
         else
           cx[i] -= alpha*beta;
 
         if(fp_prmtrs->lift && i == 0)
-          fx[i] -= Ai[j][idx]*(Gamma[0] - Gamma[1]);
+          fx[i] -= Ai[j][idx]*(Gamma[j][0] - Gamma[j][1]);
         
         // if(fp_prmtrs->lift && i == n-1)
-        //   fx[i] += Ai[j][i]*(Gamma[0] - Gamma[1]);
+        //   fx[i] += Ai[j][i]*(Gamma[j][0] - Gamma[j][1]);
       }
 
       tridiagonal_pmatrix_solver(n-1,ax,bx,cx,fx,ux);
@@ -1980,10 +1942,6 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
       for(int i=0;i<n-1;i++)
         Cij[j][i] = ux[i];
     }
-
-    // sprintf(filename,"mat_cij_%010d.dat",iter);
-    // print_2d_array_to_file(m,n,Cij,filename,0);
-    // exit(32);
 
     for(int j=0;j<m;j++){
       for(int i=0;i<n-1;i++)
@@ -1993,15 +1951,16 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
     }
 
     if(fp_prmtrs->lift){
-      calc_circulation(Gamma,n,phi[m-1],fp_prmtrs->Rg);
-      update_vortex(n,phi[0],x,y,Gamma[0],fp_prmtrs);
-
-      for(int j=0;j<m;j++)
-        phi[j][0] = phi[j][n-1] + Gamma[0];
+      for(int j=0;j<m;j++){
+        calc_circulation(Gamma[j],n,phi[j],fp_prmtrs->Rg);
+        phi[j][0] = phi[j][n-1] + Gamma[j][0];
         // phi[j][n-1] = phi[j][0] - Gamma[0];
+      }
+
+      update_vortex(n,phi[0],x,y,Gamma[0][0],fp_prmtrs);
     }
 
-    // disp(Gamma[0]);
+    // disp(Gamma[0][0]);
 
     if(!config->save_last_only){
       flip_2d_array(m,n,phi);
@@ -2055,6 +2014,7 @@ void solve_af2_2d_rectangular_fullp(int m,int n,double phi[m][n],double J[m][n],
   fclose(file_log);
   free(fpb_prmtrs.L2);
   free(fpb_prmtrs.Linf);
+  free(Gamma);
 }
 
 /*

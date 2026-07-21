@@ -10,7 +10,8 @@ addpath(address);
 % filename = 'whitcomb.txt';
 % filename = 'fx61-163.txt';
 % filename = 'naca64A005.92.txt';
-filename = 's1223.txt';
+% filename = 's1223.txt';
+filename = 'supercritical_TM-X-1831.txt';
 
 fontsize = 12;
 base_size = 500;
